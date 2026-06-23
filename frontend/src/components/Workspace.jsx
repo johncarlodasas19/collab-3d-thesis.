@@ -298,7 +298,8 @@ export default function Workspace() {
     const msgData = {
       roomId: projectId,
       message: newMessage,
-      user: { ...userObj, color: myColor }
+      user: { ...userObj, color: myColor },
+      timestamp: new Date().toISOString()
     };
 
     socket.emit('chat-message', msgData);
@@ -740,8 +741,15 @@ export default function Workspace() {
               ) : (
                 chatMessages.map((msg, i) => (
                   <div key={i} style={{ background: 'rgba(255,255,255,0.05)', padding: '0.5rem 0.75rem', borderRadius: '0.5rem', fontSize: '0.85rem' }}>
-                    <div style={{ fontWeight: '600', color: msg.user.color, marginBottom: '0.2rem', fontSize: '0.75rem' }}>
-                      {msg.user.username}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.2rem' }}>
+                      <div style={{ fontWeight: '600', color: msg.user.color, fontSize: '0.75rem' }}>
+                        {msg.user.username}
+                      </div>
+                      {msg.timestamp && (
+                        <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)' }}>
+                          {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      )}
                     </div>
                     <div style={{ color: 'white', wordBreak: 'break-word' }}>
                       {msg.message}
