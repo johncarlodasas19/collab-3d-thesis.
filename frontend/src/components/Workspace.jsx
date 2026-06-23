@@ -20,8 +20,9 @@ export default function Workspace() {
   const [cursors, setCursors] = useState({});
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
-  const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(true);
-  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(true);
+  const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(window.innerWidth >= 768);
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(window.innerWidth >= 768);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [chatMessages, setChatMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [typingUsers, setTypingUsers] = useState({});
@@ -53,6 +54,9 @@ export default function Workspace() {
     }
 
     // Fetch project state
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+
     const fetchProject = async () => {
       try {
         const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects/${projectId}`, {
@@ -131,7 +135,10 @@ export default function Workspace() {
       });
     });
 
-    return () => newSocket.close();
+    return () => {
+      newSocket.close();
+      window.removeEventListener('resize', handleResize);
+    };
   }, [projectId, navigate]);
 
   const saveHistory = () => {
@@ -295,6 +302,12 @@ export default function Workspace() {
     const userStr = localStorage.getItem('user');
     const userObj = userStr ? JSON.parse(userStr) : { id: 'guest', username: 'Guest' };
     
+    if (e.target.value === '') {
+      socket.emit('stop-typing', { roomId: projectId, userId: userObj.id });
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      return;
+    }
+    
     socket.emit('typing', { roomId: projectId, id: userObj.id, username: userObj.username });
     
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
@@ -302,6 +315,13 @@ export default function Workspace() {
     typingTimeoutRef.current = setTimeout(() => {
       socket.emit('stop-typing', { roomId: projectId, userId: userObj.id });
     }, 2000);
+  };
+
+  const handleBlur = () => {
+    if (!socket) return;
+    const userStr = localStorage.getItem('user');
+    const userObj = userStr ? JSON.parse(userStr) : { id: 'guest' };
+    socket.emit('stop-typing', { roomId: projectId, userId: userObj.id });
   };
 
   const handlePointerMove = (e) => {
@@ -426,7 +446,13 @@ export default function Workspace() {
           overflowX: 'hidden',
           overflowY: isLeftSidebarOpen ? 'auto' : 'hidden',
           transition: 'all 0.3s ease',
-          direction: 'rtl'
+          direction: 'rtl',
+          position: isMobile ? 'fixed' : 'relative',
+          left: 0,
+          top: isMobile ? '60px' : 'auto',
+          bottom: isMobile ? '0' : 'auto',
+          zIndex: isMobile ? 40 : 10,
+          backgroundColor: isMobile ? 'rgba(25, 27, 40, 0.95)' : 'rgba(25, 27, 40, 0.9)'
         }}>
           <div className="toolbar-section" style={{ direction: 'ltr' }}>
             <span className="toolbar-label">Shapes</span>
@@ -629,14 +655,20 @@ export default function Workspace() {
         </div>
 
         <aside className="workspace-media-panel" style={{
-          width: isRightSidebarOpen ? '320px' : '0px',
-          minWidth: isRightSidebarOpen ? '320px' : '0px',
+          width: isRightSidebarOpen ? (isMobile ? '100%' : '320px') : '0px',
+          minWidth: isRightSidebarOpen ? (isMobile ? '100%' : '320px') : '0px',
           padding: isRightSidebarOpen ? '1.5rem' : '0',
           opacity: isRightSidebarOpen ? 1 : 0,
           overflow: 'hidden',
           transition: 'all 0.3s ease',
           display: 'flex',
-          flexDirection: 'column'
+          flexDirection: 'column',
+          position: isMobile ? 'fixed' : 'relative',
+          right: 0,
+          top: isMobile ? '60px' : 'auto',
+          bottom: isMobile ? '0' : 'auto',
+          zIndex: isMobile ? 40 : 10,
+          backgroundColor: isMobile ? 'rgba(25, 27, 40, 0.95)' : 'rgba(25, 27, 40, 0.9)'
         }}>
           <h3 style={{ marginBottom: '1.5rem', color: 'white', fontSize: '1rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem', flexShrink: 0 }}>
             Media Gallery
@@ -722,6 +754,7 @@ export default function Workspace() {
                 type="text" 
                 value={newMessage} 
                 onChange={handleTyping} 
+                onBlur={handleBlur}
                 placeholder="Type a message..." 
                 style={{ flex: 1, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.5rem', borderRadius: '0.5rem', outline: 'none', fontSize: '0.85rem' }}
               />
