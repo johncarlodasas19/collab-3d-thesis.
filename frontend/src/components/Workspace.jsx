@@ -24,6 +24,8 @@ export default function Workspace() {
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(true);
   const [chatMessages, setChatMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
+  const [typingUsers, setTypingUsers] = useState({});
+  const typingTimeoutRef = useRef(null);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const [history, setHistory] = useState([]);
   const lastEmitTime = useRef(0);
@@ -115,6 +117,18 @@ export default function Workspace() {
 
     newSocket.on('chat-message', (data) => {
       setChatMessages((prev) => [...prev, data]);
+    });
+
+    newSocket.on('typing', (user) => {
+      setTypingUsers((prev) => ({ ...prev, [user.id]: user.username }));
+    });
+
+    newSocket.on('stop-typing', (userId) => {
+      setTypingUsers((prev) => {
+        const next = { ...prev };
+        delete next[userId];
+        return next;
+      });
     });
 
     return () => newSocket.close();
@@ -270,6 +284,24 @@ export default function Workspace() {
 
     socket.emit('chat-message', msgData);
     setNewMessage('');
+    socket.emit('stop-typing', { roomId: projectId, userId: userObj.id });
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+  };
+
+  const handleTyping = (e) => {
+    setNewMessage(e.target.value);
+    if (!socket) return;
+    
+    const userStr = localStorage.getItem('user');
+    const userObj = userStr ? JSON.parse(userStr) : { id: 'guest', username: 'Guest' };
+    
+    socket.emit('typing', { roomId: projectId, id: userObj.id, username: userObj.username });
+    
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    
+    typingTimeoutRef.current = setTimeout(() => {
+      socket.emit('stop-typing', { roomId: projectId, userId: userObj.id });
+    }, 2000);
   };
 
   const handlePointerMove = (e) => {
@@ -488,7 +520,7 @@ export default function Workspace() {
             position: 'fixed',
             left: isLeftSidebarOpen ? '85px' : '0px',
             top: '50%',
-            marginTop: '-35px',
+            transform: 'translateY(-50%)',
             width: '32px',
             height: '70px',
             background: '#4f46e5',
@@ -520,7 +552,7 @@ export default function Workspace() {
             position: 'fixed',
             right: isRightSidebarOpen ? '320px' : '0px',
             top: '50%',
-            marginTop: '-35px',
+            transform: 'translateY(-50%)',
             width: '32px',
             height: '70px',
             background: '#4f46e5',
@@ -602,14 +634,17 @@ export default function Workspace() {
           padding: isRightSidebarOpen ? '1.5rem' : '0',
           opacity: isRightSidebarOpen ? 1 : 0,
           overflow: 'hidden',
-          transition: 'all 0.3s ease'
+          transition: 'all 0.3s ease',
+          display: 'flex',
+          flexDirection: 'column'
         }}>
-          <h3 style={{ marginBottom: '1.5rem', color: 'white', fontSize: '1rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>
+          <h3 style={{ marginBottom: '1.5rem', color: 'white', fontSize: '1rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem', flexShrink: 0 }}>
             Media Gallery
           </h3>
           
-          {objects.filter(o => o.type === 'image' || o.type === 'video').map(obj => (
-            <div key={obj.id} className="media-item">
+          <div style={{ flex: 1, overflowY: 'auto', paddingRight: '0.5rem', marginBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {objects.filter(o => o.type === 'image' || o.type === 'video').map(obj => (
+              <div key={obj.id} className="media-item">
               <button 
                 className="media-item-delete"
                 title="Delete Media"
@@ -641,15 +676,16 @@ export default function Workspace() {
             </div>
           ))}
 
-          {objects.filter(o => o.type === 'image' || o.type === 'video').length === 0 && (
-            <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center', marginTop: '2rem' }}>
-              <ImageIcon size={40} style={{ opacity: 0.2, marginBottom: '1rem' }} />
-              <p>No media uploaded yet.</p>
-              <p style={{ marginTop: '0.5rem', fontSize: '0.75rem' }}>Upload images or videos from the left toolbar.</p>
-            </div>
-          )}
+            {objects.filter(o => o.type === 'image' || o.type === 'video').length === 0 && (
+              <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center', marginTop: '2rem' }}>
+                <ImageIcon size={40} style={{ opacity: 0.2, marginBottom: '1rem' }} />
+                <p>No media uploaded yet.</p>
+                <p style={{ marginTop: '0.5rem', fontSize: '0.75rem' }}>Upload images or videos from the left toolbar.</p>
+              </div>
+            )}
+          </div>
 
-          <div className="workspace-chat-container" style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', height: '300px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem' }}>
+          <div className="workspace-chat-container" style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', height: '300px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem' }}>
             <h3 style={{ marginBottom: '0.5rem', color: 'white', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <MessageSquare size={16} /> Real-Time Chat
             </h3>
@@ -673,11 +709,19 @@ export default function Workspace() {
               <div ref={(el) => { if (el) el.scrollIntoView({ behavior: 'smooth' }); }} />
             </div>
             
+            <div style={{ minHeight: '20px', marginBottom: '0.5rem', fontSize: '0.75rem', color: '#94a3b8', fontStyle: 'italic' }}>
+              {Object.keys(typingUsers).length > 0 && (
+                <span>
+                  💬 {Object.values(typingUsers).join(', ')} {Object.keys(typingUsers).length === 1 ? 'is' : 'are'} typing...
+                </span>
+              )}
+            </div>
+            
             <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: '0.5rem' }}>
               <input 
                 type="text" 
                 value={newMessage} 
-                onChange={(e) => setNewMessage(e.target.value)} 
+                onChange={handleTyping} 
                 placeholder="Type a message..." 
                 style={{ flex: 1, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.5rem', borderRadius: '0.5rem', outline: 'none', fontSize: '0.85rem' }}
               />

@@ -96,6 +96,14 @@ io.on('connection', (socket) => {
     socket.to(data.roomId).emit('object-deleted', data.id);
   });
 
+  socket.on('typing', (data) => {
+    socket.to(data.roomId).emit('typing', data);
+  });
+
+  socket.on('stop-typing', (data) => {
+    socket.to(data.roomId).emit('stop-typing', data);
+  });
+
   socket.on('chat-message', (data) => {
     io.to(data.roomId).emit('chat-message', data);
   });
