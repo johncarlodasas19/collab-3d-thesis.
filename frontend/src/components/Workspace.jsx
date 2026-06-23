@@ -149,7 +149,7 @@ export default function Workspace() {
 
   const getYoutubeId = (url) => {
     if (!url) return null;
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
     const match = url.match(regExp);
     return (match && match[2].length === 11) ? match[2] : null;
   };
@@ -214,7 +214,9 @@ export default function Workspace() {
       });
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       const absoluteUrl = res.data.url.startsWith('http') ? res.data.url : `${apiUrl}${res.data.url}`;
-      handleAddObject('image', absoluteUrl);
+      
+      const fileType = file.type.startsWith('video/') ? 'video' : 'image';
+      handleAddObject(fileType, absoluteUrl);
     } catch (err) {
       console.error('Upload failed', err);
     }
