@@ -43,7 +43,7 @@ export default function Dashboard() {
   const fetchProjects = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/projects', {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setProjects(res.data);
@@ -55,7 +55,7 @@ export default function Dashboard() {
   const fetchTrash = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/projects/trash', {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects/trash`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setTrashProjects(res.data);
@@ -71,7 +71,7 @@ export default function Dashboard() {
 
   const fetchInvitations = async (token) => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/auth/invitations', {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/invitations`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setInvitations(res.data);
@@ -83,7 +83,7 @@ export default function Dashboard() {
   const handleAcceptInvite = async (projectId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/auth/invitations/${projectId}/accept`, {}, {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/invitations/${projectId}/accept`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchInvitations(token);
@@ -102,7 +102,7 @@ export default function Dashboard() {
     if (!newProjectName.trim()) return;
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/projects', { name: newProjectName.trim() }, {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects`, { name: newProjectName.trim() }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setShowCreateModal(false);
@@ -129,7 +129,7 @@ export default function Dashboard() {
       async () => {
         try {
           const token = localStorage.getItem('token');
-          await axios.delete(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/projects/${id}`, {
+          await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects/${id}`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           setProjects(projects.filter(p => p._id !== id));
@@ -145,7 +145,7 @@ export default function Dashboard() {
     e.stopPropagation();
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/projects/${id}/restore`, {}, {
+      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects/${id}/restore`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setTrashProjects(trashProjects.filter(p => p._id !== id));
@@ -164,7 +164,7 @@ export default function Dashboard() {
       async () => {
         try {
           const token = localStorage.getItem('token');
-          await axios.delete(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/projects/${id}/permanent`, {
+          await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects/${id}/permanent`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           setTrashProjects(trashProjects.filter(p => p._id !== id));
@@ -208,7 +208,7 @@ export default function Dashboard() {
         formData.append('media', blob, 'avatar.png');
 
         try {
-          const res = await axios.post(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/upload', formData, {
+          const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload', formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
           });
           setEditAvatarUrl(res.data.url);
@@ -239,7 +239,7 @@ export default function Dashboard() {
         payload.password = editPassword;
       }
 
-      const res = await axios.put(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/auth/profile', payload, {
+      const res = await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/profile', payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

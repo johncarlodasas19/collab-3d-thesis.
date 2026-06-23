@@ -53,10 +53,10 @@ export default function AdminDashboard() {
       const headers = { Authorization: `Bearer ${token}` };
       
       const [statsRes, usersRes, reportsRes, logsRes] = await Promise.all([
-        axios.get(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/admin/stats', { headers }),
-        axios.get(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/admin/users', { headers }),
-        axios.get(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/admin/reports', { headers }),
-        axios.get(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/admin/activity', { headers })
+        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/stats`, { headers }),
+        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/users`, { headers }),
+        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/reports`, { headers }),
+        axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/activity`, { headers })
       ]);
       
       setStats(statsRes.data);
@@ -74,7 +74,7 @@ export default function AdminDashboard() {
   const handleUpdateRole = async (userId, role) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/admin/users/${userId}/role`, { role }, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/users/${userId}/role`, { role }, { headers: { Authorization: `Bearer ${token}` } });
       fetchData();
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to update role');
@@ -84,7 +84,7 @@ export default function AdminDashboard() {
   const handleUpdateStatus = async (userId, status) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/admin/users/${userId}/status`, { status }, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/users/${userId}/status`, { status }, { headers: { Authorization: `Bearer ${token}` } });
       fetchData();
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to update status');
@@ -94,7 +94,7 @@ export default function AdminDashboard() {
   const handleResolveReport = async (reportId, status) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/admin/reports/${reportId}/resolve`, { status }, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/reports/${reportId}/resolve`, { status }, { headers: { Authorization: `Bearer ${token}` } });
       fetchData();
     } catch (err) {
       alert('Failed to resolve report');
@@ -108,7 +108,7 @@ export default function AdminDashboard() {
   const confirmForceDelete = async () => {
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/admin/projects/${deleteModal.projectId}/force`, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/projects/${deleteModal.projectId}/force`, { headers: { Authorization: `Bearer ${token}` } });
       setDeleteModal({ isOpen: false, projectId: null });
       fetchData(); // Refresh the list
     } catch (err) {
@@ -135,7 +135,7 @@ export default function AdminDashboard() {
         formData.append('media', blob, 'avatar.png');
 
         try {
-          const res = await axios.post(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/upload', formData, {
+          const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload', formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
           });
           setEditAvatarUrl(res.data.url);
@@ -166,7 +166,7 @@ export default function AdminDashboard() {
         payload.password = editPassword;
       }
 
-      const res = await axios.put(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/auth/profile', payload, {
+      const res = await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/profile', payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

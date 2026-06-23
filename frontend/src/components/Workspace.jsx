@@ -53,7 +53,7 @@ export default function Workspace() {
     // Fetch project state
     const fetchProject = async () => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/projects/${projectId}`, {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects/${projectId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setProjectName(res.data.name);
@@ -179,7 +179,7 @@ export default function Workspace() {
 
     try {
       saveHistory();
-      const res = await axios.post(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/upload', formData, {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       handleAddObject('image', res.data.url);
@@ -210,7 +210,7 @@ export default function Workspace() {
     setSaving(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/projects/${projectId}`, {
+      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects/${projectId}`, {
         data: { objects }
       }, {
         headers: { Authorization: `Bearer ${token}` }
@@ -228,7 +228,7 @@ export default function Workspace() {
     if (!projectName.trim()) return;
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/projects/${projectId}`, {
+      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects/${projectId}`, {
         name: projectName.trim()
       }, {
         headers: { Authorization: `Bearer ${token}` }
