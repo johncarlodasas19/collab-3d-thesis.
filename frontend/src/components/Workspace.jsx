@@ -1,12 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Box, Circle, Move, RotateCw, Scaling, ArrowLeft, Image as ImageIcon, Video, Save, Trash2, UserPlus, Users, MessageSquare, Triangle, Database, CircleDashed, ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, Undo, Edit2 } from 'lucide-react';
+import { Box, Circle, Move, RotateCw, Scaling, ArrowLeft, Image as ImageIcon, Video, Save, Trash2, UserPlus, Users, MessageSquare, Triangle, Database, CircleDashed, ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, Undo, Edit2, PlaySquare } from 'lucide-react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import ThreeCanvas from './ThreeCanvas';
 import InviteModal from './InviteModal';
 import ReportModal from './ReportModal';
 import { io } from 'socket.io-client';
+import ReactPlayer from 'react-player';
 
 export default function Workspace() {
   const { projectId } = useParams();
@@ -20,6 +21,8 @@ export default function Workspace() {
   const [cursors, setCursors] = useState({});
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [showVideoModal, setShowVideoModal] = useState(false);
+  const [videoUrlInput, setVideoUrlInput] = useState('');
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(window.innerWidth >= 768);
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(window.innerWidth >= 768);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -209,11 +212,15 @@ export default function Workspace() {
     }
   };
 
-  const handleAddVideo = () => {
-    let url = window.prompt("Enter Video URL (e.g., direct .mp4 link or YouTube):");
+  const handleAddVideoClick = () => {
+    setVideoUrlInput('');
+    setShowVideoModal(true);
+  };
+
+  const handleVideoSubmit = (e) => {
+    e.preventDefault();
+    let url = videoUrlInput.trim();
     if (url) {
-      url = url.trim();
-      
       // If user pasted an iframe embed code, extract the src URL
       const iframeMatch = url.match(/src=["'](.*?)["']/);
       if (iframeMatch && iframeMatch[1]) {
@@ -225,6 +232,8 @@ export default function Workspace() {
       }
       handleAddObject('video', url);
     }
+    setShowVideoModal(false);
+    setVideoUrlInput('');
   };
 
   const handleSaveProject = async () => {
@@ -485,8 +494,8 @@ export default function Workspace() {
               accept="image/*" 
               onChange={handleImageUpload} 
             />
-            <button className="tool-btn" onClick={handleAddVideo} title="Add Video Link">
-              <Video size={24} />
+            <button className="tool-btn" onClick={handleAddVideoClick} title="Add Video">
+              <PlaySquare size={24} />
             </button>
           </div>
 
@@ -689,20 +698,14 @@ export default function Workspace() {
               </button>
               {obj.type === 'image' && <img src={obj.url} alt="Uploaded" />}
               {obj.type === 'video' && (
-                <div style={{ width: '100%', borderRadius: '0.25rem', overflow: 'hidden', background: '#000', aspectRatio: '16/9' }}>
-                  {getYoutubeId(obj.url) ? (
-                    <iframe 
-                      width="100%" 
-                      height="100%" 
-                      src={`https://www.youtube.com/embed/${getYoutubeId(obj.url)}`} 
-                      frameBorder="0" 
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                      allowFullScreen
-                      style={{ display: 'block' }}
-                    ></iframe>
-                  ) : (
-                    <video src={obj.url} controls width="100%" height="100%" style={{ display: 'block', objectFit: 'contain' }} />
-                  )}
+                <div style={{ width: '100%', borderRadius: '0.5rem', overflow: 'hidden', background: '#000', aspectRatio: '16/9', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 4px 6px rgba(0,0,0,0.3)' }}>
+                  <ReactPlayer 
+                    url={obj.url} 
+                    width="100%" 
+                    height="100%" 
+                    controls={true}
+                    style={{ display: 'block' }}
+                  />
                 </div>
               )}
             </div>
@@ -820,6 +823,43 @@ export default function Workspace() {
         projectId={projectId}
         projectName={projectName}
       />
+
+      {/* Video URL Modal */}
+      {showVideoModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100000 }}>
+          <div style={{ background: 'linear-gradient(145deg, rgba(30, 32, 47, 0.95), rgba(20, 22, 33, 0.98))', padding: '2.5rem', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.1)', width: '450px', maxWidth: '90%', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', position: 'relative' }}>
+            <h2 style={{ color: 'white', marginBottom: '1.5rem', fontSize: '1.4rem', fontWeight: '600' }}>Add Video URL</h2>
+            <form onSubmit={handleVideoSubmit}>
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.9rem', marginBottom: '0.5rem' }}>YouTube or Direct Video Link</label>
+                <input 
+                  type="text" 
+                  value={videoUrlInput}
+                  onChange={(e) => setVideoUrlInput(e.target.value)}
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  style={{ width: '100%', padding: '0.75rem', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '0.5rem', color: 'white', fontSize: '1rem', outline: 'none' }}
+                  autoFocus
+                />
+              </div>
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                <button 
+                  type="button" 
+                  onClick={() => setShowVideoModal(false)} 
+                  style={{ padding: '0.75rem 1.5rem', background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: '500' }}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  style={{ padding: '0.75rem 1.5rem', background: '#6366f1', color: 'white', border: 'none', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: '600' }}
+                >
+                  Add Video
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Toast Notification */}
       <div style={{
