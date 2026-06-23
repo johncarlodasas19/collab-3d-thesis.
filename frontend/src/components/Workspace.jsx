@@ -1,12 +1,14 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Box, Circle, Move, RotateCw, Scaling, ArrowLeft, Image as ImageIcon, Video, Save, Trash2, UserPlus, Users, MessageSquare, Triangle, Database, CircleDashed, ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, Undo, Edit2, PlaySquare } from 'lucide-react';
+import { Box, Circle, Move, RotateCw, Scaling, ArrowLeft, Image as ImageIcon, Video, Save, Trash2, UserPlus, Users, MessageSquare, Triangle, Database, CircleDashed, ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, Undo, Edit2, PlaySquare, Settings, MousePointer2, Hand, Type, Square, Cone, BoxSelect, Plus, FileUp, Flag, CheckCircle, Smile, Paperclip, X } from 'lucide-react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import ThreeCanvas from './ThreeCanvas';
 import InviteModal from './InviteModal';
 import ReportModal from './ReportModal';
 import { io } from 'socket.io-client';
+import EmojiPicker from 'emoji-picker-react';
 
 export default function Workspace() {
   const { projectId } = useParams();
@@ -35,7 +37,12 @@ export default function Workspace() {
   const navigate = useNavigate();
   const location = useLocation();
   const fileInputRef = useRef(null);
+  const chatAttachmentRef = useRef(null);
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [editingMessageId, setEditingMessageId] = useState(null);
+  const [hoveredMessageId, setHoveredMessageId] = useState(null);
 
   const getYoutubeId = (url) => {
     if (!url) return null;
@@ -125,8 +132,16 @@ export default function Workspace() {
       setChatMessages((prev) => [...prev, data]);
     });
 
-    newSocket.on('typing', (user) => {
-      setTypingUsers((prev) => ({ ...prev, [user.id]: user.username }));
+    newSocket.on('message-edited', ({ messageId, newText }) => {
+      setChatMessages((prev) => prev.map(msg => msg.id === messageId ? { ...msg, message: newText } : msg));
+    });
+
+    newSocket.on('message-deleted', ({ messageId }) => {
+      setChatMessages((prev) => prev.filter(msg => msg.id !== messageId));
+    });
+
+    newSocket.on('typing', (data) => {
+      setTypingUsers((prev) => ({ ...prev, [data.id]: data.username }));
     });
 
     newSocket.on('stop-typing', (data) => {
@@ -215,6 +230,42 @@ export default function Workspace() {
     }
   };
 
+  const handleChatAttachmentUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('media', file);
+
+    try {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const absoluteUrl = res.data.url.startsWith('http') ? res.data.url : `${apiUrl}${res.data.url}`;
+      
+      const fileType = file.type.startsWith('video/') ? 'video' : 'image';
+      
+      const userStr = localStorage.getItem('user');
+      const userObj = userStr ? JSON.parse(userStr) : { username: 'Guest' };
+      const myColor = activeUsers.find(u => u.socketId === socket.id)?.color || '#4f46e5';
+
+      const msgData = {
+        id: uuidv4(),
+        roomId: projectId,
+        message: '',
+        fileUrl: absoluteUrl,
+        type: fileType,
+        user: { ...userObj, color: myColor },
+        timestamp: new Date().toISOString()
+      };
+
+      socket.emit('chat-message', msgData);
+    } catch (err) {
+      console.error('Chat attachment upload failed', err);
+    }
+  };
+
   const handleAddVideoClick = () => {
     setVideoUrlInput('');
     setShowVideoModal(true);
@@ -295,9 +346,18 @@ export default function Workspace() {
     const userObj = userStr ? JSON.parse(userStr) : { username: 'Guest' };
     const myColor = activeUsers.find(u => u.socketId === socket.id)?.color || '#4f46e5';
 
+    if (editingMessageId) {
+      socket.emit('edit-message', { roomId: projectId, messageId: editingMessageId, newText: newMessage });
+      setEditingMessageId(null);
+      setNewMessage('');
+      return;
+    }
+
     const msgData = {
+      id: uuidv4(),
       roomId: projectId,
       message: newMessage,
+      type: 'text',
       user: { ...userObj, color: myColor },
       timestamp: new Date().toISOString()
     };
@@ -740,18 +800,31 @@ export default function Workspace() {
                 <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem', textAlign: 'center', margin: 'auto' }}>No messages yet. Say hi!</div>
               ) : (
                 chatMessages.map((msg, i) => (
-                  <div key={i} style={{ background: 'rgba(255,255,255,0.05)', padding: '0.5rem 0.75rem', borderRadius: '0.5rem', fontSize: '0.85rem' }}>
+                  <div 
+                    key={msg.id || i} 
+                    onMouseEnter={() => setHoveredMessageId(msg.id)}
+                    onMouseLeave={() => setHoveredMessageId(null)}
+                    style={{ position: 'relative', background: 'rgba(255,255,255,0.05)', padding: '0.5rem 0.75rem', borderRadius: '0.5rem', fontSize: '0.85rem' }}
+                  >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.2rem' }}>
                       <div style={{ fontWeight: '600', color: msg.user.color, fontSize: '0.75rem' }}>
                         {msg.user.username}
                       </div>
                       {msg.timestamp && (
-                        <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)' }}>
-                          {new Date(msg.timestamp).toLocaleString([], { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                          {(hoveredMessageId === msg.id && (currentUser.id === msg.user.id || currentUser._id === msg.user._id || currentUser.id === msg.user._id || currentUser._id === msg.user.id)) && (
+                            <div style={{ display: 'flex', gap: '0.3rem' }}>
+                              <button onClick={() => { setEditingMessageId(msg.id); setNewMessage(msg.message); }} style={{ background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer', padding: 0 }}><Edit2 size={12} /></button>
+                              <button onClick={() => socket.emit('delete-message', { roomId: projectId, messageId: msg.id })} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 0 }}><Trash2 size={12} /></button>
+                            </div>
+                          )}
+                          {new Date(msg.timestamp).toLocaleString([], { weekday: 'short', year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                         </div>
                       )}
                     </div>
                     <div style={{ color: 'white', wordBreak: 'break-word' }}>
+                      {msg.type === 'image' && <img src={msg.fileUrl} alt="attachment" style={{ maxWidth: '100%', borderRadius: '0.25rem', marginTop: '0.25rem' }} />}
+                      {msg.type === 'video' && <video src={msg.fileUrl} controls style={{ maxWidth: '100%', borderRadius: '0.25rem', marginTop: '0.25rem' }} />}
                       {msg.message}
                     </div>
                   </div>
@@ -769,15 +842,34 @@ export default function Workspace() {
               )}
             </div>
             
-            <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: '0.5rem' }}>
+            <form onSubmit={handleSendMessage} style={{ position: 'relative', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              {showEmojiPicker && (
+                <div style={{ position: 'absolute', bottom: '100%', left: 0, marginBottom: '0.5rem', zIndex: 1000 }}>
+                  <EmojiPicker onEmojiClick={(emoji) => { setNewMessage(prev => prev + emoji.emoji); setShowEmojiPicker(false); }} theme="dark" />
+                </div>
+              )}
+              <input type="file" ref={chatAttachmentRef} style={{ display: 'none' }} accept="image/*,video/*" onChange={handleChatAttachmentUpload} />
+              
+              <button type="button" onClick={() => chatAttachmentRef.current?.click()} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '0.25rem' }} title="Attach File">
+                <Paperclip size={18} />
+              </button>
+              <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '0.25rem' }} title="Emoji">
+                <Smile size={18} />
+              </button>
+
               <input 
                 type="text" 
                 value={newMessage} 
                 onChange={handleTyping} 
                 onBlur={handleBlur}
-                placeholder="Type a message..." 
+                placeholder={editingMessageId ? "Edit your message..." : "Type a message..."} 
                 style={{ flex: 1, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.5rem', borderRadius: '0.5rem', outline: 'none', fontSize: '0.85rem' }}
               />
+              {editingMessageId && (
+                <button type="button" onClick={() => { setEditingMessageId(null); setNewMessage(''); }} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '0.25rem' }}>
+                  <X size={16} />
+                </button>
+              )}
               <button 
                 type="submit" 
                 disabled={!newMessage.trim()}

@@ -116,6 +116,39 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('edit-message', async ({ roomId, messageId, newText }) => {
+    io.to(roomId).emit('message-edited', { messageId, newText });
+    try {
+      const Project = require('./models/Project');
+      const project = await Project.findById(roomId);
+      if (project && project.data && project.data.chatMessages) {
+        const msg = project.data.chatMessages.find(m => m.id === messageId);
+        if (msg) {
+          msg.message = newText;
+          project.markModified('data.chatMessages');
+          await project.save();
+        }
+      }
+    } catch (err) {
+      console.error('Error editing chat message:', err);
+    }
+  });
+
+  socket.on('delete-message', async ({ roomId, messageId }) => {
+    io.to(roomId).emit('message-deleted', { messageId });
+    try {
+      const Project = require('./models/Project');
+      const project = await Project.findById(roomId);
+      if (project && project.data && project.data.chatMessages) {
+        project.data.chatMessages = project.data.chatMessages.filter(m => m.id !== messageId);
+        project.markModified('data.chatMessages');
+        await project.save();
+      }
+    } catch (err) {
+      console.error('Error deleting chat message:', err);
+    }
+  });
+
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
     const data = activeUsers.get(socket.id);
