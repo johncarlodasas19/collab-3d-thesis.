@@ -39,9 +39,16 @@ export default function Workspace() {
   const chatAttachmentRef = useRef(null);
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
+  const [gifs, setGifs] = useState([]);
+  const [gifSearch, setGifSearch] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [hoveredMessageId, setHoveredMessageId] = useState(null);
+  const chatEndRef = useRef(null);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatMessages]);
 
   const getYoutubeId = (url) => {
     if (!url) return null;
@@ -833,7 +840,7 @@ export default function Workspace() {
                 ))
               )}
               {/* Auto-scroll anchor */}
-              <div ref={(el) => { if (el) el.scrollIntoView({ behavior: 'smooth' }); }} />
+              <div ref={chatEndRef} />
             </div>
             
             <div style={{ minHeight: '20px', marginBottom: '0.5rem', fontSize: '0.75rem', color: '#94a3b8', fontStyle: 'italic' }}>
