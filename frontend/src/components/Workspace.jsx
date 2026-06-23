@@ -127,10 +127,10 @@ export default function Workspace() {
       setTypingUsers((prev) => ({ ...prev, [user.id]: user.username }));
     });
 
-    newSocket.on('stop-typing', (userId) => {
+    newSocket.on('stop-typing', (data) => {
       setTypingUsers((prev) => {
         const next = { ...prev };
-        delete next[userId];
+        delete next[data.userId];
         return next;
       });
     });
