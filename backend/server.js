@@ -117,16 +117,19 @@ io.on('connection', (socket) => {
   });
 
   socket.on('edit-message', async ({ roomId, messageId, newText }) => {
-    io.to(roomId).emit('message-edited', { messageId, newText });
     try {
       const Project = require('./models/Project');
       const project = await Project.findById(roomId);
       if (project && project.data && project.data.chatMessages) {
         const msg = project.data.chatMessages.find(m => m.id === messageId);
-        if (msg) {
+        const socketData = activeUsers.get(socket.id);
+        const currentUser = socketData ? socketData.user : null;
+        
+        if (msg && currentUser && (msg.user.id === currentUser.id || msg.user._id === currentUser._id || msg.user._id === currentUser.id || msg.user.id === currentUser._id)) {
           msg.message = newText;
           project.markModified('data.chatMessages');
           await project.save();
+          io.to(roomId).emit('message-edited', { messageId, newText });
         }
       }
     } catch (err) {
@@ -135,14 +138,20 @@ io.on('connection', (socket) => {
   });
 
   socket.on('delete-message', async ({ roomId, messageId }) => {
-    io.to(roomId).emit('message-deleted', { messageId });
     try {
       const Project = require('./models/Project');
       const project = await Project.findById(roomId);
       if (project && project.data && project.data.chatMessages) {
-        project.data.chatMessages = project.data.chatMessages.filter(m => m.id !== messageId);
-        project.markModified('data.chatMessages');
-        await project.save();
+        const msg = project.data.chatMessages.find(m => m.id === messageId);
+        const socketData = activeUsers.get(socket.id);
+        const currentUser = socketData ? socketData.user : null;
+        
+        if (msg && currentUser && (msg.user.id === currentUser.id || msg.user._id === currentUser._id || msg.user._id === currentUser.id || msg.user.id === currentUser._id)) {
+          project.data.chatMessages = project.data.chatMessages.filter(m => m.id !== messageId);
+          project.markModified('data.chatMessages');
+          await project.save();
+          io.to(roomId).emit('message-deleted', { messageId });
+        }
       }
     } catch (err) {
       console.error('Error deleting chat message:', err);
