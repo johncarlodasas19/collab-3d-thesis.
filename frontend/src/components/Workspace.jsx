@@ -840,7 +840,7 @@ export default function Workspace() {
             <h2 style={{ color: 'white', marginBottom: '1.5rem', fontSize: '1.4rem', fontWeight: '600' }}>Add Video URL</h2>
             <form onSubmit={handleVideoSubmit}>
               <div style={{ marginBottom: '1.5rem' }}>
-                <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.9rem', marginBottom: '0.5rem' }}>YouTube or Direct Video Link</label>
+                <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.9rem', marginBottom: '0.5rem' }}>YouTube Video Link</label>
                 <input 
                   type="text" 
                   value={videoUrlInput}
