@@ -121,7 +121,7 @@ io.on('connection', (socket) => {
       const Project = require('./models/Project');
       const project = await Project.findById(roomId);
       if (project && project.data && project.data.chatMessages) {
-        const msg = project.data.chatMessages.find(m => m.id === messageId || m.timestamp === messageId);
+        const msg = project.data.chatMessages.find(m => m.id === messageId || m.timestamp === messageId || m.message === messageId);
         const socketData = activeUsers.get(socket.id);
         const currentUser = socketData ? socketData.user : null;
         
@@ -142,12 +142,12 @@ io.on('connection', (socket) => {
       const Project = require('./models/Project');
       const project = await Project.findById(roomId);
       if (project && project.data && project.data.chatMessages) {
-        const msg = project.data.chatMessages.find(m => m.id === messageId || m.timestamp === messageId);
+        const msg = project.data.chatMessages.find(m => m.id === messageId || m.timestamp === messageId || m.message === messageId);
         const socketData = activeUsers.get(socket.id);
         const currentUser = socketData ? socketData.user : null;
         
         if (msg && currentUser && (msg.user.id === currentUser.id || msg.user._id === currentUser._id || msg.user._id === currentUser.id || msg.user.id === currentUser._id)) {
-          project.data.chatMessages = project.data.chatMessages.filter(m => m.id !== messageId && m.timestamp !== messageId);
+          project.data.chatMessages = project.data.chatMessages.filter(m => m.id !== messageId && m.timestamp !== messageId && m.message !== messageId);
           project.markModified('data.chatMessages');
           await project.save();
           io.to(roomId).emit('message-deleted', { messageId });
