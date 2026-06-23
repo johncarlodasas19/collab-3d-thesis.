@@ -1,0 +1,778 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { Box, Menu, Users, AlertTriangle, Activity, LogOut, ShieldAlert, CheckCircle2, XCircle, Trash2, Shield, UserX, BarChart3, Clock, Database, Globe, Eye, EyeOff, Search, Filter, Download, Mail, ShieldCheck, ShieldOff, Settings, Upload, PieChart } from 'lucide-react';
+import AvatarEditor from 'react-avatar-editor';
+
+export default function AdminDashboard() {
+  const [activeTab, setActiveTab] = useState('overview');
+  const [stats, setStats] = useState({ totalUsers: 0, activeProjects: 0, pendingReports: 0, totalDeletedProjects: 0 });
+  const [users, setUsers] = useState([]);
+  const [reports, setReports] = useState([]);
+  const [activityLogs, setActivityLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentUserData, setCurrentUserData] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  
+  // New features state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [reportFilter, setReportFilter] = useState('all');
+  
+  // Custom Modal State
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, projectId: null });
+  const [evidenceModal, setEvidenceModal] = useState({ isOpen: false, url: null });
+  
+  const navigate = useNavigate();
+  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+
+  // Settings State
+  const [editUsername, setEditUsername] = useState(currentUser.username || '');
+  const [editEmail, setEditEmail] = useState(currentUser.email || '');
+  const [editPassword, setEditPassword] = useState('');
+  const [editAvatarUrl, setEditAvatarUrl] = useState(currentUser.avatarUrl || '');
+  const [settingsError, setSettingsError] = useState('');
+  const [settingsSuccess, setSettingsSuccess] = useState('');
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+  const [editorFile, setEditorFile] = useState(null);
+  const [editorScale, setEditorScale] = useState(1.2);
+  const [showPassword, setShowPassword] = useState(false);
+  const editorRef = React.useRef(null);
+
+  useEffect(() => {
+    if (currentUser.role !== 'admin') {
+      navigate('/dashboard'); // Kick out non-admins
+      return;
+    }
+    fetchData();
+  }, [navigate]);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+      
+      const [statsRes, usersRes, reportsRes, logsRes] = await Promise.all([
+        axios.get(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/admin/stats', { headers }),
+        axios.get(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/admin/users', { headers }),
+        axios.get(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/admin/reports', { headers }),
+        axios.get(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/admin/activity', { headers })
+      ]);
+      
+      setStats(statsRes.data);
+      setUsers(usersRes.data);
+      setReports(reportsRes.data);
+      setActivityLogs(logsRes.data);
+    } catch (err) {
+      console.error('Failed to fetch admin data', err);
+      if (err.response?.status === 403) navigate('/dashboard');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateRole = async (userId, role) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/admin/users/${userId}/role`, { role }, { headers: { Authorization: `Bearer ${token}` } });
+      fetchData();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to update role');
+    }
+  };
+
+  const handleUpdateStatus = async (userId, status) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/admin/users/${userId}/status`, { status }, { headers: { Authorization: `Bearer ${token}` } });
+      fetchData();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to update status');
+    }
+  };
+
+  const handleResolveReport = async (reportId, status) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/admin/reports/${reportId}/resolve`, { status }, { headers: { Authorization: `Bearer ${token}` } });
+      fetchData();
+    } catch (err) {
+      alert('Failed to resolve report');
+    }
+  };
+
+  const handleForceDeleteProject = (projectId) => {
+    setDeleteModal({ isOpen: true, projectId });
+  };
+
+  const confirmForceDelete = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/admin/projects/${deleteModal.projectId}/force`, { headers: { Authorization: `Bearer ${token}` } });
+      setDeleteModal({ isOpen: false, projectId: null });
+      fetchData(); // Refresh the list
+    } catch (err) {
+      console.error('Failed to force delete project');
+      alert('Error Force Deleting: ' + (err.response?.data?.message || err.message));
+      setDeleteModal({ isOpen: false, projectId: null });
+    }
+  };
+
+  const handleAvatarUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setEditorFile(file);
+    e.target.value = null;
+  };
+
+  const handleApplyCrop = () => {
+    if (editorRef.current) {
+      const canvas = editorRef.current.getImageScaledToCanvas();
+      canvas.toBlob(async (blob) => {
+        if (!blob) return;
+        
+        const formData = new FormData();
+        formData.append('media', blob, 'avatar.png');
+
+        try {
+          const res = await axios.post(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/upload', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          });
+          setEditAvatarUrl(res.data.url);
+          setEditorFile(null);
+          setEditorScale(1.2);
+        } catch (err) {
+          console.error('Upload failed', err);
+          setSettingsError('Failed to upload avatar.');
+          setEditorFile(null);
+        }
+      }, 'image/png');
+    }
+  };
+
+  const handleSaveSettings = async () => {
+    setSettingsError('');
+    setSettingsSuccess('');
+    setIsUpdatingProfile(true);
+
+    try {
+      const token = localStorage.getItem('token');
+      const payload = {
+        username: editUsername,
+        email: editEmail,
+        avatarUrl: editAvatarUrl
+      };
+      if (editPassword.trim() !== '') {
+        payload.password = editPassword;
+      }
+
+      const res = await axios.put(`${import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || 'http://localhost:5000')}/api/auth/profile', payload, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      localStorage.setItem('token', res.data.token);
+      localStorage.setItem('user', JSON.stringify(res.data.user));
+      
+      setSettingsSuccess('Profile updated successfully!');
+      
+      // Update local state if needed
+      if (res.data.user.username !== currentUser.username) {
+        window.location.reload(); // Quick refresh to update all displays if username changes
+      }
+    } catch (err) {
+      setSettingsError(err.response?.data?.message || 'Failed to update profile.');
+    } finally {
+      setIsUpdatingProfile(false);
+    }
+  };
+
+  const downloadCSV = () => {
+    const headers = ['Date', 'User', 'Action', 'Details'];
+    const rows = activityLogs.map(log => [
+      new Date(log.createdAt).toLocaleString().replace(/,/g, ''),
+      log.username,
+      log.action,
+      `"${log.details || ''}"` // Wrap in quotes to prevent comma issues
+    ]);
+    
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `system_activity_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
+
+  if (loading) {
+    return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>Loading Admin Panel...</div>;
+  }
+
+  return (
+    <div className="dashboard-layout" style={{ background: '#0f172a' }}>
+      <aside className="sidebar" style={{ 
+        background: 'linear-gradient(180deg, #1e1b4b 0%, #0f172a 100%)', 
+        borderRight: '1px solid rgba(99, 102, 241, 0.2)',
+        width: isSidebarOpen ? '260px' : '0px',
+        opacity: isSidebarOpen ? 1 : 0,
+        overflow: 'hidden',
+        transition: 'all 0.3s ease'
+      }}>
+        <div className="sidebar-header" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.5rem', paddingBottom: '1.5rem' }}>
+          <div className="brand" style={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.4rem', fontWeight: 'bold', color: 'white' }}>
+            <Box size={24} color="#ef4444" /> Collab 3D
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#fca5a5', fontSize: '0.8rem', letterSpacing: '1px', fontWeight: 'bold', marginLeft: '0.2rem' }}>
+            <Shield color="#ef4444" size={14} /> Admin Console
+          </div>
+        </div>
+        <nav>
+          <button onClick={() => setActiveTab('overview')} className={`nav-item ${activeTab === 'overview' ? 'active' : ''}`} style={{ width: '100%', background: activeTab === 'overview' ? 'rgba(239, 68, 68, 0.1)' : 'transparent', color: activeTab === 'overview' ? '#ef4444' : '#94a3b8', border: 'none', cursor: 'pointer', textAlign: 'left', padding: '1rem', fontSize: '1rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.75rem', borderRadius: '0.5rem', marginBottom: '0.5rem' }}>
+            <BarChart3 size={20} /> Overview
+          </button>
+          <button onClick={() => setActiveTab('users')} className={`nav-item ${activeTab === 'users' ? 'active' : ''}`} style={{ width: '100%', background: activeTab === 'users' ? 'rgba(239, 68, 68, 0.1)' : 'transparent', color: activeTab === 'users' ? '#ef4444' : '#94a3b8', border: 'none', cursor: 'pointer', textAlign: 'left', padding: '1rem', fontSize: '1rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.75rem', borderRadius: '0.5rem', marginBottom: '0.5rem' }}>
+            <Users size={20} /> User Management
+          </button>
+          <button onClick={() => setActiveTab('reports')} className={`nav-item ${activeTab === 'reports' ? 'active' : ''}`} style={{ width: '100%', background: activeTab === 'reports' ? 'rgba(239, 68, 68, 0.1)' : 'transparent', color: activeTab === 'reports' ? '#ef4444' : '#94a3b8', border: 'none', cursor: 'pointer', textAlign: 'left', padding: '1rem', fontSize: '1rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.75rem', borderRadius: '0.5rem', marginBottom: '0.5rem', position: 'relative' }}>
+            <AlertTriangle size={20} /> Flagged Content
+            {stats.pendingReports > 0 && <span style={{ position: 'absolute', right: '1rem', background: '#ef4444', color: 'white', fontSize: '0.75rem', padding: '0.1rem 0.5rem', borderRadius: '1rem', fontWeight: 'bold' }}>{stats.pendingReports}</span>}
+          </button>
+          <button onClick={() => setActiveTab('activity')} className={`nav-item ${activeTab === 'activity' ? 'active' : ''}`} style={{ width: '100%', background: activeTab === 'activity' ? 'rgba(239, 68, 68, 0.1)' : 'transparent', color: activeTab === 'activity' ? '#ef4444' : '#94a3b8', border: 'none', cursor: 'pointer', textAlign: 'left', padding: '1rem', fontSize: '1rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.75rem', borderRadius: '0.5rem', marginBottom: '0.5rem' }}>
+            <Activity size={20} /> System Activity
+          </button>
+          <button onClick={() => setActiveTab('settings')} className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`} style={{ width: '100%', background: activeTab === 'settings' ? 'rgba(239, 68, 68, 0.1)' : 'transparent', color: activeTab === 'settings' ? '#ef4444' : '#94a3b8', border: 'none', cursor: 'pointer', textAlign: 'left', padding: '1rem', fontSize: '1rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.75rem', borderRadius: '0.5rem', marginBottom: '0.5rem' }}>
+            <Settings size={20} /> Admin Settings
+          </button>
+        </nav>
+        <div style={{ marginTop: 'auto' }}>
+          <button onClick={handleLogout} className="nav-item" style={{ width: '100%', background: 'transparent', color: '#ef4444', border: 'none', cursor: 'pointer', textAlign: 'left', padding: '1rem', fontSize: '1rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <LogOut size={20} /> Sign Out
+          </button>
+        </div>
+      </aside>
+
+      <main className="main-content" style={{ overflowY: 'auto' }}>
+        <header className="main-header" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(15, 23, 42, 0.8)', borderBottom: '1px solid rgba(255,255,255,0.05)', padding: '1rem 2rem' }}>
+          <div style={{ width: '24px' }}></div> {/* Spacer to keep profile on the right */}
+          <h1 style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', margin: 0, fontSize: '1.5rem', color: 'white', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            System Administration
+          </h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <span style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#fca5a5', padding: '0.25rem 0.75rem', borderRadius: '2rem', fontSize: '0.85rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><ShieldAlert size={14}/> Admin Mode</span>
+            <div className="user-profile" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: '#dc2626', padding: '0.35rem 1rem 0.35rem 0.35rem', borderRadius: '2rem', border: 'none', transition: 'all 0.2s', cursor: 'pointer', boxShadow: '0 4px 15px rgba(220, 38, 38, 0.4)' }} onMouseOver={e => { e.currentTarget.style.background = '#b91c1c'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(220, 38, 38, 0.6)'; }} onMouseOut={e => { e.currentTarget.style.background = '#dc2626'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(220, 38, 38, 0.4)'; }}>
+              <div className="avatar" style={{ width: '36px', height: '36px', background: 'rgba(0,0,0,0.15)', overflow: 'hidden', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '600', fontSize: '1rem', color: 'white' }}>
+                {currentUser.avatarUrl ? <img src={currentUser.avatarUrl} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : currentUser.username?.[0]?.toUpperCase()}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', paddingRight: '0.25rem' }}>
+                <span style={{ color: 'white', fontWeight: '700', fontSize: '0.95rem', lineHeight: '1.2' }}>{currentUser.username}</span>
+                <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.75rem', lineHeight: '1.2' }}>{currentUser.email}</span>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div className="content-area">
+          {activeTab === 'overview' && (
+            <div className="tab-content fade-in">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+                <button 
+                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                  style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', padding: '0.5rem', borderRadius: '0.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <Menu size={20} />
+                </button>
+                <h2 style={{ margin: 0, color: 'white' }}>System Overview</h2>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+                <div style={{ background: 'linear-gradient(135deg, rgba(30, 32, 47, 0.8), rgba(20, 22, 33, 0.9))', padding: '1.5rem', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Users size={16}/> Total Users</div>
+                  <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'white' }}>{stats.totalUsers}</div>
+                </div>
+                <div style={{ background: 'linear-gradient(135deg, rgba(30, 32, 47, 0.8), rgba(20, 22, 33, 0.9))', padding: '1.5rem', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Database size={16}/> Active Projects</div>
+                  <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'white' }}>{stats.activeProjects}</div>
+                </div>
+                <div style={{ background: 'linear-gradient(135deg, rgba(30, 32, 47, 0.8), rgba(20, 22, 33, 0.9))', padding: '1.5rem', borderRadius: '1rem', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                  <div style={{ color: '#fca5a5', fontSize: '0.9rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><AlertTriangle size={16}/> Pending Reports</div>
+                  <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#ef4444' }}>{stats.pendingReports}</div>
+                </div>
+                <div style={{ background: 'linear-gradient(135deg, rgba(30, 32, 47, 0.8), rgba(20, 22, 33, 0.9))', padding: '1.5rem', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Trash2 size={16}/> Trashed Projects</div>
+                  <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'white' }}>{stats.totalDeletedProjects}</div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+                <div style={{ flex: '1 1 100%', background: 'rgba(30, 32, 47, 0.8)', padding: '2rem', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column' }}>
+                  <h3 style={{ color: 'white', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.2rem' }}>
+                    <PieChart size={20} color="#6366f1" /> System Overview Distribution (Live Updates)
+                  </h3>
+                  
+                  {(() => {
+                    const u = stats.totalUsers || 0;
+                    const p = stats.activeProjects || 0;
+                    const r = stats.pendingReports || 0;
+                    const t = stats.totalDeletedProjects || 0;
+                    const total = u + p + r + t;
+                    
+                    const uPct = total === 0 ? 0 : (u / total) * 100;
+                    const pPct = total === 0 ? 0 : (p / total) * 100;
+                    const rPct = total === 0 ? 0 : (r / total) * 100;
+                    const tPct = total === 0 ? 0 : (t / total) * 100;
+                    
+                    // Colors
+                    const cU = '#3b82f6'; // Blue for Users
+                    const cP = '#8b5cf6'; // Purple for Projects
+                    const cR = '#ef4444'; // Red for Reports
+                    const cT = '#f59e0b'; // Amber for Trashed
+                    
+                    return (
+                      <div style={{ display: 'flex', gap: '4rem', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
+                        {/* Huge Dynamic CSS Doughnut Chart */}
+                        <div style={{ 
+                          width: '240px', height: '240px', borderRadius: '50%', 
+                          background: total === 0 ? 'rgba(255,255,255,0.1)' : `conic-gradient(${cU} 0% ${uPct}%, ${cP} ${uPct}% ${uPct + pPct}%, ${cR} ${uPct + pPct}% ${uPct + pPct + rPct}%, ${cT} ${uPct + pPct + rPct}% 100%)`, 
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                          boxShadow: '0 0 30px rgba(0,0,0,0.4)',
+                          transition: 'background 0.5s ease'
+                        }}>
+                          {/* Inner circle */}
+                          <div style={{ width: '170px', height: '170px', borderRadius: '50%', background: 'rgba(30, 32, 47, 1)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset 0 0 15px rgba(0,0,0,0.5)' }}>
+                            <span style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'white' }}>{total}</span>
+                            <span style={{ fontSize: '0.8rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '2px' }}>Total Items</span>
+                          </div>
+                        </div>
+
+                        {/* Chart Legend & Live Stats */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', minWidth: '300px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '0.5rem', borderLeft: `4px solid ${cU}` }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                              <Users size={18} color={cU} />
+                              <span style={{ color: 'white', fontSize: '1rem' }}>Total Users</span>
+                            </div>
+                            <span style={{ color: 'white', fontWeight: 'bold', fontSize: '1.2rem' }}>{u} <span style={{ color: '#94a3b8', fontSize: '0.8rem', fontWeight: 'normal' }}>({uPct.toFixed(1)}%)</span></span>
+                          </div>
+                          
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '0.5rem', borderLeft: `4px solid ${cP}` }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                              <Database size={18} color={cP} />
+                              <span style={{ color: 'white', fontSize: '1rem' }}>Active Projects</span>
+                            </div>
+                            <span style={{ color: 'white', fontWeight: 'bold', fontSize: '1.2rem' }}>{p} <span style={{ color: '#94a3b8', fontSize: '0.8rem', fontWeight: 'normal' }}>({pPct.toFixed(1)}%)</span></span>
+                          </div>
+
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '0.5rem', borderLeft: `4px solid ${cR}` }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                              <AlertTriangle size={18} color={cR} />
+                              <span style={{ color: 'white', fontSize: '1rem' }}>Pending Reports</span>
+                            </div>
+                            <span style={{ color: 'white', fontWeight: 'bold', fontSize: '1.2rem' }}>{r} <span style={{ color: '#94a3b8', fontSize: '0.8rem', fontWeight: 'normal' }}>({rPct.toFixed(1)}%)</span></span>
+                          </div>
+
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '0.5rem', borderLeft: `4px solid ${cT}` }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                              <Trash2 size={18} color={cT} />
+                              <span style={{ color: 'white', fontSize: '1rem' }}>Trashed Projects</span>
+                            </div>
+                            <span style={{ color: 'white', fontWeight: 'bold', fontSize: '1.2rem' }}>{t} <span style={{ color: '#94a3b8', fontSize: '0.8rem', fontWeight: 'normal' }}>({tPct.toFixed(1)}%)</span></span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'users' && (
+            <div className="tab-content fade-in">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <button 
+                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                    style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', padding: '0.5rem', borderRadius: '0.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <Menu size={20} />
+                  </button>
+                  <h2 style={{ color: 'white', margin: 0 }}>User Management</h2>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', padding: '0.5rem 1rem', borderRadius: '2rem', width: '300px' }}>
+                  <Search size={18} color="#94a3b8" style={{ marginRight: '0.5rem' }} />
+                  <input 
+                    type="text" 
+                    placeholder="Search username or email..." 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    style={{ background: 'transparent', border: 'none', color: 'white', outline: 'none', width: '100%', fontSize: '0.9rem' }}
+                  />
+                </div>
+              </div>
+              <div style={{ background: 'rgba(30, 32, 47, 0.8)', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', color: 'white' }}>
+                  <thead>
+                    <tr style={{ background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                      <th style={{ padding: '1rem' }}>Username</th>
+                      <th style={{ padding: '1rem' }}>Email</th>
+                      <th style={{ padding: '1rem' }}>Role</th>
+                      <th style={{ padding: '1rem' }}>Status</th>
+                      <th style={{ padding: '1rem' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.filter(u => u.username.toLowerCase().includes(searchQuery.toLowerCase()) || u.email.toLowerCase().includes(searchQuery.toLowerCase())).map(u => (
+                      <tr key={u._id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                        <td style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                          <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: u.role === 'admin' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(99, 102, 241, 0.2)', border: `2px solid ${u.role === 'admin' ? '#ef4444' : '#6366f1'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', overflow: 'hidden' }}>
+                            {u.avatarUrl ? (
+                              <img src={u.avatarUrl} alt={u.username} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                              <span style={{ color: u.role === 'admin' ? '#fca5a5' : '#818cf8', fontSize: '1.2rem' }}>{u.username[0].toUpperCase()}</span>
+                            )}
+                          </div>
+                          <div style={{ fontWeight: 'bold', fontSize: '1rem', color: 'white' }}>{u.username}</div>
+                        </td>
+                        <td style={{ padding: '1rem' }}>
+                          <div style={{ fontSize: '0.9rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <Mail size={14} /> {u.email}
+                          </div>
+                        </td>
+                        <td style={{ padding: '1rem' }}>
+                          <span style={{ background: u.role === 'admin' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(99, 102, 241, 0.2)', color: u.role === 'admin' ? '#fca5a5' : '#818cf8', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                            {u.role.toUpperCase()}
+                          </span>
+                        </td>
+                        <td style={{ padding: '1rem' }}>
+                          <select 
+                            value={u.status} 
+                            onChange={(e) => handleUpdateStatus(u._id, e.target.value)}
+                            disabled={u._id === currentUser.id}
+                            style={{ 
+                              background: 'rgba(15, 23, 42, 0.9)', 
+                              color: u.status === 'active' ? '#4ade80' : (u.status === 'suspended' ? '#fbbf24' : '#f87171'), 
+                              border: '1px solid rgba(255,255,255,0.2)', 
+                              padding: '0.5rem', 
+                              borderRadius: '0.5rem',
+                              fontWeight: 'bold',
+                              cursor: 'pointer',
+                              outline: 'none',
+                              fontSize: '0.9rem'
+                            }}
+                          >
+                            <option value="active" style={{ background: '#1e293b', color: '#4ade80', fontWeight: 'bold' }}>Active</option>
+                            <option value="suspended" style={{ background: '#1e293b', color: '#fbbf24', fontWeight: 'bold' }}>Suspended</option>
+                            <option value="banned" style={{ background: '#1e293b', color: '#f87171', fontWeight: 'bold' }}>Banned</option>
+                          </select>
+                        </td>
+                        <td style={{ padding: '1rem' }}>
+                          {u._id !== currentUser.id && (
+                            <button 
+                              onClick={() => handleUpdateRole(u._id, u.role === 'admin' ? 'user' : 'admin')}
+                              style={{ 
+                                background: u.role === 'admin' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(34, 197, 94, 0.1)', 
+                                border: `1px solid ${u.role === 'admin' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(34, 197, 94, 0.3)'}`, 
+                                color: u.role === 'admin' ? '#fca5a5' : '#4ade80', 
+                                padding: '0.5rem 1rem', 
+                                borderRadius: '2rem', 
+                                cursor: 'pointer', 
+                                fontSize: '0.85rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                fontWeight: 'bold',
+                                transition: 'all 0.2s',
+                                width: '140px',
+                                justifyContent: 'center'
+                              }}
+                              onMouseOver={(e) => { e.currentTarget.style.background = u.role === 'admin' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(34, 197, 94, 0.2)' }}
+                              onMouseOut={(e) => { e.currentTarget.style.background = u.role === 'admin' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(34, 197, 94, 0.1)' }}
+                            >
+                              {u.role === 'admin' ? <><ShieldOff size={14}/> Revoke Admin</> : <><ShieldCheck size={14}/> Make Admin</>}
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'reports' && (
+            <div className="tab-content fade-in">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <button 
+                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                    style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', padding: '0.5rem', borderRadius: '0.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <Menu size={20} />
+                  </button>
+                  <h2 style={{ color: 'white', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><AlertTriangle color="#ef4444" /> Review Flagged Content</h2>
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem', background: 'rgba(0,0,0,0.2)', padding: '0.25rem', borderRadius: '0.5rem' }}>
+                  <button onClick={() => setReportFilter('all')} style={{ padding: '0.5rem 1rem', background: reportFilter === 'all' ? '#6366f1' : 'transparent', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '0.85rem' }}>All</button>
+                  <button onClick={() => setReportFilter('pending')} style={{ padding: '0.5rem 1rem', background: reportFilter === 'pending' ? '#ef4444' : 'transparent', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '0.85rem' }}>Pending</button>
+                  <button onClick={() => setReportFilter('resolved')} style={{ padding: '0.5rem 1rem', background: reportFilter === 'resolved' ? '#22c55e' : 'transparent', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '0.85rem' }}>Resolved</button>
+                </div>
+              </div>
+              
+              {reports.filter(r => reportFilter === 'all' || r.status === reportFilter).length === 0 ? (
+                <div style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8', background: 'rgba(30, 32, 47, 0.8)', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <CheckCircle2 size={48} style={{ opacity: 0.2, margin: '0 auto 1rem auto', display: 'block' }} />
+                  <p>All caught up! There are no {reportFilter !== 'all' ? reportFilter : ''} items to review.</p>
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(500px, 1fr))', gap: '1.5rem', alignItems: 'start' }}>
+                  {reports.filter(r => reportFilter === 'all' || r.status === reportFilter).map(report => (
+                    <div key={report._id} style={{ background: 'rgba(30, 32, 47, 0.8)', borderRadius: '1rem', border: '1px solid', borderColor: report.status === 'pending' ? 'rgba(239, 68, 68, 0.4)' : 'rgba(255,255,255,0.05)', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', height: '100%' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+                        <div style={{ flex: 1, minWidth: '200px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                            <span style={{ color: 'white', fontWeight: 'bold' }}>Project: {report.reportedProjectName || report.reportedProjectId}</span>
+                            <span style={{ background: report.status === 'pending' ? '#ef4444' : (report.status === 'resolved' ? '#22c55e' : '#64748b'), color: 'white', fontSize: '0.75rem', padding: '0.1rem 0.5rem', borderRadius: '1rem', fontWeight: 'bold' }}>{report.status.toUpperCase()}</span>
+                          </div>
+                          <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Reported by: <strong>{report.reporterName}</strong> on {new Date(report.createdAt).toLocaleString()}</div>
+                        </div>
+                        {report.status === 'pending' && (
+                          <div style={{ display: 'flex', gap: '0.5rem', alignSelf: 'flex-start', flexWrap: 'wrap' }}>
+                            <button 
+                              onClick={() => handleResolveReport(report._id, 'dismissed')} 
+                              style={{ width: '130px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', padding: '0.6rem 0', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '500', transition: 'all 0.2s' }}
+                              onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'white'; }}
+                              onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#94a3b8'; }}
+                            >
+                              <XCircle size={16} /> Dismiss
+                            </button>
+                            <button 
+                              onClick={() => handleResolveReport(report._id, 'resolved')} 
+                              style={{ width: '130px', background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', color: '#4ade80', padding: '0.6rem 0', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '500', transition: 'all 0.2s' }}
+                              onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(34, 197, 94, 0.2)'; e.currentTarget.style.color = '#22c55e'; }}
+                              onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(34, 197, 94, 0.1)'; e.currentTarget.style.color = '#4ade80'; }}
+                            >
+                              <CheckCircle2 size={16} /> Resolve
+                            </button>
+                            <button 
+                              onClick={() => handleForceDeleteProject(report.reportedProjectId)} 
+                              style={{ width: '130px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#f87171', padding: '0.6rem 0', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '500', transition: 'all 0.2s' }}
+                              onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'; e.currentTarget.style.color = '#ef4444'; }}
+                              onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.color = '#f87171'; }}
+                            >
+                              <Trash2 size={16} /> Force Delete
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: '0.5rem', borderLeft: '4px solid #ef4444', color: '#e2e8f0', fontSize: '0.95rem', lineHeight: '1.5', flex: 1 }}>
+                        <strong>Reason provided:</strong><br />
+                        {report.reason}
+                        
+                        {report.proofUrl && (
+                          <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                            <button 
+                              onClick={() => setEvidenceModal({ isOpen: true, url: report.proofUrl })}
+                              style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.4)', color: '#fca5a5', padding: '0.75rem 1.5rem', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold' }}
+                            >
+                              <AlertTriangle size={16} /> Preview Attached Evidence
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'activity' && (
+            <div className="tab-content fade-in">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <button 
+                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                    style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', padding: '0.5rem', borderRadius: '0.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <Menu size={20} />
+                  </button>
+                  <h2 style={{ color: 'white', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Activity color="#6366f1" /> System Activity Log</h2>
+                </div>
+                <button 
+                  onClick={downloadCSV}
+                  style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', border: '1px solid rgba(34, 197, 94, 0.3)', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '500' }}
+                >
+                  <Download size={16} /> Export to CSV
+                </button>
+              </div>
+              <div style={{ background: 'rgba(30, 32, 47, 0.8)', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden', padding: '1.5rem' }}>
+                {activityLogs.length === 0 ? (
+                  <div style={{ color: '#94a3b8', textAlign: 'center' }}>No activity logs found.</div>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '1.5rem' }}>
+                    {activityLogs.map((log, index) => (
+                      <div key={log._id || index} style={{ display: 'flex', gap: '1rem', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <div style={{ color: '#6366f1', paddingTop: '0.2rem' }}><Globe size={20} /></div>
+                        <div>
+                          <div style={{ color: 'white', fontWeight: '500' }}>
+                            <span style={{ color: '#818cf8' }}>{log.username}</span> {log.action}
+                          </div>
+                          <div style={{ color: '#94a3b8', fontSize: '0.9rem', marginTop: '0.25rem' }}>{log.details}</div>
+                          <div style={{ color: '#64748b', fontSize: '0.8rem', marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <Clock size={12} /> {new Date(log.createdAt).toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'settings' && (
+            <div className="tab-content fade-in">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+                <button 
+                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                  style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', padding: '0.5rem', borderRadius: '0.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <Menu size={20} />
+                </button>
+                <h2 style={{ color: 'white', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Settings color="#ef4444" /> Admin Settings
+                </h2>
+              </div>
+              <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+                <div style={{ background: 'rgba(30, 32, 47, 0.8)', padding: '2rem', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  {settingsError && <div style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1.5rem', border: '1px solid rgba(239, 68, 68, 0.2)' }}>{settingsError}</div>}
+                  {settingsSuccess && <div style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1.5rem', border: '1px solid rgba(34, 197, 94, 0.2)' }}>{settingsSuccess}</div>}
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                      <div style={{ width: '120px', height: '120px', borderRadius: '50%', background: '#ef4444', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem', fontWeight: 'bold', color: 'white', border: '4px solid rgba(239, 68, 68, 0.3)' }}>
+                        {editAvatarUrl ? <img src={editAvatarUrl} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : currentUser.username?.[0].toUpperCase()}
+                      </div>
+                      
+                      <input type="file" id="admin-avatar-upload" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarUpload} />
+                      <label htmlFor="admin-avatar-upload" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#fca5a5', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', transition: 'all 0.2s' }}>
+                        <Upload size={16} /> Upload New Avatar
+                      </label>
+
+                      {editorFile && (
+                        <div style={{ background: 'rgba(0,0,0,0.5)', padding: '1rem', borderRadius: '0.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', marginTop: '1rem' }}>
+                          <AvatarEditor
+                            ref={editorRef}
+                            image={editorFile}
+                            width={200}
+                            height={200}
+                            border={20}
+                            borderRadius={100}
+                            color={[0, 0, 0, 0.6]}
+                            scale={editorScale}
+                            rotate={0}
+                          />
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', width: '100%' }}>
+                            <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Zoom</span>
+                            <input type="range" min="1" max="3" step="0.01" value={editorScale} onChange={(e) => setEditorScale(parseFloat(e.target.value))} style={{ flex: 1 }} />
+                          </div>
+                          <div style={{ display: 'flex', gap: '1rem' }}>
+                            <button onClick={() => setEditorFile(null)} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer' }}>Cancel</button>
+                            <button onClick={handleApplyCrop} style={{ background: '#ef4444', border: 'none', color: 'white', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 'bold' }}>Apply Crop</button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', color: '#94a3b8', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Username</label>
+                      <input type="text" value={editUsername} onChange={(e) => setEditUsername(e.target.value)} style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.75rem', borderRadius: '0.5rem', outline: 'none' }} onFocus={(e) => e.target.style.borderColor = '#ef4444'} onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', color: '#94a3b8', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Email</label>
+                      <input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.75rem', borderRadius: '0.5rem', outline: 'none' }} onFocus={(e) => e.target.style.borderColor = '#ef4444'} onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', color: '#94a3b8', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Change Password (leave blank to keep current)</label>
+                      <div style={{ position: 'relative' }}>
+                        <input type={showPassword ? "text" : "password"} value={editPassword} onChange={(e) => setEditPassword(e.target.value)} placeholder="New password" style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.75rem', paddingRight: '2.5rem', borderRadius: '0.5rem', outline: 'none' }} onFocus={(e) => e.target.parentElement.style.borderColor = '#ef4444'} onBlur={(e) => e.target.parentElement.style.borderColor = 'rgba(255,255,255,0.1)'} />
+                        <button 
+                          type="button" 
+                          onClick={() => setShowPassword(!showPassword)} 
+                          style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                          {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <button onClick={handleSaveSettings} disabled={isUpdatingProfile} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '1rem', borderRadius: '0.5rem', fontWeight: 'bold', cursor: isUpdatingProfile ? 'not-allowed' : 'pointer', marginTop: '1rem', boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)' }}>
+                      {isUpdatingProfile ? 'Saving...' : 'Save Settings'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+        </div>
+      </main>
+
+      {/* Custom Force Delete Modal */}
+      {deleteModal.isOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(4px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
+          <div className="modal-content fade-in" style={{ background: '#1e202f', padding: '2rem', borderRadius: '1rem', width: '90%', maxWidth: '400px', border: '1px solid rgba(239, 68, 68, 0.3)', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
+            <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.1)', display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '0 auto 1.5rem auto' }}>
+              <Trash2 size={32} color="#ef4444" />
+            </div>
+            <h3 style={{ color: 'white', marginTop: 0, marginBottom: '1rem', fontSize: '1.25rem' }}>Eradicate Project</h3>
+            <p style={{ color: '#94a3b8', marginBottom: '2rem', lineHeight: 1.5 }}>
+              Are you sure you want to completely eradicate this project from the platform? This action cannot be undone.
+            </p>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+              <button 
+                onClick={() => setDeleteModal({ isOpen: false, projectId: null })} 
+                style={{ background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.1)', padding: '0.75rem 1.5rem', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 'bold', flex: 1 }}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmForceDelete} 
+                style={{ background: '#ef4444', color: 'white', border: 'none', padding: '0.75rem 1.5rem', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 'bold', flex: 1, boxShadow: '0 4px 14px 0 rgba(239, 68, 68, 0.39)' }}
+              >
+                Yes, Delete It
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Evidence Viewer Modal */}
+      {evidenceModal.isOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.85)', backdropFilter: 'blur(5px)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', zIndex: 100000 }}>
+          <button 
+            onClick={() => setEvidenceModal({ isOpen: false, url: null })}
+            style={{ position: 'absolute', top: '2rem', right: '2rem', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold' }}
+          >
+            <XCircle size={20} /> Close Preview
+          </button>
+          
+          <img 
+            src={evidenceModal.url} 
+            alt="Evidence Preview" 
+            style={{ maxWidth: '90%', maxHeight: '80vh', objectFit: 'contain', borderRadius: '0.5rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', border: '1px solid rgba(255,255,255,0.1)' }} 
+          />
+        </div>
+      )}
+    </div>
+  );
+}

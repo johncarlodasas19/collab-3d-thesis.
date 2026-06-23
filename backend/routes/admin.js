@@ -1,0 +1,143 @@
+const express = require('express');
+const router = express.Router();
+const User = require('../models/User');
+const Project = require('../models/Project');
+const Report = require('../models/Report');
+const ActivityLog = require('../models/ActivityLog');
+const authMiddleware = require('../middleware/authMiddleware');
+const adminMiddleware = require('../middleware/adminMiddleware');
+
+// Protect all admin routes
+router.use(authMiddleware, adminMiddleware);
+
+// ---------------------------
+// System Statistics
+// ---------------------------
+router.get('/stats', async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments();
+    const activeProjects = await Project.countDocuments({ isDeleted: false });
+    const pendingReports = await Report.countDocuments({ status: 'pending' });
+    const totalDeletedProjects = await Project.countDocuments({ isDeleted: true });
+
+    res.json({ totalUsers, activeProjects, pendingReports, totalDeletedProjects });
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching stats', error: err.message });
+  }
+});
+
+// ---------------------------
+// User Management
+// ---------------------------
+router.get('/users', async (req, res) => {
+  try {
+    const users = await User.find().select('-password').sort({ createdAt: -1 });
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching users', error: err.message });
+  }
+});
+
+router.put('/users/:id/role', async (req, res) => {
+  try {
+    const { role } = req.body;
+    if (!['user', 'admin'].includes(role)) return res.status(400).json({ message: 'Invalid role' });
+    
+    // Prevent admin from removing their own role
+    if (req.params.id === req.user.userId && role === 'user') {
+      return res.status(400).json({ message: 'You cannot remove your own admin role.' });
+    }
+
+    const user = await User.findByIdAndUpdate(req.params.id, { role }, { new: true }).select('-password');
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: 'Error updating role', error: err.message });
+  }
+});
+
+router.put('/users/:id/status', async (req, res) => {
+  try {
+    const { status } = req.body;
+    if (!['active', 'suspended', 'banned'].includes(status)) return res.status(400).json({ message: 'Invalid status' });
+
+    // Prevent admin from banning themselves
+    if (req.params.id === req.user.userId) {
+      return res.status(400).json({ message: 'You cannot suspend or ban yourself.' });
+    }
+
+    const user = await User.findByIdAndUpdate(req.params.id, { status }, { new: true }).select('-password');
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: 'Error updating status', error: err.message });
+  }
+});
+
+// ---------------------------
+// Report Management
+// ---------------------------
+router.get('/reports', async (req, res) => {
+  try {
+    const reports = await Report.find().sort({ createdAt: -1 });
+    res.json(reports);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching reports', error: err.message });
+  }
+});
+
+router.put('/reports/:id/resolve', async (req, res) => {
+  try {
+    const { status } = req.body; // 'resolved' or 'dismissed'
+    if (!['resolved', 'dismissed'].includes(status)) return res.status(400).json({ message: 'Invalid status' });
+
+    const report = await Report.findByIdAndUpdate(req.params.id, { status, resolvedAt: Date.now() }, { new: true });
+    
+    await ActivityLog.create({
+      userId: req.user.userId,
+      username: req.user.username,
+      action: `Report ${status}`,
+      details: `Report ID: ${report._id}`
+    });
+
+    res.json(report);
+  } catch (err) {
+    res.status(500).json({ message: 'Error resolving report', error: err.message });
+  }
+});
+
+// Admin can force delete a project
+router.delete('/projects/:id/force', async (req, res) => {
+  try {
+    const project = await Project.findByIdAndDelete(req.params.id);
+    
+    // Automatically resolve all pending reports for this eradicated project
+    await Report.updateMany(
+      { reportedProjectId: req.params.id, status: 'pending' }, 
+      { status: 'resolved', resolvedAt: Date.now() }
+    );
+    
+    await ActivityLog.create({
+      userId: req.user.userId,
+      username: req.user.username,
+      action: 'Force Deleted Project',
+      details: `Project ID: ${req.params.id}`
+    });
+
+    res.json({ message: 'Project permanently deleted by Admin.' });
+  } catch (err) {
+    res.status(500).json({ message: 'Error deleting project', error: err.message });
+  }
+});
+
+// ---------------------------
+// Activity Logs
+// ---------------------------
+router.get('/activity', async (req, res) => {
+  try {
+    const logs = await ActivityLog.find().sort({ createdAt: -1 }).limit(100);
+    res.json(logs);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching activity logs', error: err.message });
+  }
+});
+
+module.exports = router;
