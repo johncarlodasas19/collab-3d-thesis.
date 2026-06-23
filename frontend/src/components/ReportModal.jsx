@@ -58,6 +58,14 @@ export default function ReportModal({ isOpen, onClose, projectId, projectName })
     }
   };
 
+  const getMediaUrl = (url) => {
+    if (!url) return '';
+    if (url.startsWith('/uploads/')) {
+      return `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${url}`;
+    }
+    return url;
+  };
+
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -216,7 +224,7 @@ export default function ReportModal({ isOpen, onClose, projectId, projectName })
                 </button>
               ) : (
                 <div style={{ position: 'relative', borderRadius: '0.5rem', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', height: '120px' }}>
-                  <img src={proofUrl} alt="Attached Proof" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={getMediaUrl(proofUrl)} alt="Attached Proof" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   <button 
                     type="button" 
                     onClick={() => setProofUrl(null)}

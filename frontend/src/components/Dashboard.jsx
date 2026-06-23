@@ -9,6 +9,15 @@ export default function Dashboard() {
   const [projects, setProjects] = useState([]);
   const [trashProjects, setTrashProjects] = useState([]);
   const [activeTab, setActiveTab] = useState('projects');
+
+  const getMediaUrl = (url) => {
+    if (!url) return '';
+    if (url.startsWith('/uploads/')) {
+      return `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${url}`;
+    }
+    return url;
+  };
+
   const [invitations, setInvitations] = useState([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -319,7 +328,7 @@ export default function Dashboard() {
             <div className="user-profile" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: '#6d28d9', padding: '0.35rem 1rem 0.35rem 0.35rem', borderRadius: '2rem', border: 'none', transition: 'all 0.2s', cursor: 'pointer', boxShadow: '0 4px 15px rgba(109, 40, 217, 0.4)' }} onMouseOver={e => { e.currentTarget.style.background = '#5b21b6'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(109, 40, 217, 0.6)'; }} onMouseOut={e => { e.currentTarget.style.background = '#6d28d9'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(109, 40, 217, 0.4)'; }}>
               <div className="avatar" style={{ width: '36px', height: '36px', borderRadius: '50%', overflow: 'hidden', background: 'rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: '600', fontSize: '1rem' }}>
                 {user.avatarUrl ? (
-                  <img src={user.avatarUrl} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={getMediaUrl(user.avatarUrl)} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
                   user.username.charAt(0).toUpperCase()
                 )}
@@ -477,7 +486,7 @@ export default function Dashboard() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
                     <div style={{ width: '120px', height: '120px', borderRadius: '50%', background: '#6366f1', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem', fontWeight: 'bold', color: 'white', border: '4px solid rgba(99, 102, 241, 0.3)' }}>
-                      {editAvatarUrl ? <img src={editAvatarUrl} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : user.username?.[0].toUpperCase()}
+                      {editAvatarUrl ? <img src={getMediaUrl(editAvatarUrl)} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : user.username?.[0].toUpperCase()}
                     </div>
                     
                     <input type="file" id="user-avatar-upload" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarUpload} />
