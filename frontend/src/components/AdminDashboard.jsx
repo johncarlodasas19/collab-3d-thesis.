@@ -101,18 +101,6 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleSoftDeleteProject = async (projectId) => {
-    try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/projects/${projectId}`, { headers: { Authorization: `Bearer ${token}` } });
-      alert('Project moved to trash.');
-      fetchData();
-    } catch (err) {
-      console.error('Failed to soft delete project', err);
-      alert('Error soft deleting project.');
-    }
-  };
-
   const handleForceDeleteProject = (projectId) => {
     setDeleteModal({ isOpen: true, projectId });
   };
@@ -562,40 +550,34 @@ export default function AdminDashboard() {
                           </div>
                           <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Reported by: <strong>{report.reporterName}</strong> on {new Date(report.createdAt).toLocaleString()}</div>
                         </div>
-                        <div style={{ display: 'flex', gap: '0.5rem', alignSelf: 'flex-start', flexWrap: 'wrap', marginTop: '0.5rem' }}>
-                          <button 
-                            onClick={() => handleResolveReport(report._id, 'dismissed')} 
-                            style={{ width: '130px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', padding: '0.6rem 0', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '500', transition: 'all 0.2s' }}
-                            onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'white'; }}
-                            onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#94a3b8'; }}
-                          >
-                            <XCircle size={16} /> Dismiss
-                          </button>
-                          <button 
-                            onClick={() => handleResolveReport(report._id, 'resolved')} 
-                            style={{ width: '130px', background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', color: '#4ade80', padding: '0.6rem 0', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '500', transition: 'all 0.2s' }}
-                            onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(34, 197, 94, 0.2)'; e.currentTarget.style.color = '#22c55e'; }}
-                            onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(34, 197, 94, 0.1)'; e.currentTarget.style.color = '#4ade80'; }}
-                          >
-                            <CheckCircle2 size={16} /> Resolve
-                          </button>
-                          <button 
-                            onClick={() => handleSoftDeleteProject(report.reportedProjectId)} 
-                            style={{ width: '130px', background: 'rgba(234, 179, 8, 0.1)', border: '1px solid rgba(234, 179, 8, 0.3)', color: '#facc15', padding: '0.6rem 0', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '500', transition: 'all 0.2s' }}
-                            onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(234, 179, 8, 0.2)'; e.currentTarget.style.color = '#eab308'; }}
-                            onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(234, 179, 8, 0.1)'; e.currentTarget.style.color = '#facc15'; }}
-                          >
-                            <Trash2 size={16} /> Soft Delete
-                          </button>
-                          <button 
-                            onClick={() => handleForceDeleteProject(report.reportedProjectId)} 
-                            style={{ width: '140px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#f87171', padding: '0.6rem 0', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '500', transition: 'all 0.2s' }}
-                            onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'; e.currentTarget.style.color = '#ef4444'; }}
-                            onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.color = '#f87171'; }}
-                          >
-                            <AlertTriangle size={16} /> Perm Delete
-                          </button>
-                        </div>
+                        {report.status === 'pending' && (
+                          <div style={{ display: 'flex', gap: '0.5rem', alignSelf: 'flex-start', flexWrap: 'wrap' }}>
+                            <button 
+                              onClick={() => handleResolveReport(report._id, 'dismissed')} 
+                              style={{ width: '130px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', padding: '0.6rem 0', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '500', transition: 'all 0.2s' }}
+                              onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'white'; }}
+                              onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#94a3b8'; }}
+                            >
+                              <XCircle size={16} /> Dismiss
+                            </button>
+                            <button 
+                              onClick={() => handleResolveReport(report._id, 'resolved')} 
+                              style={{ width: '130px', background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', color: '#4ade80', padding: '0.6rem 0', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '500', transition: 'all 0.2s' }}
+                              onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(34, 197, 94, 0.2)'; e.currentTarget.style.color = '#22c55e'; }}
+                              onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(34, 197, 94, 0.1)'; e.currentTarget.style.color = '#4ade80'; }}
+                            >
+                              <CheckCircle2 size={16} /> Resolve
+                            </button>
+                            <button 
+                              onClick={() => handleForceDeleteProject(report.reportedProjectId)} 
+                              style={{ width: '130px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#f87171', padding: '0.6rem 0', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '500', transition: 'all 0.2s' }}
+                              onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'; e.currentTarget.style.color = '#ef4444'; }}
+                              onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.color = '#f87171'; }}
+                            >
+                              <Trash2 size={16} /> Force Delete
+                            </button>
+                          </div>
+                        )}
                       </div>
                       <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: '0.5rem', borderLeft: '4px solid #ef4444', color: '#e2e8f0', fontSize: '0.95rem', lineHeight: '1.5', flex: 1 }}>
                         <strong>Reason provided:</strong><br />
