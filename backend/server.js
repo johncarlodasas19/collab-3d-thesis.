@@ -49,7 +49,8 @@ app.post('/api/upload', upload.single('media'), (req, res) => {
   if (!req.file) {
     return res.status(400).send('No file uploaded.');
   }
-  const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+  const baseUrl = process.env.RENDER_EXTERNAL_URL || `${req.protocol}://${req.get('host')}`;
+  const fileUrl = `${baseUrl}/uploads/${req.file.filename}`;
   res.json({ url: fileUrl });
 });
 
