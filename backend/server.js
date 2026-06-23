@@ -48,7 +48,7 @@ app.post('/api/upload', upload.single('media'), (req, res) => {
   if (!req.file) {
     return res.status(400).send('No file uploaded.');
   }
-  const fileUrl = `http://localhost:${PORT}/uploads/${req.file.filename}`;
+  const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
   res.json({ url: fileUrl });
 });
 
