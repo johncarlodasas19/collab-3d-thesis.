@@ -145,7 +145,6 @@ export default function Workspace() {
 
   const saveHistory = () => {
     setHistory(prev => [...prev, JSON.parse(JSON.stringify(objects))].slice(-30));
-    setHistoryIndex(prev => prev + 1);
   };
 
   const handleUndo = () => {
