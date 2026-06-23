@@ -846,9 +846,15 @@ export default function Workspace() {
             
             <form onSubmit={handleSendMessage} style={{ position: 'relative', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
               {showEmojiPicker && (
-                <div style={{ position: 'absolute', bottom: '100%', left: 0, marginBottom: '0.5rem', zIndex: 1000 }}>
-                  <EmojiPicker onEmojiClick={(emoji) => { setNewMessage(prev => prev + emoji.emoji); setShowEmojiPicker(false); }} theme="dark" />
-                </div>
+                <>
+                  <div 
+                    style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999 }} 
+                    onClick={() => setShowEmojiPicker(false)} 
+                  />
+                  <div style={{ position: 'absolute', bottom: '100%', left: 0, marginBottom: '0.5rem', zIndex: 1000 }}>
+                    <EmojiPicker onEmojiClick={(emoji) => { setNewMessage(prev => prev + emoji.emoji); setShowEmojiPicker(false); }} theme="dark" />
+                  </div>
+                </>
               )}
               <input type="file" ref={chatAttachmentRef} style={{ display: 'none' }} onChange={handleChatAttachmentUpload} />
               
@@ -865,7 +871,7 @@ export default function Workspace() {
                 onChange={handleTyping} 
                 onBlur={handleBlur}
                 placeholder={editingMessageId ? "Edit your message..." : "Type a message..."} 
-                style={{ flex: 1, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.5rem', borderRadius: '0.5rem', outline: 'none', fontSize: '0.85rem' }}
+                style={{ flex: 1, minWidth: 0, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.5rem', borderRadius: '0.5rem', outline: 'none', fontSize: '0.85rem' }}
               />
               {editingMessageId && (
                 <button type="button" onClick={() => { setEditingMessageId(null); setNewMessage(''); }} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '0.25rem' }}>
@@ -875,7 +881,7 @@ export default function Workspace() {
               <button 
                 type="submit" 
                 disabled={!newMessage.trim()}
-                style={{ background: newMessage.trim() ? '#4f46e5' : 'rgba(255,255,255,0.1)', color: 'white', border: 'none', padding: '0 0.75rem', borderRadius: '0.5rem', cursor: newMessage.trim() ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
+                style={{ background: newMessage.trim() ? '#4f46e5' : 'rgba(255,255,255,0.1)', color: 'white', border: 'none', padding: '0 0.75rem', borderRadius: '0.5rem', cursor: newMessage.trim() ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', flexShrink: 0, height: '34px' }}
               >
                 Send
               </button>
