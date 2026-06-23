@@ -574,7 +574,7 @@ export default function AdminDashboard() {
                               onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'; e.currentTarget.style.color = '#ef4444'; }}
                               onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.color = '#f87171'; }}
                             >
-                              <Trash2 size={16} /> Force Delete
+                              <Trash2 size={16} /> Delete Project
                             </button>
                           </div>
                         )}
@@ -742,9 +742,9 @@ export default function AdminDashboard() {
             <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.1)', display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '0 auto 1.5rem auto' }}>
               <Trash2 size={32} color="#ef4444" />
             </div>
-            <h3 style={{ color: 'white', marginTop: 0, marginBottom: '1rem', fontSize: '1.25rem' }}>Eradicate Project</h3>
-            <p style={{ color: '#94a3b8', marginBottom: '2rem', lineHeight: 1.5 }}>
-              Are you sure you want to completely eradicate this project from the platform? This action cannot be undone.
+            <h3 style={{ color: 'white', marginTop: 0, marginBottom: '1rem', fontSize: '1.25rem' }}>Delete Project</h3>
+            <p style={{ color: '#94a3b8', marginBottom: '1.5rem', lineHeight: '1.5' }}>
+              Are you sure you want to completely delete this project from the platform? This action cannot be undone.
             </p>
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
               <button 
