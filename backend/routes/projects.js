@@ -69,15 +69,6 @@ router.get('/:id', async (req, res) => {
       project.collaborators.push(req.user.userId);
       await project.save();
     }
-    // Cleanup legacy chat messages without IDs
-    if (project.data && project.data.chatMessages) {
-      const originalLength = project.data.chatMessages.length;
-      project.data.chatMessages = project.data.chatMessages.filter(msg => msg.id);
-      if (project.data.chatMessages.length !== originalLength) {
-        project.markModified('data.chatMessages');
-        await project.save();
-      }
-    }
 
     res.json(project);
   } catch (err) {

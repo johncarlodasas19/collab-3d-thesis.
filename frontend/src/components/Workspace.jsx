@@ -80,7 +80,7 @@ export default function Workspace() {
         });
         setProjectName(res.data.name);
         setObjects(res.data.data?.objects || []);
-        setChatMessages(res.data.data?.chatMessages?.filter(msg => msg.id) || []);
+        setChatMessages(res.data.data?.chatMessages || []);
       } catch (err) {
         console.error('Error fetching project', err);
         navigate('/dashboard');
