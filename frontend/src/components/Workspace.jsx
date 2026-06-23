@@ -747,7 +747,7 @@ export default function Workspace() {
                       </div>
                       {msg.timestamp && (
                         <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)' }}>
-                          {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(msg.timestamp).toLocaleString([], { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                         </div>
                       )}
                     </div>
