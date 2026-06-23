@@ -205,7 +205,9 @@ export default function Workspace() {
       const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      handleAddObject('image', res.data.url);
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const absoluteUrl = res.data.url.startsWith('http') ? res.data.url : `${apiUrl}${res.data.url}`;
+      handleAddObject('image', absoluteUrl);
     } catch (err) {
       console.error('Upload failed', err);
     }
@@ -697,13 +699,13 @@ export default function Workspace() {
               </button>
               {obj.type === 'image' && <img src={obj.url} alt="Uploaded" />}
               {obj.type === 'video' && (
-                <div style={{ width: '100%', borderRadius: '0.5rem', overflow: 'hidden', background: '#000', aspectRatio: '16/9', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 4px 6px rgba(0,0,0,0.3)' }}>
+                <div style={{ width: '100%', borderRadius: '0.5rem', overflow: 'hidden', background: '#000', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 4px 6px rgba(0,0,0,0.3)', position: 'relative', paddingTop: '56.25%' }}>
                   <ReactPlayer 
                     url={obj.url} 
                     width="100%" 
                     height="100%" 
                     controls={true}
-                    style={{ display: 'block' }}
+                    style={{ position: 'absolute', top: 0, left: 0 }}
                   />
                 </div>
               )}
