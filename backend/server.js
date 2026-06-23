@@ -147,10 +147,13 @@ io.on('connection', (socket) => {
         const currentUser = socketData ? socketData.user : null;
         
         if (msg && currentUser && (msg.user.id === currentUser.id || msg.user._id === currentUser._id || msg.user._id === currentUser.id || msg.user.id === currentUser._id)) {
-          project.data.chatMessages = project.data.chatMessages.filter(m => m.id !== messageId && m.timestamp !== messageId && m.message !== messageId);
+          msg.isUnsent = true;
+          msg.message = "This message was unsent.";
+          msg.fileUrl = null;
+          msg.type = 'text';
           project.markModified('data.chatMessages');
           await project.save();
-          io.to(roomId).emit('message-deleted', { messageId });
+          io.to(roomId).emit('message-unsent', { messageId: msg.id || msg.timestamp || msg.message, message: msg.message });
         }
       }
     } catch (err) {

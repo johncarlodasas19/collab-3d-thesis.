@@ -150,8 +150,8 @@ export default function Workspace() {
       setChatMessages((prev) => prev.map(msg => msg.id === messageId ? { ...msg, message: newText } : msg));
     });
 
-    newSocket.on('message-deleted', ({ messageId }) => {
-      setChatMessages((prev) => prev.filter(msg => msg.id !== messageId));
+    newSocket.on('message-unsent', ({ messageId, message }) => {
+      setChatMessages((prev) => prev.map(msg => msg.id === messageId ? { ...msg, isUnsent: true, message, fileUrl: null, type: 'text' } : msg));
     });
 
     newSocket.on('typing', (data) => {
@@ -830,20 +830,22 @@ export default function Workspace() {
                       </div>
                       {msg.timestamp && (
                         <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                          {(hoveredMessageId === currentMsgId && (currentUser.id === msg.user.id || currentUser._id === msg.user._id || currentUser.id === msg.user._id || currentUser._id === msg.user.id)) && (
+                          {(hoveredMessageId === currentMsgId && !msg.isUnsent && (currentUser.id === msg.user.id || currentUser._id === msg.user._id || currentUser.id === msg.user._id || currentUser._id === msg.user.id)) && (
                             <div style={{ display: 'flex', gap: '0.3rem' }}>
-                              <button onClick={() => { setEditingMessageId(currentMsgId); setNewMessage(msg.message); }} style={{ background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer', padding: 0 }}><Edit2 size={12} /></button>
-                              <button onClick={() => socket.emit('delete-message', { roomId: projectId, messageId: currentMsgId })} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 0 }}><Trash2 size={12} /></button>
+                              {(new Date() - new Date(msg.timestamp)) <= 120000 && (
+                                <button onClick={() => { setEditingMessageId(currentMsgId); setNewMessage(msg.message); }} style={{ background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer', padding: 0 }}><Edit2 size={12} /></button>
+                              )}
+                              <button onClick={() => socket.emit('delete-message', { roomId: projectId, messageId: currentMsgId })} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 0 }} title="Unsend Message"><Trash2 size={12} /></button>
                             </div>
                           )}
                           {new Date(msg.timestamp).toLocaleString([], { weekday: 'short', year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                         </div>
                       )}
                     </div>
-                    <div style={{ color: 'white', wordBreak: 'break-word' }}>
-                      {msg.type === 'image' && <img src={getMediaUrl(msg.fileUrl)} alt="attachment" style={{ maxWidth: '100%', borderRadius: '0.25rem', marginTop: '0.25rem' }} />}
-                      {msg.type === 'video' && <video src={getMediaUrl(msg.fileUrl)} controls style={{ maxWidth: '100%', borderRadius: '0.25rem', marginTop: '0.25rem' }} />}
-                      {msg.type === 'file' && <a href={getMediaUrl(msg.fileUrl)} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: '0.25rem', color: '#60a5fa', textDecoration: 'underline' }}>Download Attachment</a>}
+                    <div style={{ color: msg.isUnsent ? '#94a3b8' : 'white', fontStyle: msg.isUnsent ? 'italic' : 'normal', wordBreak: 'break-word' }}>
+                      {msg.type === 'image' && !msg.isUnsent && <img src={getMediaUrl(msg.fileUrl)} alt="attachment" style={{ maxWidth: '100%', borderRadius: '0.25rem', marginTop: '0.25rem' }} />}
+                      {msg.type === 'video' && !msg.isUnsent && <video src={getMediaUrl(msg.fileUrl)} controls style={{ maxWidth: '100%', borderRadius: '0.25rem', marginTop: '0.25rem' }} />}
+                      {msg.type === 'file' && !msg.isUnsent && <a href={getMediaUrl(msg.fileUrl)} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: '0.25rem', color: '#60a5fa', textDecoration: 'underline' }}>Download Attachment</a>}
                       {msg.message}
                     </div>
                   </div>
