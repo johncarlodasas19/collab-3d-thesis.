@@ -118,6 +118,14 @@ export default function AdminDashboard() {
     }
   };
 
+  const getMediaUrl = (url) => {
+    if (!url) return '';
+    if (url.startsWith('/uploads/')) {
+      return `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${url}`;
+    }
+    return url;
+  };
+
   const handleAvatarUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -658,7 +666,7 @@ export default function AdminDashboard() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
                       <div style={{ width: '120px', height: '120px', borderRadius: '50%', background: '#ef4444', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem', fontWeight: 'bold', color: 'white', border: '4px solid rgba(239, 68, 68, 0.3)' }}>
-                        {editAvatarUrl ? <img src={editAvatarUrl} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : currentUser.username?.[0].toUpperCase()}
+                        {editAvatarUrl ? <img src={getMediaUrl(editAvatarUrl)} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : currentUser.username?.[0].toUpperCase()}
                       </div>
                       
                       <input type="file" id="admin-avatar-upload" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarUpload} />

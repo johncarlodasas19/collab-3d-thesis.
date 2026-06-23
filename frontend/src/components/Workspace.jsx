@@ -57,6 +57,14 @@ export default function Workspace() {
     return (match && match[2].length === 11) ? match[2] : null;
   };
 
+  const getMediaUrl = (url) => {
+    if (!url) return '';
+    if (url.startsWith('/uploads/')) {
+      return `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${url}`;
+    }
+    return url;
+  };
+
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
     setTimeout(() => setToast(prev => ({ ...prev, show: false })), 3000);
@@ -768,7 +776,7 @@ export default function Workspace() {
               >
                 <Trash2 size={14} />
               </button>
-              {obj.type === 'image' && <img src={obj.url} alt="Uploaded" />}
+              {obj.type === 'image' && <img src={getMediaUrl(obj.url)} alt="Uploaded" />}
               {obj.type === 'video' && (
                 <div style={{ width: '100%', borderRadius: '0.5rem', overflow: 'hidden', background: '#000', aspectRatio: '16/9', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 4px 6px rgba(0,0,0,0.3)' }}>
                   {getYoutubeId(obj.url) ? (
@@ -782,7 +790,7 @@ export default function Workspace() {
                       style={{ display: 'block' }}
                     ></iframe>
                   ) : (
-                    <video src={obj.url} controls width="100%" height="100%" style={{ display: 'block', objectFit: 'contain' }} />
+                    <video src={getMediaUrl(obj.url)} controls width="100%" height="100%" style={{ display: 'block', objectFit: 'contain' }} />
                   )}
                 </div>
               )}
@@ -833,9 +841,9 @@ export default function Workspace() {
                       )}
                     </div>
                     <div style={{ color: 'white', wordBreak: 'break-word' }}>
-                      {msg.type === 'image' && <img src={msg.fileUrl} alt="attachment" style={{ maxWidth: '100%', borderRadius: '0.25rem', marginTop: '0.25rem' }} />}
-                      {msg.type === 'video' && <video src={msg.fileUrl} controls style={{ maxWidth: '100%', borderRadius: '0.25rem', marginTop: '0.25rem' }} />}
-                      {msg.type === 'file' && <a href={msg.fileUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: '0.25rem', color: '#60a5fa', textDecoration: 'underline' }}>Download Attachment</a>}
+                      {msg.type === 'image' && <img src={getMediaUrl(msg.fileUrl)} alt="attachment" style={{ maxWidth: '100%', borderRadius: '0.25rem', marginTop: '0.25rem' }} />}
+                      {msg.type === 'video' && <video src={getMediaUrl(msg.fileUrl)} controls style={{ maxWidth: '100%', borderRadius: '0.25rem', marginTop: '0.25rem' }} />}
+                      {msg.type === 'file' && <a href={getMediaUrl(msg.fileUrl)} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: '0.25rem', color: '#60a5fa', textDecoration: 'underline' }}>Download Attachment</a>}
                       {msg.message}
                     </div>
                   </div>
