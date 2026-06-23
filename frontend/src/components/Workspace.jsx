@@ -40,51 +40,8 @@ export default function Workspace() {
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [pickerTab, setPickerTab] = useState('emoji'); // 'emoji' or 'gif'
-  const [gifs, setGifs] = useState([]);
-  const [gifSearch, setGifSearch] = useState('');
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [hoveredMessageId, setHoveredMessageId] = useState(null);
-
-  useEffect(() => {
-    if (pickerTab === 'gif' && showEmojiPicker) {
-      fetchGifs(gifSearch);
-    }
-  }, [pickerTab, showEmojiPicker, gifSearch]);
-
-  const fetchGifs = async (query = '') => {
-    try {
-      // Using public Giphy API key for demo purposes
-      const apiKey = 'GlVGYHqc3SyCEGnwvNIG23XzyVms5pe0';
-      const endpoint = query 
-        ? `https://api.giphy.com/v1/gifs/search?api_key=${apiKey}&q=${encodeURIComponent(query)}&limit=20`
-        : `https://api.giphy.com/v1/gifs/trending?api_key=${apiKey}&limit=20`;
-      
-      const res = await fetch(endpoint);
-      const data = await res.json();
-      setGifs(data.data || []);
-    } catch (err) {
-      console.error('Failed to fetch GIFs:', err);
-    }
-  };
-
-  const sendGif = (gifUrl) => {
-    const userStr = localStorage.getItem('user');
-    const userObj = userStr ? JSON.parse(userStr) : { username: 'Guest' };
-    const myColor = activeUsers.find(u => u.socketId === socket?.id)?.color || '#4f46e5';
-
-    const msgData = {
-      id: uuidv4(),
-      roomId: projectId,
-      message: '',
-      fileUrl: gifUrl,
-      type: 'image', // Treat GIF as image
-      user: { ...userObj, color: myColor },
-      timestamp: new Date().toISOString()
-    };
-    if (socket) socket.emit('chat-message', msgData);
-    setShowEmojiPicker(false);
-  };
 
   const getYoutubeId = (url) => {
     if (!url) return null;
@@ -834,7 +791,7 @@ export default function Workspace() {
             )}
           </div>
 
-          <div className="workspace-chat-container" style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', flex: 1, minHeight: '250px', maxHeight: '50vh', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem', overflow: 'hidden' }}>
+          <div className="workspace-chat-container" style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', flex: 1, minHeight: '250px', maxHeight: '50vh', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem', position: 'relative' }}>
             <h3 style={{ marginBottom: '0.5rem', color: 'white', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
               <MessageSquare size={16} /> Real-Time Chat
             </h3>
@@ -894,56 +851,11 @@ export default function Workspace() {
                     style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999 }} 
                     onClick={() => setShowEmojiPicker(false)} 
                   />
-                  <div style={{ position: 'absolute', bottom: '100%', left: 0, marginBottom: '0.5rem', zIndex: 1000, background: '#1f2937', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.1)', overflow: 'hidden', width: '300px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column' }}>
-                    
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.2)', padding: '0.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                      <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button type="button" onClick={() => setPickerTab('emoji')} style={{ background: pickerTab === 'emoji' ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', color: 'white', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '0.8rem' }}>Emoji</button>
-                        <button type="button" onClick={() => setPickerTab('gif')} style={{ background: pickerTab === 'gif' ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', color: 'white', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '0.8rem' }}>GIF</button>
-                      </div>
-                      <button type="button" onClick={() => setShowEmojiPicker(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '0.25rem' }}>
-                        <X size={16} />
-                      </button>
-                    </div>
-
-                    <div style={{ height: '350px', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-                      {pickerTab === 'emoji' && (
-                        <EmojiPicker 
-                          onEmojiClick={(emoji) => { setNewMessage(prev => prev + emoji.emoji); setShowEmojiPicker(false); }} 
-                          theme="dark" 
-                          width="100%" 
-                          height="100%" 
-                          style={{ border: 'none', background: 'transparent' }} 
-                        />
-                      )}
-                      
-                      {pickerTab === 'gif' && (
-                        <div style={{ padding: '0.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                          <input 
-                            type="text" 
-                            placeholder="Search GIFs..." 
-                            value={gifSearch}
-                            onChange={(e) => setGifSearch(e.target.value)}
-                            style={{ width: '100%', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.5rem', borderRadius: '0.25rem', marginBottom: '0.5rem', outline: 'none', fontSize: '0.85rem' }}
-                          />
-                          <div style={{ flex: 1, overflowY: 'auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                            {gifs.length === 0 ? (
-                              <div style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#94a3b8', fontSize: '0.8rem', padding: '1rem 0' }}>Loading...</div>
-                            ) : (
-                              gifs.map(g => (
-                                <img 
-                                  key={g.id} 
-                                  src={g.images?.fixed_height_small?.url || g.images?.original?.url} 
-                                  alt={g.title} 
-                                  onClick={() => sendGif(g.images?.original?.url)}
-                                  style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '0.25rem', cursor: 'pointer' }}
-                                />
-                              ))
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                  <div style={{ position: 'absolute', bottom: '100%', right: 0, marginBottom: '0.5rem', zIndex: 1000, boxShadow: '0 10px 15px -3px rgba(0,0,0,0.5)' }}>
+                    <EmojiPicker 
+                      onEmojiClick={(emoji) => { setNewMessage(prev => prev + emoji.emoji); setShowEmojiPicker(false); }} 
+                      theme="dark" 
+                    />
                   </div>
                 </>
               )}
