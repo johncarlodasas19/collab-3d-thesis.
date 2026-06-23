@@ -242,8 +242,10 @@ export default function Workspace() {
       });
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       const absoluteUrl = res.data.url.startsWith('http') ? res.data.url : `${apiUrl}${res.data.url}`;
-      
-      const fileType = file.type.startsWith('video/') ? 'video' : 'image';
+
+      let fileType = 'file';
+      if (file.type.startsWith('image/')) fileType = 'image';
+      if (file.type.startsWith('video/')) fileType = 'video';
       
       const userStr = localStorage.getItem('user');
       const userObj = userStr ? JSON.parse(userStr) : { username: 'Guest' };
@@ -252,7 +254,7 @@ export default function Workspace() {
       const msgData = {
         id: uuidv4(),
         roomId: projectId,
-        message: '',
+        message: fileType === 'file' ? `📎 Uploaded file: ${file.name}` : '',
         fileUrl: absoluteUrl,
         type: fileType,
         user: { ...userObj, color: myColor },
@@ -789,12 +791,12 @@ export default function Workspace() {
             )}
           </div>
 
-          <div className="workspace-chat-container" style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', height: '300px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem' }}>
-            <h3 style={{ marginBottom: '0.5rem', color: 'white', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div className="workspace-chat-container" style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', flex: 1, minHeight: '250px', maxHeight: '50vh', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem', overflow: 'hidden' }}>
+            <h3 style={{ marginBottom: '0.5rem', color: 'white', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
               <MessageSquare size={16} /> Real-Time Chat
             </h3>
             
-            <div className="chat-messages" style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.75rem', paddingRight: '0.5rem' }}>
+            <div className="chat-messages" style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.75rem', paddingRight: '0.5rem', minHeight: 0 }}>
               {chatMessages.length === 0 ? (
                 <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem', textAlign: 'center', margin: 'auto' }}>No messages yet. Say hi!</div>
               ) : (
@@ -824,6 +826,7 @@ export default function Workspace() {
                     <div style={{ color: 'white', wordBreak: 'break-word' }}>
                       {msg.type === 'image' && <img src={msg.fileUrl} alt="attachment" style={{ maxWidth: '100%', borderRadius: '0.25rem', marginTop: '0.25rem' }} />}
                       {msg.type === 'video' && <video src={msg.fileUrl} controls style={{ maxWidth: '100%', borderRadius: '0.25rem', marginTop: '0.25rem' }} />}
+                      {msg.type === 'file' && <a href={msg.fileUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: '0.25rem', color: '#60a5fa', textDecoration: 'underline' }}>Download Attachment</a>}
                       {msg.message}
                     </div>
                   </div>
@@ -847,9 +850,9 @@ export default function Workspace() {
                   <EmojiPicker onEmojiClick={(emoji) => { setNewMessage(prev => prev + emoji.emoji); setShowEmojiPicker(false); }} theme="dark" />
                 </div>
               )}
-              <input type="file" ref={chatAttachmentRef} style={{ display: 'none' }} accept="image/*,video/*" onChange={handleChatAttachmentUpload} />
+              <input type="file" ref={chatAttachmentRef} style={{ display: 'none' }} onChange={handleChatAttachmentUpload} />
               
-              <button type="button" onClick={() => chatAttachmentRef.current?.click()} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '0.25rem' }} title="Attach File">
+              <button type="button" onClick={() => chatAttachmentRef.current?.click()} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '0.25rem', flexShrink: 0 }} title="Attach File">
                 <Paperclip size={18} />
               </button>
               <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '0.25rem' }} title="Emoji">
