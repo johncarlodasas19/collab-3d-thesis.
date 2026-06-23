@@ -7,7 +7,6 @@ import ThreeCanvas from './ThreeCanvas';
 import InviteModal from './InviteModal';
 import ReportModal from './ReportModal';
 import { io } from 'socket.io-client';
-import ReactPlayer from 'react-player';
 
 export default function Workspace() {
   const { projectId } = useParams();
@@ -39,7 +38,8 @@ export default function Workspace() {
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
   const getYoutubeId = (url) => {
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    if (!url) return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
     const match = url.match(regExp);
     return (match && match[2].length === 11) ? match[2] : null;
   };
@@ -702,14 +702,20 @@ export default function Workspace() {
               </button>
               {obj.type === 'image' && <img src={obj.url} alt="Uploaded" />}
               {obj.type === 'video' && (
-                <div style={{ width: '100%', borderRadius: '0.5rem', overflow: 'hidden', background: '#000', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 4px 6px rgba(0,0,0,0.3)', position: 'relative', paddingTop: '56.25%' }}>
-                  <ReactPlayer 
-                    url={obj.url} 
-                    width="100%" 
-                    height="100%" 
-                    controls={true}
-                    style={{ position: 'absolute', top: 0, left: 0 }}
-                  />
+                <div style={{ width: '100%', borderRadius: '0.5rem', overflow: 'hidden', background: '#000', aspectRatio: '16/9', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 4px 6px rgba(0,0,0,0.3)' }}>
+                  {getYoutubeId(obj.url) ? (
+                    <iframe 
+                      width="100%" 
+                      height="100%" 
+                      src={`https://www.youtube.com/embed/${getYoutubeId(obj.url)}`} 
+                      frameBorder="0" 
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                      allowFullScreen
+                      style={{ display: 'block' }}
+                    ></iframe>
+                  ) : (
+                    <video src={obj.url} controls width="100%" height="100%" style={{ display: 'block', objectFit: 'contain' }} />
+                  )}
                 </div>
               )}
             </div>
