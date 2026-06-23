@@ -105,8 +105,16 @@ io.on('connection', (socket) => {
     socket.to(data.roomId).emit('stop-typing', data);
   });
 
-  socket.on('chat-message', (data) => {
+  socket.on('chat-message', async (data) => {
     io.to(data.roomId).emit('chat-message', data);
+    try {
+      const Project = require('./models/Project');
+      await Project.findByIdAndUpdate(data.roomId, {
+        $push: { 'data.chatMessages': data }
+      });
+    } catch (err) {
+      console.error('Error saving chat message:', err);
+    }
   });
 
   socket.on('disconnect', () => {

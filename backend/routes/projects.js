@@ -83,8 +83,11 @@ router.put('/:id', async (req, res) => {
   try {
     const { data, name } = req.body;
     let updateFields = { updatedAt: Date.now() };
-    if (data) updateFields.data = data;
     if (name) updateFields.name = name;
+    if (data) {
+      if (data.objects !== undefined) updateFields['data.objects'] = data.objects;
+      if (data.chatMessages !== undefined) updateFields['data.chatMessages'] = data.chatMessages;
+    }
 
     const project = await Project.findOneAndUpdate(
       { _id: req.params.id, owner: req.user.userId },
