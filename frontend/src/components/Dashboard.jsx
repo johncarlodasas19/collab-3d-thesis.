@@ -208,7 +208,7 @@ export default function Dashboard() {
         formData.append('media', blob, 'avatar.png');
 
         try {
-          const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload', formData, {
+          const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
           });
           setEditAvatarUrl(res.data.url);
@@ -239,7 +239,7 @@ export default function Dashboard() {
         payload.password = editPassword;
       }
 
-      const res = await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/profile', payload, {
+      const res = await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/profile`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

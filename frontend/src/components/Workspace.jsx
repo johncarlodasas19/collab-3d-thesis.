@@ -179,7 +179,7 @@ export default function Workspace() {
 
     try {
       saveHistory();
-      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload', formData, {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       handleAddObject('image', res.data.url);
