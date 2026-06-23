@@ -104,6 +104,29 @@ router.put('/reports/:id/resolve', async (req, res) => {
   }
 });
 
+// Admin can softly delete a project
+router.delete('/projects/:id', async (req, res) => {
+  try {
+    const project = await Project.findByIdAndUpdate(
+      req.params.id,
+      { isDeleted: true, updatedAt: Date.now() },
+      { new: true }
+    );
+    if (!project) return res.status(404).json({ message: 'Project not found' });
+    
+    await ActivityLog.create({
+      userId: req.user.userId,
+      username: req.user.username,
+      action: 'Soft Deleted Project',
+      details: `Project ID: ${req.params.id}`
+    });
+
+    res.json({ message: 'Project moved to trash by Admin' });
+  } catch (err) {
+    res.status(500).json({ message: 'Error deleting project', error: err.message });
+  }
+});
+
 // Admin can force delete a project
 router.delete('/projects/:id/force', async (req, res) => {
   try {
