@@ -219,6 +219,7 @@ export default function AdminDashboard() {
       await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects/${projectId}`, { 
         headers: { Authorization: `Bearer ${token}` } 
       });
+      localStorage.setItem('adminReturnTab', 'reports');
       window.open(`/workspace/${projectId}?from=reports`, '_blank');
     } catch (err) {
       if (err.response && err.response.status === 404) {

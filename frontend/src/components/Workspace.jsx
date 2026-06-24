@@ -42,6 +42,20 @@ export default function Workspace() {
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const fromReports = new URLSearchParams(location.search).get('from') === 'reports';
 
+  const handleGoBack = () => {
+    if (currentUser.role === 'admin') {
+      const returnTab = localStorage.getItem('adminReturnTab');
+      if (returnTab || fromReports) {
+        localStorage.removeItem('adminReturnTab');
+        navigate('/admin-dashboard?tab=reports');
+      } else {
+        navigate('/admin-dashboard');
+      }
+    } else {
+      navigate('/dashboard');
+    }
+  };
+
   const [gifs, setGifs] = useState([]);
   const [gifSearch, setGifSearch] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -539,7 +553,7 @@ export default function Workspace() {
       )}
     <div className="workspace-container" onPointerMove={handlePointerMove}>
       <header className="workspace-header">
-        <button className="icon-btn" onClick={() => navigate(currentUser.role === 'admin' ? (fromReports ? '/admin-dashboard?tab=reports' : '/admin-dashboard') : '/dashboard')} title={currentUser.role === 'admin' ? "Back to Admin Console" : "Back to Dashboard"}>
+        <button className="icon-btn" onClick={handleGoBack} title={currentUser.role === 'admin' ? "Back to Admin Console" : "Back to Dashboard"}>
           <ArrowLeft size={20} />
         </button>
         <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.15)', borderRadius: '0.5rem', padding: '0.25rem 0.5rem', border: '1px solid rgba(255,255,255,0.05)', transition: 'all 0.2s' }} onMouseOver={e => e.currentTarget.style.border = '1px solid rgba(255,255,255,0.2)'} onMouseOut={e => { if (document.activeElement !== e.currentTarget.querySelector('input')) e.currentTarget.style.border = '1px solid rgba(255,255,255,0.05)'; }} onFocus={e => e.currentTarget.style.border = '1px solid #6366f1'} onBlur={e => e.currentTarget.style.border = '1px solid rgba(255,255,255,0.05)'}>
