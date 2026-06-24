@@ -669,6 +669,15 @@ export default function AdminDashboard() {
                             >
                               <Trash2 size={16} /> Delete Project
                             </button>
+                            <button 
+                              onClick={() => window.open(`/workspace/${report.reportedProjectId}`, '_blank')} 
+                              style={{ width: '150px', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.3)', color: '#60a5fa', padding: '0.6rem 0', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '500', transition: 'all 0.2s' }}
+                              onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(59, 130, 246, 0.2)'; e.currentTarget.style.color = '#3b82f6'; }}
+                              onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(59, 130, 246, 0.1)'; e.currentTarget.style.color = '#60a5fa'; }}
+                              title="Enter Workspace to Investigate"
+                            >
+                              <Eye size={16} /> Check Workspace
+                            </button>
                           </div>
                         )}
                       </div>
