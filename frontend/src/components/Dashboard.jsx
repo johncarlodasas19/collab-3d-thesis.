@@ -31,6 +31,7 @@ export default function Dashboard() {
   const [settingsError, setSettingsError] = useState('');
   const [settingsSuccess, setSettingsSuccess] = useState('');
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const [editorFile, setEditorFile] = useState(null);
   const [editorScale, setEditorScale] = useState(1.2);
@@ -265,11 +266,11 @@ export default function Dashboard() {
     }
   };
 
-  const handleDeleteAccount = async () => {
-    if (!window.confirm('Are you sure you want to PERMANENTLY delete your account? This action cannot be undone and all your projects will be lost.')) {
-      return;
-    }
-    
+  const handleDeleteAccountClick = () => {
+    setShowDeleteAccountModal(true);
+  };
+
+  const confirmDeleteAccount = async () => {
     setIsDeletingAccount(true);
     setSettingsError('');
     try {
@@ -283,6 +284,7 @@ export default function Dashboard() {
     } catch (err) {
       setSettingsError(err.response?.data?.message || 'Failed to delete account.');
       setIsDeletingAccount(false);
+      setShowDeleteAccountModal(false);
     }
   };
 
@@ -584,7 +586,7 @@ export default function Dashboard() {
                   Once you delete your account, there is no going back. Please be certain. All your data, projects, and history will be <strong style={{ color: '#ef4444' }}>permanently eradicated</strong>.
                 </p>
                 <button 
-                  onClick={handleDeleteAccount}
+                  onClick={handleDeleteAccountClick}
                   disabled={isDeletingAccount}
                   style={{ background: 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)', color: 'white', border: 'none', padding: '0.85rem 1.75rem', borderRadius: '0.75rem', fontWeight: 'bold', cursor: isDeletingAccount ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '0.75rem', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 4px 15px rgba(239, 68, 68, 0.4)' }}
                   onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(239, 68, 68, 0.6)'; }}
@@ -599,6 +601,41 @@ export default function Dashboard() {
           </div>
         )}
       </main>
+
+      {/* Delete Account Modal */}
+      {showDeleteAccountModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+          <div className="fade-in" style={{ background: 'linear-gradient(145deg, rgba(30, 32, 47, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%)', padding: '2.5rem', borderRadius: '1.5rem', border: '1px solid rgba(239, 68, 68, 0.4)', width: '450px', maxWidth: '90%', boxShadow: '0 25px 50px -12px rgba(239, 68, 68, 0.25)', textAlign: 'center' }}>
+            <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(153, 27, 27, 0.2) 100%)', display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '0 auto 1.5rem auto', boxShadow: '0 0 20px rgba(239, 68, 68, 0.2)' }}>
+              <Trash2 size={36} color="#ef4444" />
+            </div>
+            <h3 style={{ marginBottom: '1rem', fontSize: '1.4rem', color: 'white', fontWeight: 'bold' }}>Delete Account</h3>
+            <p style={{ color: '#94a3b8', marginBottom: '2rem', lineHeight: '1.6', fontSize: '1rem' }}>
+              Are you absolute sure you want to <strong style={{ color: '#ef4444' }}>PERMANENTLY</strong> delete your account? This action cannot be undone and all your projects will be eradicated.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
+              <button 
+                onClick={() => setShowDeleteAccountModal(false)} 
+                disabled={isDeletingAccount}
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.75rem 1.5rem', borderRadius: '0.75rem', cursor: isDeletingAccount ? 'not-allowed' : 'pointer', fontWeight: 'bold', transition: 'all 0.2s', flex: 1 }}
+                onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)' }}
+                onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmDeleteAccount}
+                disabled={isDeletingAccount}
+                style={{ background: 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)', border: 'none', color: 'white', padding: '0.75rem 1.5rem', borderRadius: '0.75rem', cursor: isDeletingAccount ? 'not-allowed' : 'pointer', fontWeight: 'bold', transition: 'all 0.2s', boxShadow: '0 4px 15px rgba(239, 68, 68, 0.4)', flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}
+                onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(239, 68, 68, 0.6)'; }}
+                onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(239, 68, 68, 0.4)'; }}
+              >
+                {isDeletingAccount ? 'Deleting...' : 'Yes, Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Create Project Modal */}
       {showCreateModal && (
