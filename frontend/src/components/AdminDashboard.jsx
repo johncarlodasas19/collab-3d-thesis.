@@ -21,7 +21,6 @@ export default function AdminDashboard() {
   const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
   const [adminActionModal, setAdminActionModal] = useState({ show: false, status: '' });
   const [adminActionSuccessModal, setAdminActionSuccessModal] = useState({ show: false, message: '' });
-  const [checkWorkspaceErrorModal, setCheckWorkspaceErrorModal] = useState({ show: false, message: '' });
   
   // Custom Modal State
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, projectId: null });
@@ -147,22 +146,6 @@ export default function AdminDashboard() {
 
   const handleForceDeleteProject = (projectId) => {
     setDeleteModal({ isOpen: true, projectId });
-  };
-
-  const handleCheckWorkspace = async (projectId) => {
-    try {
-      const token = localStorage.getItem('token');
-      await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects/${projectId}`, { 
-        headers: { Authorization: `Bearer ${token}` } 
-      });
-      window.open(`/workspace/${projectId}`, '_blank');
-    } catch (err) {
-      if (err.response && err.response.status === 404) {
-        setCheckWorkspaceErrorModal({ show: true, message: 'This project cannot be checked because it is already deleted by the administrator.' });
-      } else {
-        setCheckWorkspaceErrorModal({ show: true, message: 'This project cannot be checked because it is no longer accessible.' });
-      }
-    }
   };
 
   const confirmForceDelete = async () => {
@@ -679,21 +662,21 @@ export default function AdminDashboard() {
                               <CheckCircle2 size={16} /> Resolve
                             </button>
                             <button 
-                              onClick={() => handleForceDeleteProject(report.reportedProjectId)} 
-                              style={{ width: '130px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#f87171', padding: '0.6rem 0', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '500', transition: 'all 0.2s' }}
-                              onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'; e.currentTarget.style.color = '#ef4444'; }}
-                              onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.color = '#f87171'; }}
-                            >
-                              <Trash2 size={16} /> Delete Project
-                            </button>
-                            <button 
-                              onClick={() => handleCheckWorkspace(report.reportedProjectId)} 
+                              onClick={() => window.open(`/workspace/${report.reportedProjectId}`, '_blank')} 
                               style={{ width: '150px', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.3)', color: '#60a5fa', padding: '0.6rem 0', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '500', transition: 'all 0.2s' }}
                               onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(59, 130, 246, 0.2)'; e.currentTarget.style.color = '#3b82f6'; }}
                               onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(59, 130, 246, 0.1)'; e.currentTarget.style.color = '#60a5fa'; }}
                               title="Enter Workspace to Investigate"
                             >
                               <Eye size={16} /> Check Workspace
+                            </button>
+                            <button 
+                              onClick={() => handleForceDeleteProject(report.reportedProjectId)} 
+                              style={{ width: '130px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#f87171', padding: '0.6rem 0', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '500', transition: 'all 0.2s' }}
+                              onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'; e.currentTarget.style.color = '#ef4444'; }}
+                              onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.color = '#f87171'; }}
+                            >
+                              <Trash2 size={16} /> Delete Project
                             </button>
                           </div>
                         )}
@@ -703,10 +686,10 @@ export default function AdminDashboard() {
                         {report.reason}
                         
                         {report.proofUrl && (
-                          <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                          <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'center' }}>
                             <button 
                               onClick={() => setEvidenceModal({ isOpen: true, url: report.proofUrl })}
-                              style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.4)', color: '#fca5a5', padding: '0.75rem 1.5rem', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold' }}
+                              style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.4)', color: '#fca5a5', padding: '0.75rem 1.5rem', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 'bold', width: '100%', maxWidth: '300px' }}
                             >
                               <AlertTriangle size={16} /> Preview Attached Evidence
                             </button>
@@ -1037,41 +1020,6 @@ export default function AdminDashboard() {
               style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', color: 'white', border: 'none', padding: '0.85rem 2rem', borderRadius: '0.75rem', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.3s ease', boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)' }}
               onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.6)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.4)'; }}
-            >
-              Okay
-            </button>
-          </div>
-        </div>
-      )}
-
-      {checkWorkspaceErrorModal.show && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', zIndex: 10000,
-          display: 'flex', alignItems: 'center', justifyContent: 'center'
-        }}>
-          <div style={{
-            background: 'rgba(30, 32, 47, 0.95)', border: '1px solid rgba(239, 68, 68, 0.3)',
-            borderRadius: '1.5rem', padding: '2rem', maxWidth: '400px', width: '90%',
-            textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
-            animation: 'modalSlideUp 0.3s ease-out'
-          }}>
-            <div style={{ background: 'rgba(239, 68, 68, 0.1)', width: '64px', height: '64px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem auto' }}>
-              <AlertTriangle size={32} color="#ef4444" />
-            </div>
-            <h3 style={{ color: 'white', fontSize: '1.25rem', marginBottom: '1rem' }}>Access Denied</h3>
-            <p style={{ color: '#94a3b8', fontSize: '0.95rem', marginBottom: '2rem', lineHeight: '1.5' }}>
-              {checkWorkspaceErrorModal.message}
-            </p>
-            <button 
-              onClick={() => setCheckWorkspaceErrorModal({ show: false, message: '' })}
-              style={{
-                background: '#ef4444', color: 'white', border: 'none', padding: '0.75rem 2rem',
-                borderRadius: '0.5rem', fontWeight: 'bold', cursor: 'pointer',
-                transition: 'background 0.2s', width: '100%'
-              }}
-              onMouseOver={(e) => e.currentTarget.style.background = '#dc2626'}
-              onMouseOut={(e) => e.currentTarget.style.background = '#ef4444'}
             >
               Okay
             </button>

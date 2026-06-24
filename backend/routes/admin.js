@@ -139,12 +139,6 @@ router.delete('/projects/:id/force', async (req, res) => {
   try {
     const project = await Project.findByIdAndDelete(req.params.id);
     
-    // Automatically resolve all pending reports for this eradicated project
-    await Report.updateMany(
-      { reportedProjectId: req.params.id, status: 'pending' }, 
-      { status: 'resolved', resolvedAt: Date.now() }
-    );
-    
     await ActivityLog.create({
       userId: req.user.userId,
       username: req.user.username,
