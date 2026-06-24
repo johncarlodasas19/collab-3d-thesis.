@@ -180,6 +180,7 @@ export default function AdminDashboard() {
 
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
+      setCurrentUser(res.data.user);
       
       setSettingsSuccess('Profile updated successfully!');
       

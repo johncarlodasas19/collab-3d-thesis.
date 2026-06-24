@@ -152,5 +152,29 @@ router.put('/profile', authMiddleware, async (req, res) => {
     res.status(500).json({ message: 'Error updating profile', error: error.message });
   }
 });
+// Forgot Password (Mock Flow)
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User with this email not found' });
+    }
+
+    // Generate a temporary 6-digit password
+    const tempPassword = Math.floor(100000 + Math.random() * 900000).toString();
+    const bcrypt = require('bcryptjs');
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(tempPassword, salt);
+    await user.save();
+
+    res.json({ 
+      message: 'Password reset successful.', 
+      tempPassword 
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error processing forgot password', error: error.message });
+  }
+});
 
 module.exports = router;

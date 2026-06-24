@@ -328,7 +328,11 @@ export default function Dashboard() {
             <div className="user-profile" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: '#6d28d9', padding: '0.35rem 1rem 0.35rem 0.35rem', borderRadius: '2rem', border: 'none', transition: 'all 0.2s', cursor: 'pointer', boxShadow: '0 4px 15px rgba(109, 40, 217, 0.4)' }} onMouseOver={e => { e.currentTarget.style.background = '#5b21b6'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(109, 40, 217, 0.6)'; }} onMouseOut={e => { e.currentTarget.style.background = '#6d28d9'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(109, 40, 217, 0.4)'; }}>
               <div className="avatar" style={{ width: '36px', height: '36px', borderRadius: '50%', overflow: 'hidden', background: 'rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: '600', fontSize: '1rem' }}>
                 {user.avatarUrl ? (
-                  <img src={getMediaUrl(user.avatarUrl)} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img 
+                    src={user?.avatarUrl ? getMediaUrl(user.avatarUrl) : "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"} 
+                    alt="Profile" 
+                    style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }}
+                  />
                 ) : (
                   user.username.charAt(0).toUpperCase()
                 )}

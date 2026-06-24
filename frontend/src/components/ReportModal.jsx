@@ -66,7 +66,7 @@ export default function ReportModal({ isOpen, onClose, projectId, projectName })
     return url;
   };
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -75,91 +75,26 @@ export default function ReportModal({ isOpen, onClose, projectId, projectName })
       return;
     }
 
-    setEditorFile(file);
     if (fileInputRef.current) fileInputRef.current.value = '';
-  };
-
-  const handleCropAndUpload = async () => {
-    if (!editorRef.current) return;
     
-    const canvas = editorRef.current.getImageScaledToCanvas();
-    canvas.toBlob(async (blob) => {
-      if (!blob) return;
-      const file = new File([blob], 'proof.jpg', { type: 'image/jpeg' });
+    setUploading(true);
+    setError('');
+    try {
+      const formData = new FormData();
+      formData.append('media', file);
       
-      setUploading(true);
-      setError('');
-      try {
-        const formData = new FormData();
-        formData.append('media', file);
-        
-        const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        
-        setProofUrl(res.data.url);
-        setEditorFile(null);
-        setEditorScale(1);
-      } catch (err) {
-        console.error('Upload failed', err);
-        setError('Failed to upload proof image. Please try again.');
-      } finally {
-        setUploading(false);
-      }
-    }, 'image/jpeg', 0.9);
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      setProofUrl(res.data.url);
+    } catch (err) {
+      console.error('Upload failed', err);
+      setError('Failed to upload proof image. Please try again.');
+    } finally {
+      setUploading(false);
+    }
   };
-
-  if (editorFile) {
-    return (
-      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100000 }}>
-        <div style={{ background: 'rgba(25, 27, 40, 0.95)', padding: '2rem', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.1)', width: '450px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <h3 style={{ color: 'white', marginBottom: '1.5rem', fontSize: '1.2rem' }}>Adjust Proof Image</h3>
-          <AvatarEditor
-            ref={editorRef}
-            image={editorFile}
-            width={350}
-            height={200}
-            border={20}
-            color={[0, 0, 0, 0.8]}
-            scale={editorScale}
-            rotate={0}
-            style={{ background: '#000', borderRadius: '0.5rem' }}
-          />
-          <div style={{ width: '100%', marginTop: '1.5rem' }}>
-            <label style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between' }}>
-              <span>Zoom</span>
-              <span>{Math.round(editorScale * 100)}%</span>
-            </label>
-            <input 
-              type="range" 
-              min="1" 
-              max="3" 
-              step="0.01" 
-              value={editorScale} 
-              onChange={(e) => setEditorScale(parseFloat(e.target.value))} 
-              style={{ width: '100%', accentColor: '#ef4444' }}
-            />
-          </div>
-          <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem', width: '100%' }}>
-            <button 
-              onClick={() => { setEditorFile(null); setEditorScale(1); }}
-              disabled={uploading}
-              style={{ flex: 1, background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', padding: '0.75rem', borderRadius: '0.5rem', cursor: uploading ? 'not-allowed' : 'pointer' }}
-            >
-              Cancel
-            </button>
-            <button 
-              onClick={handleCropAndUpload}
-              disabled={uploading}
-              style={{ flex: 1, background: '#ef4444', border: 'none', color: 'white', padding: '0.75rem', borderRadius: '0.5rem', cursor: uploading ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
-            >
-              {uploading ? 'Uploading...' : 'Crop & Upload'}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100000 }}>

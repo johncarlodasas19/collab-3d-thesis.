@@ -10,6 +10,11 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [accountType, setAccountType] = useState('user');
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotMessage, setForgotMessage] = useState('');
+  const [forgotTempPass, setForgotTempPass] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -43,9 +48,27 @@ export default function Login() {
         navigate('/dashboard');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      setError(err.response?.data?.message || 'Invalid credentials');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    setForgotLoading(true);
+    setForgotMessage('');
+    setForgotTempPass('');
+    try {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/forgot-password`, { email: forgotEmail });
+      setForgotMessage(res.data.message);
+      if (res.data.tempPassword) {
+        setForgotTempPass(res.data.tempPassword);
+      }
+    } catch (err) {
+      setForgotMessage(err.response?.data?.message || 'Error processing request.');
+    } finally {
+      setForgotLoading(false);
     }
   };
 
@@ -126,6 +149,15 @@ export default function Login() {
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+              <button 
+                type="button" 
+                onClick={() => { setShowForgotModal(true); setForgotMessage(''); setForgotTempPass(''); setForgotEmail(email); }} 
+                style={{ background: 'none', border: 'none', color: '#6366f1', fontSize: '0.85rem', cursor: 'pointer', padding: 0 }}
+              >
+                Forgot Password?
+              </button>
+            </div>
           </div>
           <button type="submit" className="btn-primary" disabled={loading} style={{ background: accountType === 'admin' ? '#ef4444' : '#4f46e5' }}>
             {loading ? 'Signing in...' : <><LogIn size={18} /> Sign In as {accountType === 'admin' ? 'Admin' : 'User'}</>}
@@ -136,6 +168,39 @@ export default function Login() {
           Don't have an account? <Link to="/register" state={location.state}>Create one now</Link>
         </div>
       </div>
+
+      {showForgotModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+          <div style={{ background: 'rgba(25, 27, 40, 0.95)', padding: '2rem', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.1)', width: '400px' }}>
+            <h3 style={{ color: 'white', marginTop: 0, marginBottom: '1rem' }}>Forgot Password</h3>
+            <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '1.5rem' }}>Enter your email address to receive a temporary password.</p>
+            
+            <form onSubmit={handleForgotPassword}>
+              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                <input type="email" className="form-control" placeholder="Enter your email" value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)} required />
+              </div>
+              
+              {forgotMessage && (
+                <div style={{ marginBottom: '1.5rem', padding: '1rem', background: forgotTempPass ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)', border: `1px solid ${forgotTempPass ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`, borderRadius: '0.5rem', color: forgotTempPass ? '#4ade80' : '#f87171', fontSize: '0.9rem' }}>
+                  {forgotMessage}
+                  {forgotTempPass && (
+                    <div style={{ marginTop: '0.5rem', background: 'rgba(0,0,0,0.3)', padding: '0.75rem', borderRadius: '0.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <code style={{ fontSize: '1.1rem', fontWeight: 'bold', letterSpacing: '2px', color: 'white' }}>{forgotTempPass}</code>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button type="button" onClick={() => setShowForgotModal(false)} style={{ flex: 1, background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '0.75rem', borderRadius: '0.5rem', cursor: 'pointer' }}>Close</button>
+                <button type="submit" disabled={forgotLoading} style={{ flex: 1, background: '#4f46e5', border: 'none', color: 'white', padding: '0.75rem', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 'bold' }}>
+                  {forgotLoading ? 'Processing...' : 'Reset Password'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

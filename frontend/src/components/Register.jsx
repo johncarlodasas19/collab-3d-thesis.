@@ -7,6 +7,7 @@ export default function Register() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showAdminPasscode, setShowAdminPasscode] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -132,16 +133,37 @@ export default function Register() {
           {accountType === 'admin' && (
             <div className="form-group" style={{ animation: 'fadeIn 0.3s' }}>
               <label htmlFor="adminPasscode" style={{ color: '#ef4444' }}>Admin Passcode</label>
-              <input
-                type="password"
-                id="adminPasscode"
-                className="form-control"
-                value={adminPasscode}
-                onChange={(e) => setAdminPasscode(e.target.value)}
-                required
-                placeholder="Enter secret passcode"
-                style={{ border: '1px solid rgba(239, 68, 68, 0.3)' }}
-              />
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={showAdminPasscode ? "text" : "password"}
+                  id="adminPasscode"
+                  className="form-control"
+                  value={adminPasscode}
+                  onChange={(e) => setAdminPasscode(e.target.value)}
+                  required
+                  placeholder="Enter secret passcode"
+                  style={{ borderColor: 'rgba(239, 68, 68, 0.3)', paddingRight: '2.5rem' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowAdminPasscode(!showAdminPasscode)}
+                  style={{
+                    position: 'absolute',
+                    right: '0.75rem',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    color: '#94a3b8',
+                    cursor: 'pointer',
+                    padding: 0,
+                    display: 'flex'
+                  }}
+                  title={showAdminPasscode ? "Hide passcode" : "Show passcode"}
+                >
+                  {showAdminPasscode ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
           )}
 
