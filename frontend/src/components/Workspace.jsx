@@ -515,13 +515,16 @@ export default function Workspace() {
                 title={u.username}
                 style={{
                   width: '32px', height: '32px', borderRadius: '50%', 
-                  background: u.color || '#6366f1', color: 'white', display: 'flex', 
+                  background: u.avatarUrl ? 'transparent' : (u.color || '#6366f1'), color: 'white', display: 'flex', 
                   alignItems: 'center', justifyContent: 'center',
                   marginLeft: '-8px', border: '2px solid #191b28',
-                  fontSize: '0.8rem', fontWeight: 'bold'
+                  fontSize: '0.8rem', fontWeight: 'bold',
+                  backgroundImage: u.avatarUrl ? `url(${getMediaUrl(u.avatarUrl)})` : 'none',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center'
                 }}
               >
-                {u.username.charAt(0).toUpperCase()}
+                {!u.avatarUrl && u.username.charAt(0).toUpperCase()}
               </div>
             ))}
           </div>
@@ -849,8 +852,20 @@ export default function Workspace() {
                     style={{ position: 'relative', background: 'rgba(255,255,255,0.05)', padding: '0.5rem 0.75rem', borderRadius: '0.5rem', fontSize: '0.85rem' }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.2rem' }}>
-                      <div style={{ fontWeight: '600', color: msg.user.color, fontSize: '0.75rem' }}>
-                        {msg.user.username}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <div style={{
+                          width: '20px', height: '20px', borderRadius: '50%', flexShrink: 0,
+                          background: msg.user.avatarUrl ? 'transparent' : (msg.user.color || '#6366f1'),
+                          color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: '0.6rem', fontWeight: 'bold',
+                          backgroundImage: msg.user.avatarUrl ? `url(${getMediaUrl(msg.user.avatarUrl)})` : 'none',
+                          backgroundSize: 'cover', backgroundPosition: 'center'
+                        }}>
+                          {!msg.user.avatarUrl && msg.user.username.charAt(0).toUpperCase()}
+                        </div>
+                        <div style={{ fontWeight: '600', color: msg.user.color, fontSize: '0.75rem' }}>
+                          {msg.user.username}
+                        </div>
                       </div>
                       {msg.timestamp && (
                         <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
