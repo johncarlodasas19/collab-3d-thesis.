@@ -560,16 +560,28 @@ export default function Workspace() {
                 title={u.username}
                 style={{
                   width: '32px', height: '32px', borderRadius: '50%', 
-                  background: hasValidAvatar(u.avatarUrl) ? 'transparent' : (u.avatarUrl === 'admin-shield' ? '#ef4444' : (u.color || '#6366f1')), color: 'white', display: 'flex', 
+                  background: u.avatarUrl === 'admin-shield' ? '#ef4444' : (u.color || '#6366f1'), color: 'white', display: 'flex', 
                   alignItems: 'center', justifyContent: 'center',
                   marginLeft: '-8px', border: '2px solid #191b28',
                   fontSize: '0.8rem', fontWeight: 'bold',
-                  backgroundImage: hasValidAvatar(u.avatarUrl) ? `url(${getMediaUrl(u.avatarUrl)})` : 'none',
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center'
+                  position: 'relative', overflow: 'hidden'
                 }}
               >
-                {u.avatarUrl === 'admin-shield' ? <ShieldAlert size={18} color="white" /> : (!hasValidAvatar(u.avatarUrl) && u.username?.charAt(0).toUpperCase())}
+                {u.avatarUrl === 'admin-shield' ? (
+                  <ShieldAlert size={18} color="white" />
+                ) : (
+                  <>
+                    <span>{u.username?.charAt(0).toUpperCase()}</span>
+                    {hasValidAvatar(u.avatarUrl) && (
+                      <img 
+                        src={getMediaUrl(u.avatarUrl)} 
+                        alt={u.username}
+                        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                    )}
+                  </>
+                )}
               </div>
             ))}
           </div>
@@ -900,13 +912,26 @@ export default function Workspace() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <div style={{
                           width: '20px', height: '20px', borderRadius: '50%', flexShrink: 0,
-                          background: hasValidAvatar(msg.user.avatarUrl) ? 'transparent' : (msg.user.avatarUrl === 'admin-shield' ? '#ef4444' : (msg.user.color || '#6366f1')),
+                          background: msg.user.avatarUrl === 'admin-shield' ? '#ef4444' : (msg.user.color || '#6366f1'),
                           color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
                           fontSize: '0.6rem', fontWeight: 'bold',
-                          backgroundImage: hasValidAvatar(msg.user.avatarUrl) ? `url(${getMediaUrl(msg.user.avatarUrl)})` : 'none',
-                          backgroundSize: 'cover', backgroundPosition: 'center'
+                          position: 'relative', overflow: 'hidden'
                         }}>
-                          {msg.user.avatarUrl === 'admin-shield' ? <ShieldAlert size={12} color="white" /> : (!hasValidAvatar(msg.user.avatarUrl) && msg.user.username?.charAt(0).toUpperCase())}
+                          {msg.user.avatarUrl === 'admin-shield' ? (
+                            <ShieldAlert size={12} color="white" />
+                          ) : (
+                            <>
+                              <span>{msg.user.username?.charAt(0).toUpperCase()}</span>
+                              {hasValidAvatar(msg.user.avatarUrl) && (
+                                <img 
+                                  src={getMediaUrl(msg.user.avatarUrl)} 
+                                  alt={msg.user.username}
+                                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                                  onError={(e) => { e.target.style.display = 'none'; }}
+                                />
+                              )}
+                            </>
+                          )}
                         </div>
                         <div style={{ fontWeight: '600', color: msg.user.color, fontSize: '0.75rem' }}>
                           {msg.user.username}
