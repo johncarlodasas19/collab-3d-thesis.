@@ -163,9 +163,7 @@ router.post('/forgot-password', async (req, res) => {
 
     // Generate a temporary 6-digit password
     const tempPassword = Math.floor(100000 + Math.random() * 900000).toString();
-    const bcrypt = require('bcryptjs');
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(tempPassword, salt);
+    user.password = tempPassword;
     await user.save();
 
     res.json({ 
