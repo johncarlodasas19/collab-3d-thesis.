@@ -280,7 +280,7 @@ export default function Dashboard() {
       });
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      navigate('/');
+      navigate('/register');
     } catch (err) {
       setSettingsError(err.response?.data?.message || 'Failed to delete account.');
       setIsDeletingAccount(false);
