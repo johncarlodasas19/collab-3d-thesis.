@@ -90,7 +90,10 @@ router.put('/:id', async (req, res) => {
     }
 
     const project = await Project.findOneAndUpdate(
-      { _id: req.params.id, owner: req.user.userId },
+      { 
+        _id: req.params.id, 
+        $or: [{ owner: req.user.userId }, { collaborators: req.user.userId }] 
+      },
       updateFields,
       { new: true }
     );
