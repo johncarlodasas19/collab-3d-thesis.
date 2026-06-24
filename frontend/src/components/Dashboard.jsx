@@ -30,6 +30,7 @@ export default function Dashboard() {
   const [editAvatarUrl, setEditAvatarUrl] = useState('');
   const [settingsError, setSettingsError] = useState('');
   const [settingsSuccess, setSettingsSuccess] = useState('');
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const [editorFile, setEditorFile] = useState(null);
   const [editorScale, setEditorScale] = useState(1.2);
@@ -261,6 +262,27 @@ export default function Dashboard() {
       setSettingsError(err.response?.data?.message || 'Failed to update profile.');
     } finally {
       setIsUpdatingProfile(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!window.confirm('Are you sure you want to PERMANENTLY delete your account? This action cannot be undone and all your projects will be lost.')) {
+      return;
+    }
+    
+    setIsDeletingAccount(true);
+    setSettingsError('');
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      navigate('/');
+    } catch (err) {
+      setSettingsError(err.response?.data?.message || 'Failed to delete account.');
+      setIsDeletingAccount(false);
     }
   };
 
@@ -552,6 +574,26 @@ export default function Dashboard() {
                   </button>
                 </div>
               </div>
+
+              {/* Danger Zone */}
+              <div style={{ background: 'rgba(239, 68, 68, 0.05)', borderRadius: '1rem', padding: '2rem', border: '1px solid rgba(239, 68, 68, 0.2)', marginTop: '2rem' }}>
+                <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Trash2 size={20} /> Danger Zone
+                </h3>
+                <p style={{ color: '#94a3b8', marginBottom: '1.5rem', fontSize: '0.95rem' }}>
+                  Once you delete your account, there is no going back. Please be certain. All your data and projects will be permanently eradicated.
+                </p>
+                <button 
+                  onClick={handleDeleteAccount}
+                  disabled={isDeletingAccount}
+                  style={{ background: 'transparent', color: '#ef4444', border: '1px solid #ef4444', padding: '0.75rem 1.5rem', borderRadius: '0.5rem', fontWeight: 'bold', cursor: isDeletingAccount ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', transition: 'all 0.2s' }}
+                  onMouseEnter={(e) => { e.target.style.background = '#ef4444'; e.target.style.color = 'white'; }}
+                  onMouseLeave={(e) => { e.target.style.background = 'transparent'; e.target.style.color = '#ef4444'; }}
+                >
+                  <Trash2 size={18} /> {isDeletingAccount ? 'Deleting...' : 'Delete My Account'}
+                </button>
+              </div>
+
             </div>
           </div>
         )}

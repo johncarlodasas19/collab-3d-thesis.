@@ -174,5 +174,18 @@ router.post('/forgot-password', async (req, res) => {
     res.status(500).json({ message: 'Error processing forgot password', error: error.message });
   }
 });
+// Delete own account
+router.delete('/me', auth, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const deletedUser = await User.findByIdAndDelete(userId);
+    if (!deletedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json({ message: 'Account deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting account', error: error.message });
+  }
+});
 
 module.exports = router;

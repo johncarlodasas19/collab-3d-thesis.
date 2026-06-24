@@ -36,6 +36,7 @@ export default function AdminDashboard() {
   const [editorFile, setEditorFile] = useState(null);
   const [editorScale, setEditorScale] = useState(1.2);
   const [showPassword, setShowPassword] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const editorRef = React.useRef(null);
 
   useEffect(() => {
@@ -88,6 +89,17 @@ export default function AdminDashboard() {
       fetchData();
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to update status');
+    }
+  };
+
+  const handleDeleteUser = async (userId, username) => {
+    if (!window.confirm(`Are you sure you want to permanently delete user "${username}"? This action cannot be undone.`)) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/users/${userId}`, { headers: { Authorization: `Bearer ${token}` } });
+      fetchData();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to delete user');
     }
   };
 
@@ -192,6 +204,27 @@ export default function AdminDashboard() {
       setSettingsError(err.response?.data?.message || 'Failed to update profile.');
     } finally {
       setIsUpdatingProfile(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!window.confirm('Are you sure you want to PERMANENTLY delete your Admin account? This action cannot be undone and all your data will be lost.')) {
+      return;
+    }
+    
+    setIsDeletingAccount(true);
+    setSettingsError('');
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      navigate('/');
+    } catch (err) {
+      setSettingsError(err.response?.data?.message || 'Failed to delete account.');
+      setIsDeletingAccount(false);
     }
   };
 
@@ -482,29 +515,54 @@ export default function AdminDashboard() {
                         </td>
                         <td style={{ padding: '1rem' }}>
                           {u._id !== currentUser.id && (
-                            <button 
-                              onClick={() => handleUpdateRole(u._id, u.role === 'admin' ? 'user' : 'admin')}
-                              style={{ 
-                                background: u.role === 'admin' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(34, 197, 94, 0.1)', 
-                                border: `1px solid ${u.role === 'admin' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(34, 197, 94, 0.3)'}`, 
-                                color: u.role === 'admin' ? '#fca5a5' : '#4ade80', 
-                                padding: '0.5rem 1rem', 
-                                borderRadius: '2rem', 
-                                cursor: 'pointer', 
-                                fontSize: '0.85rem',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem',
-                                fontWeight: 'bold',
-                                transition: 'all 0.2s',
-                                width: '140px',
-                                justifyContent: 'center'
-                              }}
-                              onMouseOver={(e) => { e.currentTarget.style.background = u.role === 'admin' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(34, 197, 94, 0.2)' }}
-                              onMouseOut={(e) => { e.currentTarget.style.background = u.role === 'admin' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(34, 197, 94, 0.1)' }}
-                            >
-                              {u.role === 'admin' ? <><ShieldOff size={14}/> Revoke Admin</> : <><ShieldCheck size={14}/> Make Admin</>}
-                            </button>
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                              <button 
+                                onClick={() => handleUpdateRole(u._id, u.role === 'admin' ? 'user' : 'admin')}
+                                style={{ 
+                                  background: u.role === 'admin' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(34, 197, 94, 0.1)', 
+                                  border: `1px solid ${u.role === 'admin' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(34, 197, 94, 0.3)'}`, 
+                                  color: u.role === 'admin' ? '#fca5a5' : '#4ade80', 
+                                  padding: '0.5rem 1rem', 
+                                  borderRadius: '2rem', 
+                                  cursor: 'pointer', 
+                                  fontSize: '0.85rem',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '0.5rem',
+                                  fontWeight: 'bold',
+                                  transition: 'all 0.2s',
+                                  flex: 1,
+                                  justifyContent: 'center'
+                                }}
+                                onMouseOver={(e) => { e.currentTarget.style.background = u.role === 'admin' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(34, 197, 94, 0.2)' }}
+                                onMouseOut={(e) => { e.currentTarget.style.background = u.role === 'admin' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(34, 197, 94, 0.1)' }}
+                              >
+                                {u.role === 'admin' ? <><ShieldOff size={14}/> Revoke Admin</> : <><ShieldCheck size={14}/> Make Admin</>}
+                              </button>
+
+                              <button 
+                                onClick={() => handleDeleteUser(u._id, u.username)}
+                                style={{ 
+                                  background: 'rgba(239, 68, 68, 0.1)', 
+                                  border: '1px solid rgba(239, 68, 68, 0.3)', 
+                                  color: '#f87171', 
+                                  padding: '0.5rem', 
+                                  borderRadius: '50%', 
+                                  cursor: 'pointer', 
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  transition: 'all 0.2s',
+                                  width: '36px',
+                                  height: '36px'
+                                }}
+                                onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'; e.currentTarget.style.color = '#ef4444' }}
+                                onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.color = '#f87171' }}
+                                title="Permanently Delete User"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
                           )}
                         </td>
                       </tr>
@@ -729,6 +787,26 @@ export default function AdminDashboard() {
                     </button>
                   </div>
                 </div>
+
+                {/* Danger Zone */}
+                <div style={{ background: 'rgba(239, 68, 68, 0.05)', borderRadius: '1rem', padding: '2rem', border: '1px solid rgba(239, 68, 68, 0.2)', marginTop: '2rem' }}>
+                  <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Trash2 size={20} /> Danger Zone
+                  </h3>
+                  <p style={{ color: '#94a3b8', marginBottom: '1.5rem', fontSize: '0.95rem' }}>
+                    Once you delete your admin account, there is no going back. All your projects will be permanently eradicated.
+                  </p>
+                  <button 
+                    onClick={handleDeleteAccount}
+                    disabled={isDeletingAccount}
+                    style={{ background: 'transparent', color: '#ef4444', border: '1px solid #ef4444', padding: '0.75rem 1.5rem', borderRadius: '0.5rem', fontWeight: 'bold', cursor: isDeletingAccount ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', transition: 'all 0.2s' }}
+                    onMouseEnter={(e) => { e.target.style.background = '#ef4444'; e.target.style.color = 'white'; }}
+                    onMouseLeave={(e) => { e.target.style.background = 'transparent'; e.target.style.color = '#ef4444'; }}
+                  >
+                    <Trash2 size={18} /> {isDeletingAccount ? 'Deleting...' : 'Delete My Account'}
+                  </button>
+                </div>
+
               </div>
             </div>
           )}

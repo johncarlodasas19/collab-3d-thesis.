@@ -78,6 +78,30 @@ router.put('/users/:id/status', async (req, res) => {
   }
 });
 
+router.delete('/users/:id', async (req, res) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    
+    // Create activity log
+    await ActivityLog.create({
+      userId: req.user.userId,
+      username: req.user.username,
+      action: 'Deleted User',
+      details: `Deleted user: ${user.username} (${user.email})`
+    });
+
+    // If user is currently online, emit a status change to kick them
+    if (req.app.get('io')) {
+      req.app.get('io').emit('user-status-changed', { userId: req.params.id, status: 'deleted' });
+    }
+
+    res.json({ message: 'User deleted successfully', user });
+  } catch (err) {
+    res.status(500).json({ message: 'Error deleting user', error: err.message });
+  }
+});
+
 // ---------------------------
 // Report Management
 // ---------------------------
