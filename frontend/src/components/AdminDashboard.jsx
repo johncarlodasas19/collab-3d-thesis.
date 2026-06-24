@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Box, Menu, Users, AlertTriangle, Activity, LogOut, ShieldAlert, CheckCircle2, XCircle, Trash2, Shield, UserX, BarChart3, Clock, Database, Globe, Eye, EyeOff, Search, Filter, Download, Mail, ShieldCheck, ShieldOff, Settings, Upload, PieChart, CheckCircle } from 'lucide-react';
+import { Box, Menu, Users, AlertTriangle, Activity, LogOut, ShieldAlert, CheckCircle2, XCircle, Trash2, Shield, UserX, BarChart3, Clock, Database, Globe, Eye, EyeOff, Search, Filter, Download, Mail, ShieldCheck, ShieldOff, Settings, Upload, PieChart, CheckCircle, ChevronLeft, ChevronRight, ArrowUpDown } from 'lucide-react';
 import AvatarEditor from 'react-avatar-editor';
 import { io } from 'socket.io-client';
 
