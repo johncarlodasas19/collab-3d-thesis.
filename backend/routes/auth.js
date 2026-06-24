@@ -182,6 +182,10 @@ router.delete('/me', auth, async (req, res) => {
     if (!deletedUser) {
       return res.status(404).json({ message: 'User not found' });
     }
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('user-status-changed', { userId: userId, status: 'deleted' });
+    }
     res.json({ message: 'Account deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting account', error: error.message });

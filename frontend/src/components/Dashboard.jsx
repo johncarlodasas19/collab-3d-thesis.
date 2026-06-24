@@ -583,7 +583,7 @@ export default function Dashboard() {
                   <Trash2 size={24} color="#ef4444" /> Danger Zone
                 </h3>
                 <p style={{ color: '#cbd5e1', marginBottom: '1.5rem', fontSize: '0.95rem', lineHeight: '1.6' }}>
-                  Once you delete your account, there is no going back. Please be certain. All your data, projects, and history will be <strong style={{ color: '#ef4444' }}>permanently eradicated</strong>.
+                  Once you delete your account, there is no going back. Please be certain. You will no longer be able to log in, and all your data and projects will be <strong style={{ color: '#ef4444' }}>permanently eradicated</strong>.
                 </p>
                 <button 
                   onClick={handleDeleteAccountClick}
@@ -611,7 +611,7 @@ export default function Dashboard() {
             </div>
             <h3 style={{ marginBottom: '1rem', fontSize: '1.4rem', color: 'white', fontWeight: 'bold' }}>Delete Account</h3>
             <p style={{ color: '#94a3b8', marginBottom: '2rem', lineHeight: '1.6', fontSize: '1rem' }}>
-              Are you absolute sure you want to <strong style={{ color: '#ef4444' }}>PERMANENTLY</strong> delete your account? This action cannot be undone and all your projects will be eradicated.
+              Are you absolutely sure you want to <strong style={{ color: '#ef4444' }}>PERMANENTLY</strong> delete your account? You will no longer be able to log in, all your data will be eradicated, and you will need to create a new account to use the system again.
             </p>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
               <button 
