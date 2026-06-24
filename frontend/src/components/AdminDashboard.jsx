@@ -303,8 +303,49 @@ export default function AdminDashboard() {
   };
 
   if (loading) {
-    return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>Loading Admin Panel...</div>;
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0f172a', color: 'white' }}>
+        <div className="spinner" style={{ width: '40px', height: '40px', border: '4px solid rgba(255,255,255,0.1)', borderTop: '4px solid #ef4444', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+      </div>
+    );
   }
+
+  // Filter & Search & Paginate Reports
+  let filteredReports = reports.filter(r => {
+    const matchesFilter = reportFilter === 'all' || r.status === reportFilter;
+    const searchLower = reportSearchQuery.toLowerCase();
+    const matchesSearch = (r.reportedProjectName || '').toLowerCase().includes(searchLower) ||
+                          (r.reporterName || '').toLowerCase().includes(searchLower) ||
+                          (r.reason || '').toLowerCase().includes(searchLower) ||
+                          (r.reportedProjectId || '').toLowerCase().includes(searchLower);
+    return matchesFilter && matchesSearch;
+  });
+
+  if (reportSortOrder === 'oldest') {
+    filteredReports = filteredReports.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+  } else {
+    filteredReports = filteredReports.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }
+
+  const totalReportPages = Math.ceil(filteredReports.length / reportsPerPage) || 1;
+  const paginatedReports = filteredReports.slice((reportPage - 1) * reportsPerPage, reportPage * reportsPerPage);
+
+  // Filter & Search & Paginate Activity
+  let filteredActivity = activityLogs.filter(log => {
+    const searchLower = activitySearchQuery.toLowerCase();
+    return (log.username || '').toLowerCase().includes(searchLower) ||
+           (log.action || '').toLowerCase().includes(searchLower) ||
+           (log.details || '').toLowerCase().includes(searchLower);
+  });
+
+  if (activitySortOrder === 'oldest') {
+    filteredActivity = filteredActivity.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+  } else {
+    filteredActivity = filteredActivity.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }
+
+  const totalActivityPages = Math.ceil(filteredActivity.length / activityPerPage) || 1;
+  const paginatedActivity = filteredActivity.slice((activityPage - 1) * activityPerPage, activityPage * activityPerPage);
 
   return (
     <div className="dashboard-layout" style={{ background: '#0f172a' }}>
@@ -636,21 +677,51 @@ export default function AdminDashboard() {
                   </button>
                   <h2 style={{ color: 'white', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><AlertTriangle color="#ef4444" /> Review Flagged Content</h2>
                 </div>
-                <div style={{ display: 'flex', gap: '0.5rem', background: 'rgba(0,0,0,0.2)', padding: '0.25rem', borderRadius: '0.5rem' }}>
-                  <button onClick={() => setReportFilter('all')} style={{ padding: '0.5rem 1rem', background: reportFilter === 'all' ? '#6366f1' : 'transparent', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '0.85rem' }}>All</button>
-                  <button onClick={() => setReportFilter('pending')} style={{ padding: '0.5rem 1rem', background: reportFilter === 'pending' ? '#ef4444' : 'transparent', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '0.85rem' }}>Pending</button>
-                  <button onClick={() => setReportFilter('resolved')} style={{ padding: '0.5rem 1rem', background: reportFilter === 'resolved' ? '#22c55e' : 'transparent', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '0.85rem' }}>Resolved</button>
+                
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div style={{ position: 'relative' }}>
+                    <Search size={16} color="#94a3b8" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)' }} />
+                    <input 
+                      type="text" 
+                      placeholder="Search reports..." 
+                      value={reportSearchQuery}
+                      onChange={(e) => { setReportSearchQuery(e.target.value); setReportPage(1); }}
+                      style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.5rem 0.5rem 0.5rem 2.25rem', borderRadius: '0.5rem', fontSize: '0.85rem', outline: 'none', width: '200px' }}
+                    />
+                  </div>
+
+                  <button 
+                    onClick={() => setReportSortOrder(prev => prev === 'newest' ? 'oldest' : 'newest')}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', background: 'rgba(0,0,0,0.2)', color: 'white', border: '1px solid rgba(255,255,255,0.1)', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.85rem' }}
+                  >
+                    <ArrowUpDown size={14} /> {reportSortOrder === 'newest' ? 'Newest First' : 'Oldest First'}
+                  </button>
+
+                  <div style={{ display: 'flex', gap: '0.25rem', background: 'rgba(0,0,0,0.2)', padding: '0.25rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <button onClick={() => { setReportFilter('all'); setReportPage(1); }} style={{ padding: '0.4rem 0.75rem', background: reportFilter === 'all' ? '#6366f1' : 'transparent', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '0.85rem' }}>All</button>
+                    <button onClick={() => { setReportFilter('pending'); setReportPage(1); }} style={{ padding: '0.4rem 0.75rem', background: reportFilter === 'pending' ? '#ef4444' : 'transparent', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '0.85rem' }}>Pending</button>
+                    <button onClick={() => { setReportFilter('resolved'); setReportPage(1); }} style={{ padding: '0.4rem 0.75rem', background: reportFilter === 'resolved' ? '#22c55e' : 'transparent', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '0.85rem' }}>Resolved</button>
+                  </div>
+
+                  <button 
+                    onClick={handleClearResolvedReports}
+                    style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', fontWeight: 'bold' }}
+                    title="Delete all resolved and dismissed reports permanently"
+                  >
+                    <Trash2 size={14} /> Clear Resolved
+                  </button>
                 </div>
               </div>
               
-              {reports.filter(r => reportFilter === 'all' || r.status === reportFilter).length === 0 ? (
+              {paginatedReports.length === 0 ? (
                 <div style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8', background: 'rgba(30, 32, 47, 0.8)', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.05)' }}>
                   <CheckCircle2 size={48} style={{ opacity: 0.2, margin: '0 auto 1rem auto', display: 'block' }} />
-                  <p>All caught up! There are no {reportFilter !== 'all' ? reportFilter : ''} items to review.</p>
+                  <p>All caught up! There are no records to show here.</p>
                 </div>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(500px, 1fr))', gap: '1.5rem', alignItems: 'start' }}>
-                  {reports.filter(r => reportFilter === 'all' || r.status === reportFilter).map(report => (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(500px, 1fr))', gap: '1.5rem', alignItems: 'start' }}>
+                    {paginatedReports.map(report => (
                     <div key={report._id} style={{ background: 'rgba(30, 32, 47, 0.8)', borderRadius: '1rem', border: '1px solid', borderColor: report.status === 'pending' ? 'rgba(239, 68, 68, 0.4)' : 'rgba(255,255,255,0.05)', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', height: '100%' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
                         <div style={{ flex: 1, minWidth: '200px' }}>
@@ -713,8 +784,31 @@ export default function AdminDashboard() {
                           </div>
                         )}
                       </div>
+                    ))}
+                  </div>
+
+                  {totalReportPages > 1 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(30, 32, 47, 0.8)', padding: '1rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.05)', marginTop: '1rem' }}>
+                      <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Showing {((reportPage - 1) * reportsPerPage) + 1} to {Math.min(reportPage * reportsPerPage, filteredReports.length)} of {filteredReports.length} reports</span>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button 
+                          onClick={() => setReportPage(p => Math.max(1, p - 1))} 
+                          disabled={reportPage === 1}
+                          style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: reportPage === 1 ? 'rgba(255,255,255,0.2)' : 'white', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: reportPage === 1 ? 'not-allowed' : 'pointer' }}
+                        >
+                          <ChevronLeft size={16} /> Prev
+                        </button>
+                        <span style={{ display: 'flex', alignItems: 'center', color: 'white', padding: '0 0.5rem', fontSize: '0.9rem' }}>Page {reportPage} of {totalReportPages}</span>
+                        <button 
+                          onClick={() => setReportPage(p => Math.min(totalReportPages, p + 1))} 
+                          disabled={reportPage === totalReportPages}
+                          style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: reportPage === totalReportPages ? 'rgba(255,255,255,0.2)' : 'white', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: reportPage === totalReportPages ? 'not-allowed' : 'pointer' }}
+                        >
+                          Next <ChevronRight size={16} />
+                        </button>
+                      </div>
                     </div>
-                  ))}
+                  )}
                 </div>
               )}
             </div>
@@ -722,7 +816,7 @@ export default function AdminDashboard() {
 
           {activeTab === 'activity' && (
             <div className="tab-content fade-in">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <button 
                     onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -732,32 +826,85 @@ export default function AdminDashboard() {
                   </button>
                   <h2 style={{ color: 'white', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Activity color="#6366f1" /> System Activity Log</h2>
                 </div>
-                <button 
-                  onClick={downloadCSV}
-                  style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', border: '1px solid rgba(34, 197, 94, 0.3)', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '500' }}
-                >
-                  <Download size={16} /> Export to CSV
-                </button>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div style={{ position: 'relative' }}>
+                    <Search size={16} color="#94a3b8" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)' }} />
+                    <input 
+                      type="text" 
+                      placeholder="Search activity..." 
+                      value={activitySearchQuery}
+                      onChange={(e) => { setActivitySearchQuery(e.target.value); setActivityPage(1); }}
+                      style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.5rem 0.5rem 0.5rem 2.25rem', borderRadius: '0.5rem', fontSize: '0.85rem', outline: 'none', width: '200px' }}
+                    />
+                  </div>
+
+                  <button 
+                    onClick={() => setActivitySortOrder(prev => prev === 'newest' ? 'oldest' : 'newest')}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', background: 'rgba(0,0,0,0.2)', color: 'white', border: '1px solid rgba(255,255,255,0.1)', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '0.85rem' }}
+                  >
+                    <ArrowUpDown size={14} /> {activitySortOrder === 'newest' ? 'Newest First' : 'Oldest First'}
+                  </button>
+
+                  <button 
+                    onClick={downloadCSV}
+                    style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', border: '1px solid rgba(34, 197, 94, 0.3)', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', fontWeight: 'bold' }}
+                  >
+                    <Download size={14} /> Export
+                  </button>
+
+                  <button 
+                    onClick={handleClearOldActivity}
+                    style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', fontWeight: 'bold' }}
+                    title="Delete activity logs older than 30 days"
+                  >
+                    <Trash2 size={14} /> Clear Old Logs
+                  </button>
+                </div>
               </div>
               <div style={{ background: 'rgba(30, 32, 47, 0.8)', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden', padding: '1.5rem' }}>
-                {activityLogs.length === 0 ? (
-                  <div style={{ color: '#94a3b8', textAlign: 'center' }}>No activity logs found.</div>
+                {paginatedActivity.length === 0 ? (
+                  <div style={{ color: '#94a3b8', textAlign: 'center', padding: '2rem' }}>No activity logs found.</div>
                 ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '1.5rem' }}>
-                    {activityLogs.map((log, index) => (
-                      <div key={log._id || index} style={{ display: 'flex', gap: '1rem', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
-                        <div style={{ color: '#6366f1', paddingTop: '0.2rem' }}><Globe size={20} /></div>
-                        <div>
-                          <div style={{ color: 'white', fontWeight: '500' }}>
-                            <span style={{ color: '#818cf8' }}>{log.username}</span> {log.action}
-                          </div>
-                          <div style={{ color: '#94a3b8', fontSize: '0.9rem', marginTop: '0.25rem' }}>{log.details}</div>
-                          <div style={{ color: '#64748b', fontSize: '0.8rem', marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                            <Clock size={12} /> {new Date(log.createdAt).toLocaleString()}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '1.5rem' }}>
+                      {paginatedActivity.map((log, index) => (
+                        <div key={log._id || index} style={{ display: 'flex', gap: '1rem', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                          <div style={{ color: '#6366f1', paddingTop: '0.2rem' }}><Globe size={20} /></div>
+                          <div>
+                            <div style={{ color: 'white', fontWeight: '500' }}>
+                              <span style={{ color: '#818cf8' }}>{log.username}</span> {log.action}
+                            </div>
+                            <div style={{ color: '#94a3b8', fontSize: '0.9rem', marginTop: '0.25rem' }}>{log.details}</div>
+                            <div style={{ color: '#64748b', fontSize: '0.8rem', marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                              <Clock size={12} /> {new Date(log.createdAt).toLocaleString()}
+                            </div>
                           </div>
                         </div>
+                      ))}
+                    </div>
+
+                    {totalActivityPages > 1 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.05)', marginTop: '0.5rem' }}>
+                        <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Showing {((activityPage - 1) * activityPerPage) + 1} to {Math.min(activityPage * activityPerPage, filteredActivity.length)} of {filteredActivity.length} logs</span>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <button 
+                            onClick={() => setActivityPage(p => Math.max(1, p - 1))} 
+                            disabled={activityPage === 1}
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: activityPage === 1 ? 'rgba(255,255,255,0.2)' : 'white', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: activityPage === 1 ? 'not-allowed' : 'pointer' }}
+                          >
+                            <ChevronLeft size={16} /> Prev
+                          </button>
+                          <span style={{ display: 'flex', alignItems: 'center', color: 'white', padding: '0 0.5rem', fontSize: '0.9rem' }}>Page {activityPage} of {totalActivityPages}</span>
+                          <button 
+                            onClick={() => setActivityPage(p => Math.min(totalActivityPages, p + 1))} 
+                            disabled={activityPage === totalActivityPages}
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: activityPage === totalActivityPages ? 'rgba(255,255,255,0.2)' : 'white', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: activityPage === totalActivityPages ? 'not-allowed' : 'pointer' }}
+                          >
+                            Next <ChevronRight size={16} />
+                          </button>
+                        </div>
                       </div>
-                    ))}
+                    )}
                   </div>
                 )}
               </div>

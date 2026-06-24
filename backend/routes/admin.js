@@ -162,10 +162,46 @@ router.delete('/projects/:id/force', async (req, res) => {
 // ---------------------------
 router.get('/activity', async (req, res) => {
   try {
-    const logs = await ActivityLog.find().sort({ createdAt: -1 }).limit(100);
+    const logs = await ActivityLog.find().sort({ createdAt: -1 }).limit(2000);
     res.json(logs);
   } catch (err) {
     res.status(500).json({ message: 'Error fetching activity logs', error: err.message });
+  }
+});
+
+router.delete('/reports/cleanup', async (req, res) => {
+  try {
+    await Report.deleteMany({ status: { $in: ['resolved', 'dismissed'] } });
+    
+    await ActivityLog.create({
+      userId: req.user.userId,
+      username: req.user.username,
+      action: 'Cleared Resolved Reports',
+      details: 'Deleted all resolved and dismissed reports.'
+    });
+
+    res.json({ message: 'Resolved reports cleared.' });
+  } catch (err) {
+    res.status(500).json({ message: 'Error cleaning reports', error: err.message });
+  }
+});
+
+router.delete('/activity/cleanup', async (req, res) => {
+  try {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    await ActivityLog.deleteMany({ createdAt: { $lt: thirtyDaysAgo } });
+
+    await ActivityLog.create({
+      userId: req.user.userId,
+      username: req.user.username,
+      action: 'Cleared Old Activity Logs',
+      details: 'Deleted logs older than 30 days.'
+    });
+
+    res.json({ message: 'Old activity logs cleared.' });
+  } catch (err) {
+    res.status(500).json({ message: 'Error cleaning activity logs', error: err.message });
   }
 });
 
