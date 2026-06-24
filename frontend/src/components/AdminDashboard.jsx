@@ -158,9 +158,9 @@ export default function AdminDashboard() {
       window.open(`/workspace/${projectId}`, '_blank');
     } catch (err) {
       if (err.response && err.response.status === 404) {
-        setCheckWorkspaceWarningModal({ show: true, message: 'This workspace is no longer accessible because the project was already deleted by the administrator.' });
+        setCheckWorkspaceWarningModal({ show: true, message: 'You can no longer check the workspace because the project was deleted by the administrator due to violated terms.' });
       } else {
-        setCheckWorkspaceWarningModal({ show: true, message: 'This workspace is no longer accessible.' });
+        setCheckWorkspaceWarningModal({ show: true, message: 'You can no longer check the workspace because it is no longer accessible.' });
       }
     }
   };
