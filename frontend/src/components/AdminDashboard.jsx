@@ -784,8 +784,9 @@ export default function AdminDashboard() {
                           </div>
                         )}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
+                </div>
 
                   {totalReportPages > 1 && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(30, 32, 47, 0.8)', padding: '1rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.05)', marginTop: '1rem' }}>
