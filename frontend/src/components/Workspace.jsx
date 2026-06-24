@@ -102,6 +102,7 @@ export default function Workspace() {
 
     const userStr = localStorage.getItem('user');
     const user = userStr ? JSON.parse(userStr) : { id: uuidv4(), username: 'Guest' };
+    if (user.role === 'admin') user.username = 'ADMIN';
 
     newSocket.on('connect', () => {
       newSocket.emit('join-room', { roomId: projectId, user });
@@ -283,6 +284,7 @@ export default function Workspace() {
       
       const userStr = localStorage.getItem('user');
       const userObj = userStr ? JSON.parse(userStr) : { username: 'Guest' };
+      if (userObj.role === 'admin') userObj.username = 'ADMIN';
       const myColor = activeUsers.find(u => u.socketId === socket.id)?.color || '#4f46e5';
 
       const msgData = {
@@ -379,6 +381,7 @@ export default function Workspace() {
     
     const userStr = localStorage.getItem('user');
     const userObj = userStr ? JSON.parse(userStr) : { username: 'Guest' };
+    if (userObj.role === 'admin') userObj.username = 'ADMIN';
     const myColor = activeUsers.find(u => u.socketId === socket.id)?.color || '#4f46e5';
 
     if (editingMessageId) {
@@ -409,6 +412,7 @@ export default function Workspace() {
     
     const userStr = localStorage.getItem('user');
     const userObj = userStr ? JSON.parse(userStr) : { id: 'guest', username: 'Guest' };
+    if (userObj.role === 'admin') userObj.username = 'ADMIN';
     
     if (e.target.value === '') {
       socket.emit('stop-typing', { roomId: projectId, userId: userObj.id });
@@ -443,6 +447,7 @@ export default function Workspace() {
     
     const userStr = localStorage.getItem('user');
     const user = userStr ? JSON.parse(userStr) : { username: 'Guest' };
+    if (user.role === 'admin') user.username = 'ADMIN';
     
     socket.emit('cursor-move', { roomId: projectId, x, y, user });
   };
