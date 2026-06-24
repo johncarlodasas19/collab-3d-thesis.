@@ -235,6 +235,7 @@ export default function AdminDashboard() {
       });
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      alert('You have successfully deleted your account.');
       navigate('/register');
     } catch (err) {
       setSettingsError(err.response?.data?.message || 'Failed to delete account.');
@@ -813,16 +814,18 @@ export default function AdminDashboard() {
                   <p style={{ color: '#cbd5e1', marginBottom: '1.5rem', fontSize: '0.95rem', lineHeight: '1.6' }}>
                     Once you delete your admin account, there is no going back. You will no longer be able to log in, and all your data and history will be <strong style={{ color: '#ef4444' }}>permanently eradicated</strong>.
                   </p>
-                  <button 
-                    onClick={handleDeleteAccountClick}
-                    disabled={isDeletingAccount}
-                    style={{ background: 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)', color: 'white', border: 'none', padding: '0.85rem 1.75rem', borderRadius: '0.75rem', fontWeight: 'bold', cursor: isDeletingAccount ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '0.75rem', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 4px 15px rgba(239, 68, 68, 0.4)' }}
-                    onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(239, 68, 68, 0.6)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(239, 68, 68, 0.4)'; }}
-                    onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px)'; e.currentTarget.style.boxShadow = '0 2px 10px rgba(239, 68, 68, 0.4)'; }}
-                  >
-                    <Trash2 size={18} /> {isDeletingAccount ? 'Deleting...' : 'Delete My Account'}
-                  </button>
+                  <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1.5rem' }}>
+                    <button 
+                      onClick={handleDeleteAccountClick}
+                      disabled={isDeletingAccount}
+                      style={{ background: 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)', color: 'white', border: 'none', padding: '0.85rem 1.75rem', borderRadius: '0.75rem', fontWeight: 'bold', cursor: isDeletingAccount ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '0.75rem', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 4px 15px rgba(239, 68, 68, 0.4)' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(239, 68, 68, 0.6)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(239, 68, 68, 0.4)'; }}
+                      onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px)'; e.currentTarget.style.boxShadow = '0 2px 10px rgba(239, 68, 68, 0.4)'; }}
+                    >
+                      <Trash2 size={18} /> {isDeletingAccount ? 'Deleting...' : 'Delete My Account'}
+                    </button>
+                  </div>
                 </div>
 
               </div>
