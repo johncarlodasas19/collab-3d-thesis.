@@ -92,7 +92,7 @@ export default function Workspace() {
         setChatMessages(res.data.data?.chatMessages || []);
       } catch (err) {
         console.error('Error fetching project', err);
-        navigate('/dashboard', { state: { projectError: 'This project is no longer accessible or has been deleted.' } });
+        navigate('/dashboard', { state: { projectError: 'This project was deleted by the administrator due to violated terms or restrictions and is no longer accessible.' } });
       }
     };
     fetchProject();
