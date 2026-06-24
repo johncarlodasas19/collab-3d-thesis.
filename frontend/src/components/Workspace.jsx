@@ -102,7 +102,7 @@ export default function Workspace() {
 
     const userStr = localStorage.getItem('user');
     const user = userStr ? JSON.parse(userStr) : { id: uuidv4(), username: 'Guest' };
-    if (user.role === 'admin') user.username = 'ADMIN';
+    if (user.role === 'admin') { user.username = 'ADMIN'; user.avatarUrl = 'admin-shield'; user.color = '#ef4444'; }
 
     newSocket.on('connect', () => {
       newSocket.emit('join-room', { roomId: projectId, user });
@@ -284,7 +284,7 @@ export default function Workspace() {
       
       const userStr = localStorage.getItem('user');
       const userObj = userStr ? JSON.parse(userStr) : { username: 'Guest' };
-      if (userObj.role === 'admin') userObj.username = 'ADMIN';
+      if (userObj.role === 'admin') { userObj.username = 'ADMIN'; userObj.avatarUrl = 'admin-shield'; userObj.color = '#ef4444'; }
       const myColor = activeUsers.find(u => u.socketId === socket.id)?.color || '#4f46e5';
 
       const msgData = {
@@ -381,7 +381,7 @@ export default function Workspace() {
     
     const userStr = localStorage.getItem('user');
     const userObj = userStr ? JSON.parse(userStr) : { username: 'Guest' };
-    if (userObj.role === 'admin') userObj.username = 'ADMIN';
+    if (userObj.role === 'admin') { userObj.username = 'ADMIN'; userObj.avatarUrl = 'admin-shield'; userObj.color = '#ef4444'; }
     const myColor = activeUsers.find(u => u.socketId === socket.id)?.color || '#4f46e5';
 
     if (editingMessageId) {
@@ -412,7 +412,7 @@ export default function Workspace() {
     
     const userStr = localStorage.getItem('user');
     const userObj = userStr ? JSON.parse(userStr) : { id: 'guest', username: 'Guest' };
-    if (userObj.role === 'admin') userObj.username = 'ADMIN';
+    if (userObj.role === 'admin') { userObj.username = 'ADMIN'; userObj.avatarUrl = 'admin-shield'; userObj.color = '#ef4444'; }
     
     if (e.target.value === '') {
       socket.emit('stop-typing', { roomId: projectId, userId: userObj.id });
@@ -447,7 +447,7 @@ export default function Workspace() {
     
     const userStr = localStorage.getItem('user');
     const user = userStr ? JSON.parse(userStr) : { username: 'Guest' };
-    if (user.role === 'admin') user.username = 'ADMIN';
+    if (user.role === 'admin') { user.username = 'ADMIN'; user.avatarUrl = 'admin-shield'; user.color = '#ef4444'; }
     
     socket.emit('cursor-move', { roomId: projectId, x, y, user });
   };
@@ -515,16 +515,16 @@ export default function Workspace() {
                 title={u.username}
                 style={{
                   width: '32px', height: '32px', borderRadius: '50%', 
-                  background: u.avatarUrl ? 'transparent' : (u.color || '#6366f1'), color: 'white', display: 'flex', 
+                  background: (u.avatarUrl && u.avatarUrl !== 'admin-shield') ? 'transparent' : (u.avatarUrl === 'admin-shield' ? '#ef4444' : (u.color || '#6366f1')), color: 'white', display: 'flex', 
                   alignItems: 'center', justifyContent: 'center',
                   marginLeft: '-8px', border: '2px solid #191b28',
                   fontSize: '0.8rem', fontWeight: 'bold',
-                  backgroundImage: u.avatarUrl ? `url(${getMediaUrl(u.avatarUrl)})` : 'none',
+                  backgroundImage: (u.avatarUrl && u.avatarUrl !== 'admin-shield') ? `url(${getMediaUrl(u.avatarUrl)})` : 'none',
                   backgroundSize: 'cover',
                   backgroundPosition: 'center'
                 }}
               >
-                {!u.avatarUrl && u.username.charAt(0).toUpperCase()}
+                {u.avatarUrl === 'admin-shield' ? <ShieldAlert size={18} color="white" /> : (!u.avatarUrl && u.username.charAt(0).toUpperCase())}
               </div>
             ))}
           </div>
@@ -855,13 +855,13 @@ export default function Workspace() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <div style={{
                           width: '20px', height: '20px', borderRadius: '50%', flexShrink: 0,
-                          background: msg.user.avatarUrl ? 'transparent' : (msg.user.color || '#6366f1'),
+                          background: (msg.user.avatarUrl && msg.user.avatarUrl !== 'admin-shield') ? 'transparent' : (msg.user.avatarUrl === 'admin-shield' ? '#ef4444' : (msg.user.color || '#6366f1')),
                           color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
                           fontSize: '0.6rem', fontWeight: 'bold',
-                          backgroundImage: msg.user.avatarUrl ? `url(${getMediaUrl(msg.user.avatarUrl)})` : 'none',
+                          backgroundImage: (msg.user.avatarUrl && msg.user.avatarUrl !== 'admin-shield') ? `url(${getMediaUrl(msg.user.avatarUrl)})` : 'none',
                           backgroundSize: 'cover', backgroundPosition: 'center'
                         }}>
-                          {!msg.user.avatarUrl && msg.user.username.charAt(0).toUpperCase()}
+                          {msg.user.avatarUrl === 'admin-shield' ? <ShieldAlert size={12} color="white" /> : (!msg.user.avatarUrl && msg.user.username.charAt(0).toUpperCase())}
                         </div>
                         <div style={{ fontWeight: '600', color: msg.user.color, fontSize: '0.75rem' }}>
                           {msg.user.username}
