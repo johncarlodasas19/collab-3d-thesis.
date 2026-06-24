@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { Box, Menu, Users, AlertTriangle, Activity, LogOut, ShieldAlert, CheckCircle2, XCircle, Trash2, Shield, UserX, BarChart3, Clock, Database, Globe, Eye, EyeOff, Search, Filter, Download, Mail, ShieldCheck, ShieldOff, Settings, Upload, PieChart, CheckCircle, ChevronLeft, ChevronRight, ArrowUpDown } from 'lucide-react';
 import AvatarEditor from 'react-avatar-editor';
@@ -40,7 +40,16 @@ export default function AdminDashboard() {
   const [bulkDeleteModal, setBulkDeleteModal] = useState({ isOpen: false, type: null, title: '', message: '' });
   
   const navigate = useNavigate();
+  const location = useLocation();
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get('tab');
+    if (tab) {
+      setActiveTab(tab);
+    }
+  }, [location]);
 
   // Settings State
   const [editUsername, setEditUsername] = useState(currentUser.username || '');
@@ -210,7 +219,7 @@ export default function AdminDashboard() {
       await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects/${projectId}`, { 
         headers: { Authorization: `Bearer ${token}` } 
       });
-      window.open(`/workspace/${projectId}`, '_blank');
+      window.open(`/workspace/${projectId}?from=reports`, '_blank');
     } catch (err) {
       if (err.response && err.response.status === 404) {
         setCheckWorkspaceWarningModal({ show: true, message: 'You can no longer check the workspace because the project was deleted by the administrator due to violated terms.' });
