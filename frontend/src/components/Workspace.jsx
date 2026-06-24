@@ -135,8 +135,8 @@ export default function Workspace() {
     });
 
     newSocket.on('user-joined', (userData) => {
-      setToast({ show: true, message: `${userData.username} joined the workspace`, type: 'info' });
-      setTimeout(() => setToast(t => t.message === `${userData.username} joined the workspace` ? { show: false, message: '', type: 'info' } : t), 3000);
+      setToast({ show: true, message: `${userData.username} joined the workspace`, type: 'join', user: userData });
+      setTimeout(() => setToast(t => t.message === `${userData.username} joined the workspace` ? { show: false, message: '', type: 'join', user: null } : t), 3500);
     });
 
     newSocket.on('user-left', (payload) => {
@@ -144,8 +144,8 @@ export default function Workspace() {
       const leftUser = typeof payload === 'object' ? payload.user : null;
       
       if (leftUser) {
-        setToast({ show: true, message: `${leftUser.username} left the workspace`, type: 'info' });
-        setTimeout(() => setToast(t => t.message === `${leftUser.username} left the workspace` ? { show: false, message: '', type: 'info' } : t), 3000);
+        setToast({ show: true, message: `${leftUser.username} left the workspace`, type: 'leave', user: leftUser });
+        setTimeout(() => setToast(t => t.message === `${leftUser.username} left the workspace` ? { show: false, message: '', type: 'leave', user: null } : t), 3500);
       }
       
       setCursors((prev) => {
@@ -1179,25 +1179,42 @@ export default function Workspace() {
       <div style={{
         position: 'fixed',
         top: toast.show ? '20px' : '-100px',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        background: toast.type === 'error' ? 'rgba(239, 68, 68, 0.95)' : toast.type === 'info' ? 'rgba(59, 130, 246, 0.95)' : 'rgba(34, 197, 94, 0.95)',
-        backdropFilter: 'blur(10px)',
+        right: (toast.type === 'join' || toast.type === 'leave') ? '20px' : 'auto',
+        left: (toast.type === 'join' || toast.type === 'leave') ? 'auto' : '50%',
+        transform: (toast.type === 'join' || toast.type === 'leave') ? 'none' : 'translateX(-50%)',
+        background: toast.type === 'error' ? 'rgba(239, 68, 68, 0.95)' : 
+                    toast.type === 'join' ? 'rgba(16, 185, 129, 0.95)' : 
+                    toast.type === 'leave' ? 'rgba(245, 158, 11, 0.95)' : 'rgba(34, 197, 94, 0.95)',
+        backdropFilter: 'blur(12px)',
         color: 'white',
-        padding: '0.75rem 1.5rem',
+        padding: (toast.type === 'join' || toast.type === 'leave') ? '0.5rem 1.25rem 0.5rem 0.5rem' : '0.75rem 1.5rem',
         borderRadius: '2rem',
-        boxShadow: '0 10px 25px -5px rgba(0,0,0,0.5)',
+        boxShadow: '0 15px 35px -5px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2)',
         zIndex: 100000,
-        transition: 'top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-        fontWeight: 'bold',
+        transition: 'all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        opacity: toast.show ? 1 : 0,
+        fontWeight: '600',
         display: 'flex',
         alignItems: 'center',
-        gap: '0.5rem',
+        gap: '0.75rem',
         pointerEvents: 'none',
-        fontSize: '0.9rem'
+        fontSize: '0.95rem'
       }}>
-        {toast.type === 'success' ? <CheckCircle2 size={18} /> : toast.type === 'info' ? <Users size={18} /> : <AlertCircle size={18} />} 
-        {toast.message}
+        {(toast.type === 'join' || toast.type === 'leave') && toast.user ? (
+          <div style={{ width: '32px', height: '32px', borderRadius: '50%', overflow: 'hidden', border: '2px solid rgba(255,255,255,0.8)' }}>
+            <img src={getMediaUrl(toast.user.avatarUrl)} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.onerror = null; e.target.src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><rect width="32" height="32" fill="${encodeURIComponent(toast.user.color || '#6366f1')}"/><text x="50%" y="50%" font-family="Arial" font-size="14" fill="white" font-weight="bold" text-anchor="middle" dy=".3em">${(toast.user.username || 'U')[0].toUpperCase()}</text></svg>`; }} />
+          </div>
+        ) : (
+          toast.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />
+        )}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
+          {(toast.type === 'join' || toast.type === 'leave') && (
+            <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'rgba(255,255,255,0.8)' }}>
+              {toast.type === 'join' ? 'Connected' : 'Disconnected'}
+            </span>
+          )}
+          <span>{toast.message}</span>
+        </div>
       </div>
     </div>
     </>
