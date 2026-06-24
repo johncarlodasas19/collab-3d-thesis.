@@ -36,7 +36,7 @@ export default function AdminDashboard() {
   
   // Custom Modal State
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, projectId: null });
-  const [evidenceModal, setEvidenceModal] = useState({ isOpen: false, url: null });
+  const [evidenceModal, setEvidenceModal] = useState({ isOpen: false, url: null, error: false });
   const [bulkDeleteModal, setBulkDeleteModal] = useState({ isOpen: false, type: null, title: '', message: '' });
   
   const navigate = useNavigate();
@@ -831,7 +831,7 @@ export default function AdminDashboard() {
                         {report.proofUrl && (
                           <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'center' }}>
                             <button 
-                              onClick={() => setEvidenceModal({ isOpen: true, url: report.proofUrl })}
+                              onClick={() => setEvidenceModal({ isOpen: true, url: report.proofUrl, error: false })}
                               style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.4)', color: '#fca5a5', padding: '0.75rem 1.5rem', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 'bold', width: '100%', maxWidth: '300px' }}
                             >
                               <AlertTriangle size={16} /> Preview Attached Evidence
@@ -1183,17 +1183,32 @@ export default function AdminDashboard() {
       {evidenceModal.isOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.85)', backdropFilter: 'blur(5px)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', zIndex: 100000 }}>
           <button 
-            onClick={() => setEvidenceModal({ isOpen: false, url: null })}
+            onClick={() => setEvidenceModal({ isOpen: false, url: null, error: false })}
             style={{ position: 'absolute', top: '2rem', right: '2rem', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold' }}
           >
             <XCircle size={20} /> Close Preview
           </button>
           
-          <img 
-            src={getMediaUrl(evidenceModal.url)} 
-            alt="Evidence Preview" 
-            style={{ maxWidth: '90%', maxHeight: '80vh', objectFit: 'contain', borderRadius: '0.5rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', border: '1px solid rgba(255,255,255,0.1)' }} 
-          />
+          {!evidenceModal.error ? (
+            <img 
+              src={getMediaUrl(evidenceModal.url)} 
+              alt="Evidence Preview" 
+              style={{ maxWidth: '90%', maxHeight: '80vh', objectFit: 'contain', borderRadius: '0.5rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', border: '1px solid rgba(255,255,255,0.1)' }} 
+              onError={() => setEvidenceModal(prev => ({ ...prev, error: true }))}
+            />
+          ) : (
+            <div style={{ background: 'rgba(30, 32, 47, 0.9)', padding: '3rem', borderRadius: '1rem', border: '1px solid rgba(239, 68, 68, 0.3)', textAlign: 'center', maxWidth: '400px' }}>
+              <ShieldOff size={48} color="#ef4444" style={{ marginBottom: '1.5rem', display: 'inline-block' }} />
+              <h3 style={{ color: 'white', marginBottom: '1rem', fontSize: '1.3rem', fontWeight: 'bold' }}>Evidence Unavailable</h3>
+              <p style={{ color: '#94a3b8', fontSize: '0.95rem', lineHeight: '1.6' }}>
+                The uploaded evidence for this old report has expired and was automatically cleared by the server to save storage space. 
+                <br/><br/>
+                <span style={{ color: '#34d399', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
+                  <CheckCircle size={16}/> All new reports will now have permanent evidence previews.
+                </span>
+              </p>
+            </div>
+          )}
         </div>
       )}
 
