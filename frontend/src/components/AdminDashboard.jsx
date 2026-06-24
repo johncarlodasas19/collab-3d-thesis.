@@ -241,6 +241,14 @@ export default function AdminDashboard() {
     return url;
   };
 
+  const getFallbackAvatar = (username) => {
+    if (!username) return '';
+    const hash = Array.from(username).reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const hue = (hash * 137) % 360;
+    const initial = username[0].toUpperCase();
+    return `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="hsl(${hue}, 70%, 40%)"/><text x="50" y="50" dominant-baseline="central" text-anchor="middle" font-size="45" font-family="sans-serif" fill="hsl(${hue}, 70%, 90%)" font-weight="bold">${initial}</text></svg>`;
+  };
+
   const handleAvatarUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -251,25 +259,10 @@ export default function AdminDashboard() {
   const handleApplyCrop = () => {
     if (editorRef.current) {
       const canvas = editorRef.current.getImageScaledToCanvas();
-      canvas.toBlob(async (blob) => {
-        if (!blob) return;
-        
-        const formData = new FormData();
-        formData.append('media', blob, 'avatar.png');
-
-        try {
-          const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload`, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-          });
-          setEditAvatarUrl(res.data.url);
-          setEditorFile(null);
-          setEditorScale(1.2);
-        } catch (err) {
-          console.error('Upload failed', err);
-          setSettingsError('Failed to upload avatar.');
-          setEditorFile(null);
-        }
-      }, 'image/png');
+      const base64Image = canvas.toDataURL('image/jpeg', 0.8);
+      setEditAvatarUrl(base64Image);
+      setEditorFile(null);
+      setEditorScale(1.2);
     }
   };
 
@@ -455,7 +448,7 @@ export default function AdminDashboard() {
             <span style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#fca5a5', padding: '0.25rem 0.75rem', borderRadius: '2rem', fontSize: '0.85rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><ShieldAlert size={14}/> Admin Mode</span>
             <div className="user-profile" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: '#dc2626', padding: '0.35rem 1rem 0.35rem 0.35rem', borderRadius: '2rem', border: 'none', transition: 'all 0.2s', cursor: 'pointer', boxShadow: '0 4px 15px rgba(220, 38, 38, 0.4)' }} onMouseOver={e => { e.currentTarget.style.background = '#b91c1c'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(220, 38, 38, 0.6)'; }} onMouseOut={e => { e.currentTarget.style.background = '#dc2626'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(220, 38, 38, 0.4)'; }}>
               <div className="avatar" style={{ width: '36px', height: '36px', background: 'rgba(0,0,0,0.15)', overflow: 'hidden', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '600', fontSize: '1rem', color: 'white' }}>
-                {currentUser.avatarUrl ? <img src={getMediaUrl(currentUser.avatarUrl)} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : currentUser.username?.[0]?.toUpperCase()}
+                {currentUser.avatarUrl ? <img src={getMediaUrl(currentUser.avatarUrl)} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.onerror = null; e.target.src = getFallbackAvatar(currentUser.username); }} /> : currentUser.username?.[0]?.toUpperCase()}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', paddingRight: '0.25rem' }}>
                 <span style={{ color: 'white', fontWeight: '700', fontSize: '0.95rem', lineHeight: '1.2' }}>{currentUser.username}</span>
@@ -619,7 +612,7 @@ export default function AdminDashboard() {
                         <td style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
                           <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: u.role === 'admin' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(99, 102, 241, 0.2)', border: `2px solid ${u.role === 'admin' ? '#ef4444' : '#6366f1'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', overflow: 'hidden' }}>
                             {u.avatarUrl ? (
-                              <img src={getMediaUrl(u.avatarUrl)} alt={u.username} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              <img src={getMediaUrl(u.avatarUrl)} alt={u.username} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.onerror = null; e.target.src = getFallbackAvatar(u.username); }} />
                             ) : (
                               <span style={{ color: u.role === 'admin' ? '#fca5a5' : '#818cf8', fontSize: '1.2rem' }}>{u.username[0].toUpperCase()}</span>
                             )}
@@ -988,7 +981,7 @@ export default function AdminDashboard() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
                       <div style={{ width: '120px', height: '120px', borderRadius: '50%', background: '#ef4444', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem', fontWeight: 'bold', color: 'white', border: '4px solid rgba(239, 68, 68, 0.3)' }}>
-                        {editAvatarUrl ? <img src={getMediaUrl(editAvatarUrl)} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : currentUser.username?.[0].toUpperCase()}
+                        {editAvatarUrl ? <img src={getMediaUrl(editAvatarUrl)} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.onerror = null; e.target.src = getFallbackAvatar(currentUser.username); }} /> : currentUser.username?.[0].toUpperCase()}
                       </div>
                       
                       <input type="file" id="admin-avatar-upload" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarUpload} />

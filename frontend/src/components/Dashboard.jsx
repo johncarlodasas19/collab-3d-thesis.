@@ -24,6 +24,14 @@ export default function Dashboard() {
     return url;
   };
 
+  const getFallbackAvatar = (username) => {
+    if (!username) return '';
+    const hash = Array.from(username).reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const hue = (hash * 137) % 360;
+    const initial = username[0].toUpperCase();
+    return `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="hsl(${hue}, 70%, 40%)"/><text x="50" y="50" dominant-baseline="central" text-anchor="middle" font-size="45" font-family="sans-serif" fill="hsl(${hue}, 70%, 90%)" font-weight="bold">${initial}</text></svg>`;
+  };
+
   const [invitations, setInvitations] = useState([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -239,25 +247,10 @@ export default function Dashboard() {
   const handleApplyCrop = () => {
     if (editorRef.current) {
       const canvas = editorRef.current.getImageScaledToCanvas();
-      canvas.toBlob(async (blob) => {
-        if (!blob) return;
-        
-        const formData = new FormData();
-        formData.append('media', blob, 'avatar.png');
-
-        try {
-          const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload`, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-          });
-          setEditAvatarUrl(res.data.url);
-          setEditorFile(null);
-          setEditorScale(1.2);
-        } catch (err) {
-          console.error('Upload failed', err);
-          setSettingsError('Failed to upload avatar.');
-          setEditorFile(null);
-        }
-      }, 'image/png');
+      const base64Image = canvas.toDataURL('image/jpeg', 0.8);
+      setEditAvatarUrl(base64Image);
+      setEditorFile(null);
+      setEditorScale(1.2);
     }
   };
 
@@ -378,15 +371,12 @@ export default function Dashboard() {
             <span style={{ background: 'rgba(99, 102, 241, 0.2)', color: '#818cf8', padding: '0.25rem 0.75rem', borderRadius: '2rem', fontSize: '0.85rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><UserIcon size={14}/> User Mode</span>
             <div className="user-profile" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: '#6d28d9', padding: '0.35rem 1rem 0.35rem 0.35rem', borderRadius: '2rem', border: 'none', transition: 'all 0.2s', cursor: 'pointer', boxShadow: '0 4px 15px rgba(109, 40, 217, 0.4)' }} onMouseOver={e => { e.currentTarget.style.background = '#5b21b6'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(109, 40, 217, 0.6)'; }} onMouseOut={e => { e.currentTarget.style.background = '#6d28d9'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(109, 40, 217, 0.4)'; }}>
               <div className="avatar" style={{ width: '36px', height: '36px', borderRadius: '50%', overflow: 'hidden', background: 'rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: '600', fontSize: '1rem' }}>
-                {user.avatarUrl ? (
-                  <img 
-                    src={user?.avatarUrl ? getMediaUrl(user.avatarUrl) : "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"} 
-                    alt="Profile" 
-                    style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }}
-                  />
-                ) : (
-                  user.username.charAt(0).toUpperCase()
-                )}
+                <img 
+                  src={user?.avatarUrl?.startsWith('data:') ? user.avatarUrl : (user?.avatarUrl ? getMediaUrl(user.avatarUrl) : getFallbackAvatar(user?.username))} 
+                  alt="User Avatar" 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                  onError={(e) => { e.target.onerror = null; e.target.src = getFallbackAvatar(user?.username); }}
+                />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', paddingRight: '0.25rem' }}>
                 <span style={{ color: 'white', fontWeight: '700', fontSize: '0.95rem', lineHeight: '1.2' }}>{user.username}</span>
@@ -541,7 +531,7 @@ export default function Dashboard() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
                     <div style={{ width: '120px', height: '120px', borderRadius: '50%', background: '#6366f1', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem', fontWeight: 'bold', color: 'white', border: '4px solid rgba(99, 102, 241, 0.3)' }}>
-                      {editAvatarUrl ? <img src={getMediaUrl(editAvatarUrl)} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : user.username?.[0].toUpperCase()}
+                      {editAvatarUrl ? <img src={getMediaUrl(editAvatarUrl)} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.onerror = null; e.target.src = getFallbackAvatar(user?.username); }} /> : user.username?.[0].toUpperCase()}
                     </div>
                     
                     <input type="file" id="user-avatar-upload" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarUpload} />
