@@ -67,6 +67,8 @@ export default function Workspace() {
     return url;
   };
 
+  const hasValidAvatar = (url) => typeof url === 'string' && url !== 'null' && url !== 'undefined' && url.trim() !== '' && url !== 'admin-shield';
+
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
     setTimeout(() => setToast(prev => ({ ...prev, show: false })), 3000);
@@ -558,16 +560,16 @@ export default function Workspace() {
                 title={u.username}
                 style={{
                   width: '32px', height: '32px', borderRadius: '50%', 
-                  background: (u.avatarUrl && u.avatarUrl !== 'admin-shield') ? 'transparent' : (u.avatarUrl === 'admin-shield' ? '#ef4444' : (u.color || '#6366f1')), color: 'white', display: 'flex', 
+                  background: hasValidAvatar(u.avatarUrl) ? 'transparent' : (u.avatarUrl === 'admin-shield' ? '#ef4444' : (u.color || '#6366f1')), color: 'white', display: 'flex', 
                   alignItems: 'center', justifyContent: 'center',
                   marginLeft: '-8px', border: '2px solid #191b28',
                   fontSize: '0.8rem', fontWeight: 'bold',
-                  backgroundImage: (u.avatarUrl && u.avatarUrl !== 'admin-shield') ? `url(${getMediaUrl(u.avatarUrl)})` : 'none',
+                  backgroundImage: hasValidAvatar(u.avatarUrl) ? `url(${getMediaUrl(u.avatarUrl)})` : 'none',
                   backgroundSize: 'cover',
                   backgroundPosition: 'center'
                 }}
               >
-                {u.avatarUrl === 'admin-shield' ? <ShieldAlert size={18} color="white" /> : (!u.avatarUrl && u.username.charAt(0).toUpperCase())}
+                {u.avatarUrl === 'admin-shield' ? <ShieldAlert size={18} color="white" /> : (!hasValidAvatar(u.avatarUrl) && u.username?.charAt(0).toUpperCase())}
               </div>
             ))}
           </div>
@@ -898,13 +900,13 @@ export default function Workspace() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <div style={{
                           width: '20px', height: '20px', borderRadius: '50%', flexShrink: 0,
-                          background: (msg.user.avatarUrl && msg.user.avatarUrl !== 'admin-shield') ? 'transparent' : (msg.user.avatarUrl === 'admin-shield' ? '#ef4444' : (msg.user.color || '#6366f1')),
+                          background: hasValidAvatar(msg.user.avatarUrl) ? 'transparent' : (msg.user.avatarUrl === 'admin-shield' ? '#ef4444' : (msg.user.color || '#6366f1')),
                           color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
                           fontSize: '0.6rem', fontWeight: 'bold',
-                          backgroundImage: (msg.user.avatarUrl && msg.user.avatarUrl !== 'admin-shield') ? `url(${getMediaUrl(msg.user.avatarUrl)})` : 'none',
+                          backgroundImage: hasValidAvatar(msg.user.avatarUrl) ? `url(${getMediaUrl(msg.user.avatarUrl)})` : 'none',
                           backgroundSize: 'cover', backgroundPosition: 'center'
                         }}>
-                          {msg.user.avatarUrl === 'admin-shield' ? <ShieldAlert size={12} color="white" /> : (!msg.user.avatarUrl && msg.user.username.charAt(0).toUpperCase())}
+                          {msg.user.avatarUrl === 'admin-shield' ? <ShieldAlert size={12} color="white" /> : (!hasValidAvatar(msg.user.avatarUrl) && msg.user.username?.charAt(0).toUpperCase())}
                         </div>
                         <div style={{ fontWeight: '600', color: msg.user.color, fontSize: '0.75rem' }}>
                           {msg.user.username}
