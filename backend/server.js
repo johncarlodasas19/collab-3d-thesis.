@@ -167,7 +167,7 @@ io.on('connection', (socket) => {
     const data = activeUsers.get(socket.id);
     if (data) {
       activeUsers.delete(socket.id);
-      socket.to(data.roomId).emit('user-left', socket.id);
+      socket.to(data.roomId).emit('user-left', { socketId: socket.id, user: data.user });
       
       const usersInRoom = Array.from(activeUsers.values())
         .filter(u => u.roomId === data.roomId)

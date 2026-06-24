@@ -1163,7 +1163,7 @@ export default function Workspace() {
         top: toast.show ? '20px' : '-100px',
         left: '50%',
         transform: 'translateX(-50%)',
-        background: toast.type === 'error' ? 'rgba(239, 68, 68, 0.95)' : 'rgba(34, 197, 94, 0.95)',
+        background: toast.type === 'error' ? 'rgba(239, 68, 68, 0.95)' : toast.type === 'info' ? 'rgba(59, 130, 246, 0.95)' : 'rgba(34, 197, 94, 0.95)',
         backdropFilter: 'blur(10px)',
         color: 'white',
         padding: '0.75rem 1.5rem',
@@ -1178,7 +1178,7 @@ export default function Workspace() {
         pointerEvents: 'none',
         fontSize: '0.9rem'
       }}>
-        {toast.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />} 
+        {toast.type === 'success' ? <CheckCircle2 size={18} /> : toast.type === 'info' ? <Users size={18} /> : <AlertCircle size={18} />} 
         {toast.message}
       </div>
     </div>
