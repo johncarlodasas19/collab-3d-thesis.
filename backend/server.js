@@ -64,7 +64,7 @@ io.on('connection', (socket) => {
     socket.join(roomId);
     
     // Assign a random color if not present
-    const color = user.color || `#${Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')}`;
+    const color = user.color || `hsl(${Math.floor(Math.random() * 360)}, 70%, 75%)`;
     const userData = { ...user, color, socketId: socket.id };
     
     activeUsers.set(socket.id, { roomId, user: userData });
