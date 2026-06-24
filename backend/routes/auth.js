@@ -175,7 +175,7 @@ router.post('/forgot-password', async (req, res) => {
   }
 });
 // Delete own account
-router.delete('/me', auth, async (req, res) => {
+router.delete('/me', authMiddleware, async (req, res) => {
   try {
     const userId = req.user.userId;
     const deletedUser = await User.findByIdAndDelete(userId);
