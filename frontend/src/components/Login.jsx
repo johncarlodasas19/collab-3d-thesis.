@@ -84,7 +84,15 @@ export default function Login() {
         <h2>Welcome Back</h2>
         <p className="subtitle">Sign in to your {accountType === 'admin' ? 'Admin Panel' : '3D workspace'}</p>
 
-        {error && <div className="error-message">{error}</div>}
+        {error && (
+          <div className="error-message" style={{ 
+            color: error.toLowerCase().includes('banned') ? '#fca5a5' : (error.toLowerCase().includes('suspended') ? '#fde047' : '#fca5a5'),
+            background: error.toLowerCase().includes('banned') ? 'rgba(239, 68, 68, 0.2)' : (error.toLowerCase().includes('suspended') ? 'rgba(234, 179, 8, 0.2)' : 'rgba(239, 68, 68, 0.1)'),
+            border: `1px solid ${error.toLowerCase().includes('banned') ? 'rgba(239, 68, 68, 0.4)' : (error.toLowerCase().includes('suspended') ? 'rgba(234, 179, 8, 0.4)' : 'rgba(239, 68, 68, 0.2)')}`
+          }}>
+            {error}
+          </div>
+        )}
 
         <div style={{ display: 'flex', background: 'rgba(0,0,0,0.2)', padding: '0.25rem', borderRadius: '0.5rem', marginBottom: '1.5rem' }}>
           <button 

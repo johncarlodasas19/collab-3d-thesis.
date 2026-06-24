@@ -166,6 +166,19 @@ export default function Workspace() {
       });
     });
 
+    newSocket.on('user-status-changed', (data) => {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const currentUser = JSON.parse(userStr);
+        if (currentUser.id === data.userId || currentUser._id === data.userId) {
+          alert(`Your account has been ${data.status} by the administrator. You are being logged out.`);
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          navigate('/login');
+        }
+      }
+    });
+
     return () => {
       newSocket.close();
       window.removeEventListener('resize', handleResize);

@@ -66,6 +66,12 @@ router.put('/users/:id/status', async (req, res) => {
     }
 
     const user = await User.findByIdAndUpdate(req.params.id, { status }, { new: true }).select('-password');
+    
+    // Emit real-time status change to force kick users
+    if (req.app.get('io') && (status === 'banned' || status === 'suspended')) {
+      req.app.get('io').emit('user-status-changed', { userId: req.params.id, status });
+    }
+
     res.json(user);
   } catch (err) {
     res.status(500).json({ message: 'Error updating status', error: err.message });
