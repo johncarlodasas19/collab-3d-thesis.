@@ -19,6 +19,7 @@ export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [reportFilter, setReportFilter] = useState('all');
   const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
+  const [adminActionModal, setAdminActionModal] = useState({ show: false, status: '' });
   
   // Custom Modal State
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, projectId: null });
@@ -55,10 +56,9 @@ export default function AdminDashboard() {
     const newSocket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000');
     newSocket.on('user-status-changed', (data) => {
       if (data.userId === currentUser.id && (data.status === 'banned' || data.status === 'deleted')) {
-        alert(data.status === 'banned' ? 'Your account has been banned by an administrator.' : 'Your account has been deleted.');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        navigate(data.status === 'deleted' ? '/register' : '/login');
+        setAdminActionModal({ show: true, status: data.status });
       } else {
         fetchData(); // Refresh list automatically when another user's status changes
       }
@@ -987,6 +987,31 @@ export default function AdminDashboard() {
               onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.4)'; }}
             >
               Continue
+            </button>
+          </div>
+        </div>
+      )}
+
+      {adminActionModal.show && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999 }}>
+          <div style={{ background: 'linear-gradient(145deg, #1e293b 0%, #0f172a 100%)', padding: '3rem', borderRadius: '1.5rem', maxWidth: '400px', width: '90%', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+              <AlertTriangle size={40} color="#ef4444" />
+            </div>
+            <h3 style={{ marginBottom: '1rem', fontSize: '1.4rem', color: 'white', fontWeight: 'bold' }}>Account {adminActionModal.status === 'banned' ? 'Banned' : 'Deleted'}</h3>
+            <p style={{ color: '#94a3b8', marginBottom: '2rem', lineHeight: '1.6', fontSize: '1rem' }}>
+              {adminActionModal.status === 'banned' ? 'Your account has been banned by an administrator.' : 'Your account has been deleted by an administrator.'}
+            </p>
+            <button 
+              onClick={() => {
+                setAdminActionModal({ show: false, status: '' });
+                navigate(adminActionModal.status === 'deleted' ? '/register' : '/login');
+              }}
+              style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', color: 'white', border: 'none', padding: '0.85rem 2rem', borderRadius: '0.75rem', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.3s ease', boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)' }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.6)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.4)'; }}
+            >
+              Okay
             </button>
           </div>
         </div>
