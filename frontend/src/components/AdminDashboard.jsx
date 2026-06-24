@@ -543,24 +543,26 @@ export default function AdminDashboard() {
                               <button 
                                 onClick={() => handleDeleteUser(u._id, u.username)}
                                 style={{ 
-                                  background: 'rgba(239, 68, 68, 0.1)', 
+                                  background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(153, 27, 27, 0.2) 100%)', 
                                   border: '1px solid rgba(239, 68, 68, 0.3)', 
-                                  color: '#f87171', 
-                                  padding: '0.5rem', 
-                                  borderRadius: '50%', 
+                                  color: '#fca5a5', 
+                                  padding: '0.5rem 1rem', 
+                                  borderRadius: '2rem', 
                                   cursor: 'pointer', 
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
-                                  transition: 'all 0.2s',
-                                  width: '36px',
-                                  height: '36px'
+                                  gap: '0.4rem',
+                                  fontWeight: 'bold',
+                                  fontSize: '0.85rem',
+                                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                  width: '110px'
                                 }}
-                                onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'; e.currentTarget.style.color = '#ef4444' }}
-                                onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.color = '#f87171' }}
+                                onMouseOver={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, rgba(239, 68, 68, 0.8) 0%, rgba(185, 28, 28, 0.9) 100%)'; e.currentTarget.style.color = 'white'; e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.4)'; }}
+                                onMouseOut={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(153, 27, 27, 0.2) 100%)'; e.currentTarget.style.color = '#fca5a5'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
                                 title="Permanently Delete User"
                               >
-                                <Trash2 size={16} />
+                                <Trash2 size={14} /> Delete
                               </button>
                             </div>
                           )}
@@ -789,19 +791,20 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Danger Zone */}
-                <div style={{ background: 'rgba(239, 68, 68, 0.05)', borderRadius: '1rem', padding: '2rem', border: '1px solid rgba(239, 68, 68, 0.2)', marginTop: '2rem' }}>
-                  <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Trash2 size={20} /> Danger Zone
+                <div style={{ background: 'linear-gradient(145deg, rgba(239, 68, 68, 0.05) 0%, rgba(153, 27, 27, 0.1) 100%)', borderRadius: '1rem', padding: '2rem', border: '1px solid rgba(239, 68, 68, 0.3)', marginTop: '2rem', boxShadow: '0 10px 30px -10px rgba(239, 68, 68, 0.15)', backdropFilter: 'blur(10px)' }}>
+                  <h3 style={{ fontSize: '1.3rem', marginBottom: '1rem', color: '#fca5a5', display: 'flex', alignItems: 'center', gap: '0.75rem', fontWeight: 'bold' }}>
+                    <Trash2 size={24} color="#ef4444" /> Danger Zone
                   </h3>
-                  <p style={{ color: '#94a3b8', marginBottom: '1.5rem', fontSize: '0.95rem' }}>
-                    Once you delete your admin account, there is no going back. All your projects will be permanently eradicated.
+                  <p style={{ color: '#cbd5e1', marginBottom: '1.5rem', fontSize: '0.95rem', lineHeight: '1.6' }}>
+                    Once you delete your admin account, there is no going back. All your data, projects, and history will be <strong style={{ color: '#ef4444' }}>permanently eradicated</strong>.
                   </p>
                   <button 
                     onClick={handleDeleteAccount}
                     disabled={isDeletingAccount}
-                    style={{ background: 'transparent', color: '#ef4444', border: '1px solid #ef4444', padding: '0.75rem 1.5rem', borderRadius: '0.5rem', fontWeight: 'bold', cursor: isDeletingAccount ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', transition: 'all 0.2s' }}
-                    onMouseEnter={(e) => { e.target.style.background = '#ef4444'; e.target.style.color = 'white'; }}
-                    onMouseLeave={(e) => { e.target.style.background = 'transparent'; e.target.style.color = '#ef4444'; }}
+                    style={{ background: 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)', color: 'white', border: 'none', padding: '0.85rem 1.75rem', borderRadius: '0.75rem', fontWeight: 'bold', cursor: isDeletingAccount ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '0.75rem', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 4px 15px rgba(239, 68, 68, 0.4)' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(239, 68, 68, 0.6)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(239, 68, 68, 0.4)'; }}
+                    onMouseDown={(e) => { e.currentTarget.style.transform = 'translateY(1px)'; e.currentTarget.style.boxShadow = '0 2px 10px rgba(239, 68, 68, 0.4)'; }}
                   >
                     <Trash2 size={18} /> {isDeletingAccount ? 'Deleting...' : 'Delete My Account'}
                   </button>
