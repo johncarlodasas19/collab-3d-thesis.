@@ -135,6 +135,24 @@ export default function Workspace() {
     });
 
     newSocket.on('user-joined', (userData) => {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioContext();
+        if (ctx.state === 'suspended') ctx.resume();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0, ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(1.0, ctx.currentTime + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.5);
+      } catch (e) { console.error('Audio failed', e); }
+
       setToast({ show: true, message: `${userData.username} joined the workspace`, type: 'join', user: userData });
       setTimeout(() => setToast(t => t.message === `${userData.username} joined the workspace` ? { show: false, message: '', type: 'join', user: null } : t), 3500);
     });
@@ -144,6 +162,24 @@ export default function Workspace() {
       const leftUser = typeof payload === 'object' ? payload.user : null;
       
       if (leftUser) {
+        try {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          const ctx = new AudioContext();
+          if (ctx.state === 'suspended') ctx.resume();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(660, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(330, ctx.currentTime + 0.1);
+          gain.gain.setValueAtTime(0, ctx.currentTime);
+          gain.gain.linearRampToValueAtTime(1.0, ctx.currentTime + 0.05);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.5);
+        } catch (e) { console.error('Audio failed', e); }
+
         setToast({ show: true, message: `${leftUser.username} left the workspace`, type: 'leave', user: leftUser });
         setTimeout(() => setToast(t => t.message === `${leftUser.username} left the workspace` ? { show: false, message: '', type: 'leave', user: null } : t), 3500);
       }
