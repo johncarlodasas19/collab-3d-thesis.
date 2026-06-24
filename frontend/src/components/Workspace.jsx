@@ -61,7 +61,8 @@ export default function Workspace() {
   const getMediaUrl = (url) => {
     if (!url) return '';
     if (url.startsWith('/uploads/')) {
-      return `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${url}`;
+      const apiUrl = import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.hostname}:5000`;
+      return `${apiUrl}${url}`;
     }
     return url;
   };
@@ -247,11 +248,9 @@ export default function Workspace() {
       const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-      const absoluteUrl = res.data.url.startsWith('http') ? res.data.url : `${apiUrl}${res.data.url}`;
-      
+      const finalUrl = res.data.url;
       const fileType = file.type.startsWith('video/') ? 'video' : 'image';
-      handleAddObject(fileType, absoluteUrl);
+      handleAddObject(fileType, finalUrl);
     } catch (err) {
       console.error('Upload failed', err);
     }
@@ -268,8 +267,7 @@ export default function Workspace() {
       const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-      const absoluteUrl = res.data.url.startsWith('http') ? res.data.url : `${apiUrl}${res.data.url}`;
+      const finalUrl = res.data.url;
 
       let fileType = 'file';
       if (file.type.startsWith('image/')) fileType = 'image';
@@ -283,7 +281,7 @@ export default function Workspace() {
         id: uuidv4(),
         roomId: projectId,
         message: fileType === 'file' ? `📎 Uploaded file: ${file.name}` : '',
-        fileUrl: absoluteUrl,
+        fileUrl: finalUrl,
         type: fileType,
         user: { ...userObj, color: myColor },
         timestamp: new Date().toISOString()
