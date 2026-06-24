@@ -134,7 +134,20 @@ export default function Workspace() {
       setActiveUsers(users);
     });
 
-    newSocket.on('user-left', (socketId) => {
+    newSocket.on('user-joined', (userData) => {
+      setToast({ show: true, message: `${userData.username} joined the workspace`, type: 'info' });
+      setTimeout(() => setToast(t => t.message === `${userData.username} joined the workspace` ? { show: false, message: '', type: 'info' } : t), 3000);
+    });
+
+    newSocket.on('user-left', (payload) => {
+      const socketId = typeof payload === 'string' ? payload : payload.socketId;
+      const leftUser = typeof payload === 'object' ? payload.user : null;
+      
+      if (leftUser) {
+        setToast({ show: true, message: `${leftUser.username} left the workspace`, type: 'info' });
+        setTimeout(() => setToast(t => t.message === `${leftUser.username} left the workspace` ? { show: false, message: '', type: 'info' } : t), 3000);
+      }
+      
       setCursors((prev) => {
         const next = { ...prev };
         delete next[socketId];
@@ -268,19 +281,22 @@ export default function Workspace() {
     const file = e.target.files[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append('media', file);
+    // Check size limit: 10MB to avoid breaking MongoDB document size limit
+    if (file.size > 10 * 1024 * 1024) {
+      setToast({ show: true, message: 'File is too large (max 10MB)', type: 'error' });
+      setTimeout(() => setToast(t => ({ ...t, show: false })), 3000);
+      return;
+    }
 
     try {
       saveHistory();
-      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-      const absoluteUrl = res.data.url.startsWith('http') ? res.data.url : `${apiUrl}${res.data.url}`;
-      
-      const fileType = file.type.startsWith('video/') ? 'video' : 'image';
-      handleAddObject(fileType, absoluteUrl);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64Url = reader.result;
+        const fileType = file.type.startsWith('video/') ? 'video' : 'image';
+        handleAddObject(fileType, base64Url);
+      };
+      reader.readAsDataURL(file);
     } catch (err) {
       console.error('Upload failed', err);
     }
@@ -290,36 +306,38 @@ export default function Workspace() {
     const file = e.target.files[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append('media', file);
+    if (file.size > 10 * 1024 * 1024) {
+      setToast({ show: true, message: 'File is too large (max 10MB)', type: 'error' });
+      setTimeout(() => setToast(t => ({ ...t, show: false })), 3000);
+      return;
+    }
 
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-      const absoluteUrl = res.data.url.startsWith('http') ? res.data.url : `${apiUrl}${res.data.url}`;
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64Url = reader.result;
+        let fileType = 'file';
+        if (file.type.startsWith('image/')) fileType = 'image';
+        if (file.type.startsWith('video/')) fileType = 'video';
+        
+        const userStr = localStorage.getItem('user');
+        const userObj = userStr ? JSON.parse(userStr) : { username: 'Guest' };
+        if (userObj.role === 'admin') { userObj.username = 'ADMIN'; userObj.avatarUrl = 'admin-shield'; userObj.color = '#ef4444'; }
+        const myColor = activeUsers.find(u => u.socketId === socket?.id)?.color || '#4f46e5';
 
-      let fileType = 'file';
-      if (file.type.startsWith('image/')) fileType = 'image';
-      if (file.type.startsWith('video/')) fileType = 'video';
-      
-      const userStr = localStorage.getItem('user');
-      const userObj = userStr ? JSON.parse(userStr) : { username: 'Guest' };
-      if (userObj.role === 'admin') { userObj.username = 'ADMIN'; userObj.avatarUrl = 'admin-shield'; userObj.color = '#ef4444'; }
-      const myColor = activeUsers.find(u => u.socketId === socket.id)?.color || '#4f46e5';
+        const msgData = {
+          id: uuidv4(),
+          roomId: projectId,
+          message: fileType === 'file' ? `📎 Uploaded file: ${file.name}` : '',
+          fileUrl: base64Url,
+          type: fileType,
+          user: { ...userObj, color: myColor },
+          timestamp: new Date().toISOString()
+        };
 
-      const msgData = {
-        id: uuidv4(),
-        roomId: projectId,
-        message: fileType === 'file' ? `📎 Uploaded file: ${file.name}` : '',
-        fileUrl: absoluteUrl,
-        type: fileType,
-        user: { ...userObj, color: myColor },
-        timestamp: new Date().toISOString()
+        socket.emit('chat-message', msgData);
       };
-
-      socket.emit('chat-message', msgData);
+      reader.readAsDataURL(file);
     } catch (err) {
       console.error('Chat attachment upload failed', err);
     }
