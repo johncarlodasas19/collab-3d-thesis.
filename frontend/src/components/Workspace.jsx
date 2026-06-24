@@ -843,12 +843,18 @@ export default function Workspace() {
                       </div>
                       {msg.timestamp && (
                         <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                          {(hoveredMessageId === currentMsgId && !msg.isUnsent && (currentUser.id === msg.user.id || currentUser._id === msg.user._id || currentUser.id === msg.user._id || currentUser._id === msg.user.id)) && (
+                          {(hoveredMessageId === currentMsgId && !msg.isUnsent && 
+                            currentUser && msg.user && 
+                            ((currentUser.id && (currentUser.id === msg.user.id || currentUser.id === msg.user._id)) || 
+                             (currentUser._id && (currentUser._id === msg.user.id || currentUser._id === msg.user._id)))
+                          ) && (
                             <div style={{ display: 'flex', gap: '0.3rem' }}>
                               {(new Date() - new Date(msg.timestamp)) <= 120000 && (
-                                <button onClick={() => { setEditingMessageId(currentMsgId); setNewMessage(msg.message); }} style={{ background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer', padding: 0 }}><Edit2 size={12} /></button>
+                                <>
+                                  <button onClick={() => { setEditingMessageId(currentMsgId); setNewMessage(msg.message); }} style={{ background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer', padding: 0 }}><Edit2 size={12} /></button>
+                                  <button onClick={() => socket.emit('delete-message', { roomId: projectId, messageId: currentMsgId })} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 0 }} title="Unsend Message"><Trash2 size={12} /></button>
+                                </>
                               )}
-                              <button onClick={() => socket.emit('delete-message', { roomId: projectId, messageId: currentMsgId })} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 0 }} title="Unsend Message"><Trash2 size={12} /></button>
                             </div>
                           )}
                           {new Date(msg.timestamp).toLocaleString([], { weekday: 'short', year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}

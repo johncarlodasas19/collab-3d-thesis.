@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Box, LogOut, Settings, Layout, Plus, Folder, Bell, Trash2, Menu, Upload, User as UserIcon, Mail, Lock, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import axios from 'axios';
 import AvatarEditor from 'react-avatar-editor';
+import { io } from 'socket.io-client';
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
@@ -47,8 +48,20 @@ export default function Dashboard() {
     if (!token || !userData) {
       navigate('/login');
     } else {
-      setUser(JSON.parse(userData));
+      const parsedUser = JSON.parse(userData);
+      setUser(parsedUser);
       fetchInvitations(token);
+
+      const newSocket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000');
+      newSocket.on('user-status-changed', (data) => {
+        if (data.userId === parsedUser.id && (data.status === 'banned' || data.status === 'deleted')) {
+          alert(data.status === 'banned' ? 'Your account has been banned by an administrator.' : 'Your account has been deleted.');
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          navigate(data.status === 'deleted' ? '/register' : '/login');
+        }
+      });
+      return () => newSocket.disconnect();
     }
   }, [navigate]);
 

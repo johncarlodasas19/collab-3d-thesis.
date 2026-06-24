@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Box, Menu, Users, AlertTriangle, Activity, LogOut, ShieldAlert, CheckCircle2, XCircle, Trash2, Shield, UserX, BarChart3, Clock, Database, Globe, Eye, EyeOff, Search, Filter, Download, Mail, ShieldCheck, ShieldOff, Settings, Upload, PieChart, CheckCircle } from 'lucide-react';
 import AvatarEditor from 'react-avatar-editor';
+import { io } from 'socket.io-client';
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -50,6 +51,19 @@ export default function AdminDashboard() {
       return;
     }
     fetchData();
+
+    const newSocket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000');
+    newSocket.on('user-status-changed', (data) => {
+      if (data.userId === currentUser.id && (data.status === 'banned' || data.status === 'deleted')) {
+        alert(data.status === 'banned' ? 'Your account has been banned by an administrator.' : 'Your account has been deleted.');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate(data.status === 'deleted' ? '/register' : '/login');
+      } else {
+        fetchData(); // Refresh list automatically when another user's status changes
+      }
+    });
+    return () => newSocket.disconnect();
   }, [navigate]);
 
   const fetchData = async () => {
@@ -108,6 +122,7 @@ export default function AdminDashboard() {
     try {
       const token = localStorage.getItem('token');
       await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/users/${userToDelete.id}`, { headers: { Authorization: `Bearer ${token}` } });
+      alert('User has been successfully deleted.');
       fetchData();
       setShowDeleteUserModal(false);
       setUserToDelete(null);
