@@ -184,7 +184,7 @@ router.delete('/me', authMiddleware, async (req, res) => {
     }
     const io = req.app.get('io');
     if (io) {
-      io.emit('user-status-changed', { userId: userId, status: 'deleted' });
+      io.emit('user-status-changed', { userId: userId, status: 'self-deleted' });
     }
     res.json({ message: 'Account deleted successfully' });
   } catch (error) {

@@ -978,25 +978,25 @@ export default function Workspace() {
 
       {statusKick && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.95)', backdropFilter: 'blur(20px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999999 }}>
-          <div style={{ background: statusKick === 'banned' ? 'linear-gradient(145deg, rgba(127, 29, 29, 0.9), rgba(69, 10, 10, 0.95))' : 'linear-gradient(145deg, rgba(113, 63, 18, 0.9), rgba(66, 32, 6, 0.95))', padding: '3rem', borderRadius: '1.5rem', border: `1px solid ${statusKick === 'banned' ? 'rgba(239, 68, 68, 0.4)' : 'rgba(234, 179, 8, 0.4)'}`, width: '500px', maxWidth: '90%', textAlign: 'center', boxShadow: `0 25px 50px -12px ${statusKick === 'banned' ? 'rgba(239, 68, 68, 0.25)' : 'rgba(234, 179, 8, 0.25)'}`, animation: 'bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '80px', height: '80px', borderRadius: '50%', background: statusKick === 'banned' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(234, 179, 8, 0.2)', color: statusKick === 'banned' ? '#fca5a5' : '#fde047', marginBottom: '1.5rem' }}>
-              {statusKick === 'banned' ? <ShieldAlert size={40} /> : <AlertTriangle size={40} />}
+          <div style={{ background: statusKick === 'self-deleted' ? 'linear-gradient(145deg, #1e293b 0%, #0f172a 100%)' : (statusKick === 'banned' || statusKick === 'deleted') ? 'linear-gradient(145deg, rgba(127, 29, 29, 0.9), rgba(69, 10, 10, 0.95))' : 'linear-gradient(145deg, rgba(113, 63, 18, 0.9), rgba(66, 32, 6, 0.95))', padding: '3rem', borderRadius: '1.5rem', border: `1px solid ${statusKick === 'self-deleted' ? 'rgba(255, 255, 255, 0.1)' : (statusKick === 'banned' || statusKick === 'deleted') ? 'rgba(239, 68, 68, 0.4)' : 'rgba(234, 179, 8, 0.4)'}`, width: '400px', maxWidth: '90%', textAlign: 'center', boxShadow: `0 25px 50px -12px ${statusKick === 'self-deleted' ? 'rgba(0, 0, 0, 0.5)' : (statusKick === 'banned' || statusKick === 'deleted') ? 'rgba(239, 68, 68, 0.25)' : 'rgba(234, 179, 8, 0.25)'}`, animation: 'bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '80px', height: '80px', borderRadius: '50%', background: statusKick === 'self-deleted' ? 'rgba(34, 197, 94, 0.1)' : (statusKick === 'banned' || statusKick === 'deleted') ? 'rgba(239, 68, 68, 0.2)' : 'rgba(234, 179, 8, 0.2)', color: statusKick === 'self-deleted' ? '#22c55e' : (statusKick === 'banned' || statusKick === 'deleted') ? '#ef4444' : '#fde047', marginBottom: '1.5rem', border: `1px solid ${statusKick === 'self-deleted' ? 'rgba(34, 197, 94, 0.2)' : 'transparent'}` }}>
+              {statusKick === 'self-deleted' ? <CheckCircle size={40} /> : (statusKick === 'banned' || statusKick === 'deleted') ? <AlertTriangle size={40} /> : <AlertTriangle size={40} />}
             </div>
-            <h2 style={{ color: 'white', fontSize: '1.75rem', marginBottom: '1rem', fontWeight: 'bold' }}>
-              Account {statusKick === 'banned' ? 'Banned' : 'Suspended'}
+            <h2 style={{ color: 'white', fontSize: '1.4rem', marginBottom: '1rem', fontWeight: 'bold' }}>
+              {statusKick === 'self-deleted' ? 'Account Deleted' : `Account ${(statusKick === 'banned' || statusKick === 'deleted') ? (statusKick.charAt(0).toUpperCase() + statusKick.slice(1)) : 'Suspended'}`}
             </h2>
-            <p style={{ color: statusKick === 'banned' ? '#fca5a5' : '#fef08a', fontSize: '1.1rem', marginBottom: '2rem', lineHeight: '1.6' }}>
-              {statusKick === 'banned' 
-                ? 'Your access to this workspace has been permanently revoked due to a violation of our terms.' 
-                : 'Your access to this workspace has been temporarily suspended. Please contact the administrator.'}
+            <p style={{ color: statusKick === 'self-deleted' ? '#94a3b8' : (statusKick === 'banned' || statusKick === 'deleted') ? '#fca5a5' : '#fef08a', fontSize: '1rem', marginBottom: '2rem', lineHeight: '1.6' }}>
+              {statusKick === 'self-deleted' 
+                ? 'You have successfully deleted your account.'
+                : (statusKick === 'banned' || statusKick === 'deleted')
+                  ? `Your account has been ${statusKick} by an administrator.`
+                  : 'Your access to this workspace has been temporarily suspended. Please contact the administrator.'}
             </p>
             <button 
-              onClick={() => navigate('/login')}
-              style={{ width: '100%', padding: '1rem', background: statusKick === 'banned' ? '#ef4444' : '#eab308', color: statusKick === 'banned' ? 'white' : '#422006', border: 'none', borderRadius: '0.75rem', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s', boxShadow: `0 4px 15px ${statusKick === 'banned' ? 'rgba(239, 68, 68, 0.4)' : 'rgba(234, 179, 8, 0.4)'}` }}
-              onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-              onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}
+              onClick={() => navigate(statusKick === 'deleted' || statusKick === 'self-deleted' ? '/register' : '/login')}
+              style={{ width: '100%', padding: '0.85rem 2rem', background: statusKick === 'self-deleted' ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' : (statusKick === 'banned' || statusKick === 'deleted') ? '#ef4444' : '#eab308', color: 'white', border: 'none', borderRadius: '0.75rem', fontSize: '1rem', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s', boxShadow: `0 4px 15px ${statusKick === 'self-deleted' ? 'rgba(59, 130, 246, 0.4)' : (statusKick === 'banned' || statusKick === 'deleted') ? 'rgba(239, 68, 68, 0.4)' : 'rgba(234, 179, 8, 0.4)'}` }}
             >
-              Return to Login
+              {statusKick === 'self-deleted' ? 'Continue' : 'Okay'}
             </button>
           </div>
         </div>
