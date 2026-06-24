@@ -23,6 +23,17 @@ export default function AdminDashboard() {
   const [adminActionSuccessModal, setAdminActionSuccessModal] = useState({ show: false, message: '' });
   const [checkWorkspaceWarningModal, setCheckWorkspaceWarningModal] = useState({ show: false, message: '' });
   
+  // Pagination & Sort State
+  const [reportSearchQuery, setReportSearchQuery] = useState('');
+  const [reportPage, setReportPage] = useState(1);
+  const [reportSortOrder, setReportSortOrder] = useState('newest');
+  const reportsPerPage = 10;
+  
+  const [activitySearchQuery, setActivitySearchQuery] = useState('');
+  const [activityPage, setActivityPage] = useState(1);
+  const [activitySortOrder, setActivitySortOrder] = useState('newest');
+  const activityPerPage = 15;
+  
   // Custom Modal State
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, projectId: null });
   const [evidenceModal, setEvidenceModal] = useState({ isOpen: false, url: null });
@@ -147,6 +158,30 @@ export default function AdminDashboard() {
 
   const handleForceDeleteProject = (projectId) => {
     setDeleteModal({ isOpen: true, projectId });
+  };
+
+  const handleClearOldActivity = async () => {
+    if (!window.confirm("Are you sure you want to delete activity logs older than 30 days?")) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/activity/cleanup`, { headers: { Authorization: `Bearer ${token}` } });
+      setAdminActionSuccessModal({ show: true, message: 'Old activity logs cleared successfully.' });
+      fetchData();
+    } catch (err) {
+      alert('Failed to clean up activity logs');
+    }
+  };
+
+  const handleClearResolvedReports = async () => {
+    if (!window.confirm("Are you sure you want to delete all resolved and dismissed reports?")) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/reports/cleanup`, { headers: { Authorization: `Bearer ${token}` } });
+      setAdminActionSuccessModal({ show: true, message: 'Resolved reports cleared successfully.' });
+      fetchData();
+    } catch (err) {
+      alert('Failed to clean up resolved reports');
+    }
   };
 
   const handleCheckWorkspace = async (projectId) => {
