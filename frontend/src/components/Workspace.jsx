@@ -1178,42 +1178,45 @@ export default function Workspace() {
       {/* Toast Notification */}
       <div style={{
         position: 'fixed',
-        top: toast.show ? '20px' : '-100px',
-        right: (toast.type === 'join' || toast.type === 'leave') ? '20px' : 'auto',
-        left: (toast.type === 'join' || toast.type === 'leave') ? 'auto' : '50%',
-        transform: (toast.type === 'join' || toast.type === 'leave') ? 'none' : 'translateX(-50%)',
-        background: toast.type === 'error' ? 'rgba(239, 68, 68, 0.95)' : 
-                    toast.type === 'join' ? 'rgba(16, 185, 129, 0.95)' : 
-                    toast.type === 'leave' ? 'rgba(245, 158, 11, 0.95)' : 'rgba(34, 197, 94, 0.95)',
-        backdropFilter: 'blur(12px)',
+        top: toast.show ? '30px' : '-100px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        background: 'rgba(15, 23, 42, 0.85)',
+        backdropFilter: 'blur(16px)',
+        border: `1px solid ${toast.type === 'join' ? 'rgba(16, 185, 129, 0.5)' : toast.type === 'leave' ? 'rgba(245, 158, 11, 0.5)' : 'rgba(255,255,255,0.1)'}`,
         color: 'white',
-        padding: (toast.type === 'join' || toast.type === 'leave') ? '0.5rem 1.25rem 0.5rem 0.5rem' : '0.75rem 1.5rem',
-        borderRadius: '2rem',
-        boxShadow: '0 15px 35px -5px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2)',
+        padding: (toast.type === 'join' || toast.type === 'leave') ? '0.5rem 1.5rem 0.5rem 0.5rem' : '0.75rem 1.5rem',
+        borderRadius: '3rem',
+        boxShadow: `0 20px 40px -10px rgba(0,0,0,0.5), 0 0 20px ${toast.type === 'join' ? 'rgba(16, 185, 129, 0.3)' : toast.type === 'leave' ? 'rgba(245, 158, 11, 0.3)' : 'transparent'}`,
         zIndex: 100000,
-        transition: 'all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        transition: 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
         opacity: toast.show ? 1 : 0,
         fontWeight: '600',
         display: 'flex',
         alignItems: 'center',
-        gap: '0.75rem',
+        gap: '1rem',
         pointerEvents: 'none',
-        fontSize: '0.95rem'
+        minWidth: '280px',
+        maxWidth: '90%',
+        justifyContent: 'center'
       }}>
         {(toast.type === 'join' || toast.type === 'leave') && toast.user ? (
-          <div style={{ width: '32px', height: '32px', borderRadius: '50%', overflow: 'hidden', border: '2px solid rgba(255,255,255,0.8)' }}>
-            <img src={getMediaUrl(toast.user.avatarUrl)} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.onerror = null; e.target.src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><rect width="32" height="32" fill="${encodeURIComponent(toast.user.color || '#6366f1')}"/><text x="50%" y="50%" font-family="Arial" font-size="14" fill="white" font-weight="bold" text-anchor="middle" dy=".3em">${(toast.user.username || 'U')[0].toUpperCase()}</text></svg>`; }} />
+          <div style={{ position: 'relative' }}>
+            <div style={{ width: '40px', height: '40px', borderRadius: '50%', overflow: 'hidden', border: `2px solid ${toast.type === 'join' ? '#10b981' : '#f59e0b'}` }}>
+              <img src={getMediaUrl(toast.user.avatarUrl)} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.onerror = null; e.target.src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><rect width="40" height="40" fill="${encodeURIComponent(toast.user.color || '#6366f1')}"/><text x="50%" y="50%" font-family="Arial" font-size="18" fill="white" font-weight="bold" text-anchor="middle" dy=".3em">${(toast.user.username || 'U')[0].toUpperCase()}</text></svg>`; }} />
+            </div>
+            <div style={{ position: 'absolute', bottom: '0', right: '0', width: '12px', height: '12px', borderRadius: '50%', background: toast.type === 'join' ? '#10b981' : '#f59e0b', border: '2px solid #0f172a' }}></div>
           </div>
         ) : (
-          toast.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />
+          toast.type === 'success' ? <CheckCircle2 size={24} color="#10b981" /> : <AlertCircle size={24} color="#ef4444" />
         )}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.1rem' }}>
           {(toast.type === 'join' || toast.type === 'leave') && (
-            <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'rgba(255,255,255,0.8)' }}>
-              {toast.type === 'join' ? 'Connected' : 'Disconnected'}
+            <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: toast.type === 'join' ? '#10b981' : '#f59e0b', fontWeight: '800' }}>
+              {toast.type === 'join' ? '● Connected' : '○ Disconnected'}
             </span>
           )}
-          <span>{toast.message}</span>
+          <span style={{ fontSize: '1rem', color: '#f8fafc' }}>{toast.message}</span>
         </div>
       </div>
     </div>
