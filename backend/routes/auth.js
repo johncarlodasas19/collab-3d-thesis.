@@ -167,7 +167,7 @@ router.post('/forgot-password', async (req, res) => {
     await user.save();
 
     res.json({ 
-      message: 'Password reset successful.', 
+      message: 'Please enter this as your new password.', 
       tempPassword 
     });
   } catch (error) {
