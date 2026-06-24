@@ -152,6 +152,11 @@ router.delete('/projects/:id/force', async (req, res) => {
       details: `Project ID: ${req.params.id}`
     });
 
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('project-deleted-by-admin', { projectId: req.params.id });
+    }
+
     res.json({ message: 'Project permanently deleted by Admin.' });
   } catch (err) {
     res.status(500).json({ message: 'Error deleting project', error: err.message });

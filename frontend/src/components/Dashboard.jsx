@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Box, LogOut, Settings, Layout, Plus, Folder, Bell, Trash2, Menu, Upload, User as UserIcon, Mail, Lock, Eye, EyeOff, CheckCircle, AlertTriangle } from 'lucide-react';
 import axios from 'axios';
 import AvatarEditor from 'react-avatar-editor';
@@ -12,6 +12,8 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('projects');
   const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
   const [adminActionModal, setAdminActionModal] = useState({ show: false, status: '' });
+  const [adminProjectDeletedModal, setAdminProjectDeletedModal] = useState(false);
+  const location = useLocation();
 
   const getMediaUrl = (url) => {
     if (!url) return '';
@@ -45,6 +47,11 @@ export default function Dashboard() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
+
+    if (location.state?.projectDeletedByAdmin) {
+      setAdminProjectDeletedModal(true);
+      window.history.replaceState({}, document.title); // clear state so it doesn't pop up again on refresh
+    }
 
     if (!token || !userData) {
       navigate('/login');
@@ -795,6 +802,31 @@ export default function Dashboard() {
               onClick={() => {
                 setAdminActionModal({ show: false, status: '' });
                 navigate(adminActionModal.status === 'deleted' ? '/register' : '/login');
+              }}
+              style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', color: 'white', border: 'none', padding: '0.85rem 2rem', borderRadius: '0.75rem', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.3s ease', boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)' }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.6)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.4)'; }}
+            >
+              Okay
+            </button>
+          </div>
+        </div>
+      )}
+
+      {adminProjectDeletedModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999 }}>
+          <div style={{ background: 'linear-gradient(145deg, #1e293b 0%, #0f172a 100%)', padding: '3rem', borderRadius: '1.5rem', maxWidth: '400px', width: '90%', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+              <AlertTriangle size={40} color="#ef4444" />
+            </div>
+            <h3 style={{ marginBottom: '1rem', fontSize: '1.4rem', color: 'white', fontWeight: 'bold' }}>Project Deleted</h3>
+            <p style={{ color: '#94a3b8', marginBottom: '2rem', lineHeight: '1.6', fontSize: '1rem' }}>
+              This project was deleted by the administrator due to violated terms or restrictions and is no longer accessible.
+            </p>
+            <button 
+              onClick={() => {
+                setAdminProjectDeletedModal(false);
+                fetchInvitations(localStorage.getItem('token')); // Refresh data just in case
               }}
               style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', color: 'white', border: 'none', padding: '0.85rem 2rem', borderRadius: '0.75rem', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.3s ease', boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)' }}
               onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.6)'; }}

@@ -179,6 +179,12 @@ export default function Workspace() {
       }
     });
 
+    newSocket.on('project-deleted-by-admin', (data) => {
+      if (data.projectId === projectId) {
+        navigate('/dashboard', { state: { projectDeletedByAdmin: true } });
+      }
+    });
+
     return () => {
       newSocket.close();
       window.removeEventListener('resize', handleResize);
