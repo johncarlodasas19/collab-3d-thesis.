@@ -933,7 +933,7 @@ export default function Workspace() {
                             </>
                           )}
                         </div>
-                        <div style={{ fontWeight: '600', color: msg.user.color, fontSize: '0.75rem' }}>
+                        <div style={{ fontWeight: '600', color: msg.user.avatarUrl === 'admin-shield' ? '#ef4444' : '#60a5fa', fontSize: '0.75rem' }}>
                           {msg.user.username}
                         </div>
                       </div>
