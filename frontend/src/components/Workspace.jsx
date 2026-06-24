@@ -23,6 +23,7 @@ export default function Workspace() {
   const [showReportModal, setShowReportModal] = useState(false);
   const [statusKick, setStatusKick] = useState(null);
   const [showVideoModal, setShowVideoModal] = useState(false);
+  const [deletedProjectModal, setDeletedProjectModal] = useState(false);
   const [videoUrlInput, setVideoUrlInput] = useState('');
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(window.innerWidth >= 768);
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(window.innerWidth >= 768);
@@ -92,7 +93,11 @@ export default function Workspace() {
         setChatMessages(res.data.data?.chatMessages || []);
       } catch (err) {
         console.error('Error fetching project', err);
-        navigate('/dashboard', { state: { projectError: 'This project was deleted by the administrator due to violated terms or restrictions and is no longer accessible.' } });
+        if (err.response && err.response.status === 404) {
+          setDeletedProjectModal(true);
+        } else {
+          navigate('/dashboard', { state: { projectError: 'This project is no longer accessible.' } });
+        }
       }
     };
     fetchProject();
@@ -491,6 +496,44 @@ export default function Workspace() {
   const isShapeSelected = selectedObj && selectedObj.type !== 'image' && selectedObj.type !== 'video';
 
   return (
+    <>
+      {deletedProjectModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)', zIndex: 100000,
+          display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+          <div style={{
+            background: 'rgba(30, 32, 47, 0.95)', border: '1px solid rgba(239, 68, 68, 0.3)',
+            borderRadius: '1.5rem', padding: '2.5rem', maxWidth: '450px', width: '90%',
+            textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
+            animation: 'modalSlideUp 0.3s ease-out'
+          }}>
+            <div style={{ background: 'rgba(239, 68, 68, 0.1)', width: '80px', height: '80px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem auto', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+              <AlertCircle size={40} color="#ef4444" />
+            </div>
+            <h3 style={{ color: 'white', fontSize: '1.4rem', marginBottom: '1rem', fontWeight: 'bold' }}>Access Denied</h3>
+            <p style={{ color: '#94a3b8', fontSize: '1rem', marginBottom: '2rem', lineHeight: '1.6' }}>
+              This project is deleted and you can no longer join the collab workspace due to violated term by the administrator.
+            </p>
+            <button 
+              onClick={() => {
+                setDeletedProjectModal(false);
+                navigate('/login');
+              }}
+              style={{
+                background: '#ef4444', color: 'white', border: 'none', padding: '0.85rem 2rem',
+                borderRadius: '0.5rem', fontWeight: 'bold', cursor: 'pointer',
+                transition: 'background 0.2s', width: '100%', fontSize: '1rem'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.background = '#dc2626'}
+              onMouseOut={(e) => e.currentTarget.style.background = '#ef4444'}
+            >
+              Okay
+            </button>
+          </div>
+        </div>
+      )}
     <div className="workspace-container" onPointerMove={handlePointerMove}>
       <header className="workspace-header">
         <button className="icon-btn" onClick={() => navigate(currentUser.role === 'admin' ? '/admin-dashboard' : '/dashboard')} title={currentUser.role === 'admin' ? "Back to Admin Console" : "Back to Dashboard"}>
@@ -1097,5 +1140,6 @@ export default function Workspace() {
         {toast.message}
       </div>
     </div>
+    </>
   );
 }
