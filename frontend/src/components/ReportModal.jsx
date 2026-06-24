@@ -66,12 +66,12 @@ export default function ReportModal({ isOpen, onClose, projectId, projectName })
     return url;
   };
 
-  const handleFileUpload = async (e) => {
+  const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 10 * 1024 * 1024) {
-      setError('File size must be under 10MB.');
+    if (file.size > 5 * 1024 * 1024) {
+      setError('File size must be under 5MB.');
       return;
     }
 
@@ -79,21 +79,17 @@ export default function ReportModal({ isOpen, onClose, projectId, projectName })
     
     setUploading(true);
     setError('');
-    try {
-      const formData = new FormData();
-      formData.append('media', file);
-      
-      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      
-      setProofUrl(res.data.url);
-    } catch (err) {
-      console.error('Upload failed', err);
-      setError('Failed to upload proof image. Please try again.');
-    } finally {
+    
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setProofUrl(reader.result);
       setUploading(false);
-    }
+    };
+    reader.onerror = () => {
+      setError('Failed to read file.');
+      setUploading(false);
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
