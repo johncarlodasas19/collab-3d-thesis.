@@ -84,7 +84,7 @@ export default function Dashboard() {
             isOpen: true,
             type: 'info',
             title: 'Import Successful',
-            message: `Created new project "${newName}" from the imported file!`,
+            message: `Import file "${newName}" has been successfully imported to your dashboard!`,
             onConfirm: () => setModalConfig({ ...modalConfig, isOpen: false })
           });
           
@@ -782,7 +782,7 @@ export default function Dashboard() {
                 onMouseOver={e => !modalConfig.isProcessing && (e.currentTarget.style.transform = 'translateY(-2px)')}
                 onMouseOut={e => !modalConfig.isProcessing && (e.currentTarget.style.transform = 'translateY(0)')}
               >
-                {modalConfig.isProcessing ? 'Processing...' : (modalConfig.type === 'permanent' ? 'Delete Permanently' : modalConfig.type === 'info' ? 'Awesome!' : 'Yes, Move to Trash')}
+                {modalConfig.isProcessing ? 'Processing...' : (modalConfig.type === 'permanent' ? 'Delete Permanently' : modalConfig.type === 'info' ? 'Okay' : 'Yes, Move to Trash')}
               </button>
             </div>
           </div>
