@@ -532,18 +532,6 @@ export default function Workspace() {
     showToast('Design downloaded successfully!', 'success');
   };
 
-  const handleClearAll = () => {
-    if (window.confirm("Are you sure you want to clear the workspace? This will delete all 3D objects.")) {
-      setObjects([]);
-      setSelectedId(null);
-      if (socket) {
-        const userStr = localStorage.getItem('user');
-        const userObj = userStr ? JSON.parse(userStr) : { username: 'Someone' };
-        socket.emit('workspace-state-sync', { roomId: projectId, objects: [], username: userObj.username });
-      }
-      showToast('Workspace cleared', 'delete');
-    }
-  };
 
   const handleDuplicateObject = () => {
     if (!selectedId) return;
@@ -999,15 +987,6 @@ export default function Workspace() {
               style={{ opacity: selectedId ? 1 : 0.5, color: '#ef4444' }}
             >
               <Trash2 size={24} />
-            </button>
-            <button 
-              className="tool-btn" 
-              onClick={handleClearAll} 
-              title="Clear All Objects"
-              disabled={objects.length === 0}
-              style={{ opacity: objects.length === 0 ? 0.3 : 1, color: '#ef4444', marginTop: '1rem' }}
-            >
-              <Eraser size={24} />
             </button>
           </div>
         </aside>
