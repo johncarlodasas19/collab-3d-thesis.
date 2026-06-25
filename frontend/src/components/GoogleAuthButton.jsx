@@ -101,13 +101,13 @@ const GoogleAuthButton = ({ onError }) => {
             borderRadius: '20px',
             width: '100%',
             maxWidth: '420px',
-            color: '#f8fafc',
-            border: '1px solid rgba(255,255,255,0.08)',
+            color: '#ffffff',
+            border: '1px solid rgba(255,255,255,0.1)',
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '25px', justifyContent: 'center' }}>
               <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OCA0OCI+PHBhdGggZmlsbD0iI0VBNDMzNSIgZD0iTTI0IDkuNWMzLjU0IDAgNi43MSAxLjIyIDkuMjEgMy42bDYuODUtNi44NUMzNS45IDIuMzggMzAuNDcgMCAyNCAwIDE0LjYyIDAgNi41MSA1LjM4IDIuNTYgMTMuMjJsNy45OCA2LjE5QzEyLjQzIDEzLjcwIDE3Ljc0IDkuNSAyNCA5LjV6Ii8+PHBhdGggZmlsbD0iIzQyODVGNCIgZD0iTTQ2Ljk4IDI0LjU1YzAtMS41Ny0uMTUtMy4wOS0uMzgtNC41NUgyNHY5LjAyaDEyLjk0Yy0uNTggMi45Ni0yLjI2IDUuNDgtNC43OCA3LjE4bDcuNzMgNmM0LjUxLTQuMTggNy4wOS0xMC4zNiA3LjA5LTE3LjY1eiIvPjxwYXRoIGZpbGw9IiNGQkJDMDUiIGQ9Ik0xMC41MyAyOC41OWMtLjQ4LTEuNDUtLjc2LTIuOTktLjc2LTQuNTlzLjI3LTMuMTQuNzYtNC41OWwtNy45OC02LjE5Qy45MiAxNi40NiAwIDIwLjEyIDAgMjRjMCAzLjg4LjkyIDcuNTQgMi41NiAxMC43OGw3Ljk3LTYuMTl6Ii8+PHBhdGggZmlsbD0iIzM0QTg1MyIgZD0iTTI0IDQ4YzYuNDggMCAxMS45My0yLjEzIDE1Ljg5LTUuODFsLTcuNzMtNmMtMi4xNSAxLjQ1LTQuOTIgMi4zLTguMTYgMi4zLTYuMjYgMC0xMS41Ny00LjIyLTEzLjQ3LTkuOTFsLTcuOTggNi4xOUM2LjUxIDQyLjYyIDE0LjYyIDQ4IDI0IDQ4eiIvPjxwYXRoIGZpbGw9Im5vbmUiIGQ9Ik0wIDBoNDh2NDhIMHoiLz48L3N2Zz4=" alt="Google" style={{ width: '28px', height: '28px' }} />
-              <h2 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 700, letterSpacing: '-0.5px' }}>Sign in securely</h2>
+              <h2 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 700, letterSpacing: '-0.5px', color: '#ffffff' }}>Sign in securely</h2>
             </div>
             
             {errorMsg && (
@@ -117,7 +117,7 @@ const GoogleAuthButton = ({ onError }) => {
             )}
 
             <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', marginBottom: '12px', color: '#cbd5e1', fontSize: '0.95rem', fontWeight: 500 }}>Select your Role</label>
+              <label style={{ display: 'block', marginBottom: '12px', color: '#f1f5f9', fontSize: '1rem', fontWeight: 600 }}>Select your Role</label>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button
                   type="button"
@@ -125,11 +125,11 @@ const GoogleAuthButton = ({ onError }) => {
                   style={{
                     flex: 1,
                     padding: '12px',
-                    backgroundColor: role === 'user' ? '#2563eb' : 'rgba(255,255,255,0.05)',
-                    border: `1px solid ${role === 'user' ? '#3b82f6' : 'rgba(255,255,255,0.1)'}`,
+                    backgroundColor: role === 'user' ? '#3b82f6' : 'rgba(255,255,255,0.08)',
+                    border: `1px solid ${role === 'user' ? '#60a5fa' : 'rgba(255,255,255,0.2)'}`,
                     borderRadius: '10px',
-                    color: role === 'user' ? '#ffffff' : '#cbd5e1',
-                    fontWeight: role === 'user' ? '600' : '500',
+                    color: '#ffffff',
+                    fontWeight: role === 'user' ? 'bold' : '600',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
                     outline: 'none',
@@ -144,11 +144,11 @@ const GoogleAuthButton = ({ onError }) => {
                   style={{
                     flex: 1,
                     padding: '12px',
-                    backgroundColor: role === 'admin' ? '#2563eb' : 'rgba(255,255,255,0.05)',
-                    border: `1px solid ${role === 'admin' ? '#3b82f6' : 'rgba(255,255,255,0.1)'}`,
+                    backgroundColor: role === 'admin' ? '#3b82f6' : 'rgba(255,255,255,0.08)',
+                    border: `1px solid ${role === 'admin' ? '#60a5fa' : 'rgba(255,255,255,0.2)'}`,
                     borderRadius: '10px',
-                    color: role === 'admin' ? '#ffffff' : '#cbd5e1',
-                    fontWeight: role === 'admin' ? '600' : '500',
+                    color: '#ffffff',
+                    fontWeight: role === 'admin' ? 'bold' : '600',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
                     outline: 'none',
@@ -162,7 +162,7 @@ const GoogleAuthButton = ({ onError }) => {
 
             {role === 'admin' && (
               <div style={{ marginBottom: '24px' }}>
-                <label style={{ display: 'block', marginBottom: '8px', color: '#cbd5e1', fontSize: '0.95rem', fontWeight: 500 }}>Admin Passcode</label>
+                <label style={{ display: 'block', marginBottom: '8px', color: '#f1f5f9', fontSize: '1rem', fontWeight: 600 }}>Admin Passcode</label>
                 <input 
                   type="password" 
                   value={adminCode}
@@ -171,18 +171,18 @@ const GoogleAuthButton = ({ onError }) => {
                   style={{
                     width: '100%',
                     padding: '12px 15px',
-                    backgroundColor: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.1)',
+                    backgroundColor: 'rgba(0,0,0,0.2)',
+                    border: '1px solid rgba(255,255,255,0.2)',
                     borderRadius: '8px',
-                    color: 'white',
+                    color: '#ffffff',
                     outline: 'none',
                     boxSizing: 'border-box',
                     transition: 'border-color 0.2s',
                     fontFamily: 'inherit',
                     fontSize: '1rem'
                   }}
-                  onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-                  onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+                  onFocus={(e) => { e.target.style.borderColor = '#60a5fa'; e.target.style.backgroundColor = 'rgba(0,0,0,0.3)'; }}
+                  onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.2)'; e.target.style.backgroundColor = 'rgba(0,0,0,0.2)'; }}
                 />
               </div>
             )}
@@ -201,9 +201,9 @@ const GoogleAuthButton = ({ onError }) => {
                 width: '100%',
                 marginTop: '24px',
                 padding: '12px',
-                backgroundColor: 'rgba(255,255,255,0.05)',
-                color: '#cbd5e1',
-                border: 'none',
+                backgroundColor: 'rgba(255,255,255,0.08)',
+                color: '#ffffff',
+                border: '1px solid rgba(255,255,255,0.1)',
                 borderRadius: '10px',
                 cursor: 'pointer',
                 fontWeight: 600,
@@ -211,8 +211,8 @@ const GoogleAuthButton = ({ onError }) => {
                 fontFamily: "'Inter', 'Roboto', 'Segoe UI', sans-serif",
                 fontSize: '1rem'
               }}
-              onMouseOver={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#ffffff'; }}
-              onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#cbd5e1'; }}
+              onMouseOver={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.15)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; }}
+              onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
             >
               Cancel
             </button>
