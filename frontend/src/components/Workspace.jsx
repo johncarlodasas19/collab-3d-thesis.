@@ -313,11 +313,43 @@ export default function Workspace() {
     }
   };
 
+  const compressImage = (file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new window.Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 1200;
+          if (width > height) {
+            if (width > maxDim) {
+              height *= maxDim / width;
+              width = maxDim;
+            }
+          } else {
+            if (height > maxDim) {
+              width *= maxDim / height;
+              height = maxDim;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.6));
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Check size limit: 10MB to avoid breaking MongoDB document size limit
     if (file.size > 10 * 1024 * 1024) {
       setToast({ show: true, message: 'File is too large (max 10MB)', type: 'error' });
       setTimeout(() => setToast(t => ({ ...t, show: false })), 3000);
@@ -326,13 +358,25 @@ export default function Workspace() {
 
     try {
       saveHistory();
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64Url = reader.result;
-        const fileType = file.type.startsWith('video/') ? 'video' : 'image';
-        handleAddObject(fileType, base64Url);
-      };
-      reader.readAsDataURL(file);
+      const fileType = file.type.startsWith('video/') ? 'video' : 'image';
+      
+      let finalUrl;
+      if (fileType === 'image') {
+        finalUrl = await compressImage(file);
+      } else {
+        if (file.size > 3 * 1024 * 1024) {
+          setToast({ show: true, message: 'Video must be under 3MB to save permanently.', type: 'error' });
+          setTimeout(() => setToast(t => ({ ...t, show: false })), 4000);
+          return;
+        }
+        finalUrl = await new Promise((resolve) => {
+          const r = new FileReader();
+          r.onloadend = () => resolve(r.result);
+          r.readAsDataURL(file);
+        });
+      }
+      
+      handleAddObject(fileType, finalUrl);
     } catch (err) {
       console.error('Upload failed', err);
     }
@@ -349,31 +393,48 @@ export default function Workspace() {
     }
 
     try {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64Url = reader.result;
-        let fileType = 'file';
-        if (file.type.startsWith('image/')) fileType = 'image';
-        if (file.type.startsWith('video/')) fileType = 'video';
-        
-        const userStr = localStorage.getItem('user');
-        const userObj = userStr ? JSON.parse(userStr) : { username: 'Guest' };
-        if (userObj.role === 'admin') { userObj.username = 'ADMIN'; userObj.avatarUrl = 'admin-shield'; userObj.color = '#ef4444'; }
-        const myColor = activeUsers.find(u => u.socketId === socket?.id)?.color || '#4f46e5';
+      let fileType = 'file';
+      if (file.type.startsWith('image/')) fileType = 'image';
+      if (file.type.startsWith('video/')) fileType = 'video';
 
-        const msgData = {
-          id: uuidv4(),
-          roomId: projectId,
-          message: fileType === 'file' ? `📎 Uploaded file: ${file.name}` : '',
-          fileUrl: base64Url,
-          type: fileType,
-          user: { ...userObj, color: myColor },
-          timestamp: new Date().toISOString()
-        };
+      let finalUrl;
+      if (fileType === 'image') {
+        finalUrl = await compressImage(file);
+      } else if (fileType === 'video') {
+        if (file.size > 3 * 1024 * 1024) {
+          setToast({ show: true, message: 'Video must be under 3MB to save permanently.', type: 'error' });
+          setTimeout(() => setToast(t => ({ ...t, show: false })), 4000);
+          return;
+        }
+        finalUrl = await new Promise((resolve) => {
+          const r = new FileReader();
+          r.onloadend = () => resolve(r.result);
+          r.readAsDataURL(file);
+        });
+      } else {
+        finalUrl = await new Promise((resolve) => {
+          const r = new FileReader();
+          r.onloadend = () => resolve(r.result);
+          r.readAsDataURL(file);
+        });
+      }
 
-        socket.emit('chat-message', msgData);
+      const userStr = localStorage.getItem('user');
+      const userObj = userStr ? JSON.parse(userStr) : { username: 'Guest' };
+      if (userObj.role === 'admin') { userObj.username = 'ADMIN'; userObj.avatarUrl = 'admin-shield'; userObj.color = '#ef4444'; }
+      const myColor = activeUsers.find(u => u.socketId === socket?.id)?.color || '#4f46e5';
+
+      const msgData = {
+        id: uuidv4(),
+        roomId: projectId,
+        message: fileType === 'file' ? `📎 Uploaded file: ${file.name}` : '',
+        fileUrl: finalUrl,
+        type: fileType,
+        user: { ...userObj, color: myColor },
+        timestamp: new Date().toISOString()
       };
-      reader.readAsDataURL(file);
+
+      socket.emit('chat-message', msgData);
     } catch (err) {
       console.error('Chat attachment upload failed', err);
     }
