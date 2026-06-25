@@ -321,7 +321,7 @@ export default function Workspace() {
     if (socket) {
       const userStr = localStorage.getItem('user');
       const userObj = userStr ? JSON.parse(userStr) : { username: 'Someone' };
-      socket.emit('workspace-state-sync', { roomId: projectId, objects: previousState, username: userObj.username });
+      socket.emit('workspace-state-sync', { roomId: projectId, objects: previousState, username: userObj.username, action: 'undo' });
       showToast('You performed an Undo.', 'info', { username: 'You', color: '#3b82f6' });
     }
   };
@@ -549,7 +549,7 @@ export default function Workspace() {
       if (socket) {
         const userStr = localStorage.getItem('user');
         const userObj = userStr ? JSON.parse(userStr) : { username: 'Someone' };
-        socket.emit('workspace-state-sync', { roomId: projectId, objects: newObjects, username: userObj.username });
+        socket.emit('workspace-state-sync', { roomId: projectId, objects: newObjects, username: userObj.username, action: 'duplicate' });
       }
       showToast(`${newObj.type} duplicated`, 'success');
     }

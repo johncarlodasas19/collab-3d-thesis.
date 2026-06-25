@@ -103,8 +103,12 @@ io.on('connection', (socket) => {
   socket.on('workspace-state-sync', (data) => {
     socket.to(data.roomId).emit('workspace-state-sync', data.objects);
     if (data.username) {
+      const msg = data.action === 'duplicate' 
+        ? `${data.username} duplicated an object.` 
+        : `${data.username} performed an Undo.`;
+        
       socket.to(data.roomId).emit('toast-notification', {
-        message: `${data.username} performed an Undo.`,
+        message: msg,
         type: 'info',
         username: data.username,
         color: '#3b82f6'
