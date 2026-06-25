@@ -536,6 +536,7 @@ export default function Workspace() {
 
   const handleDuplicateObject = () => {
     if (!selectedId) return;
+    saveHistory();
     const objToCopy = objects.find(o => o.id === selectedId);
     if (objToCopy) {
       const newObj = {
