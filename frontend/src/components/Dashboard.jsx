@@ -63,8 +63,12 @@ export default function Dashboard() {
       try {
         const importedObjects = JSON.parse(event.target.result);
         if (Array.isArray(importedObjects)) {
-          let newName = file.name.replace(/\.collab3d$/i, '').replace(/\.json$/i, '');
-          newName = newName.replace(/_/g, ' ');
+          let newName = file.name;
+          newName = newName.replace(/\.collab3d/gi, '').replace(/\.json/gi, '');
+          newName = newName.replace(/\(\d+\)/g, '');
+          newName = newName.replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
+          
+          if (!newName) newName = 'Imported Design';
           
           const token = localStorage.getItem('token');
           const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects`, { 
