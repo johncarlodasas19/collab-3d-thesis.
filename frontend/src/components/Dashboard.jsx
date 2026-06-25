@@ -565,8 +565,8 @@ export default function Dashboard() {
             <div 
               key={project._id}
               className="glass-card" 
-              onClick={() => navigate(`/workspace/${project._id}`)}
-              style={{ position: 'relative', width: '300px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', minHeight: '200px', transition: 'all 0.3s ease' }}
+              onDoubleClick={() => navigate(`/workspace/${project._id}`)}
+              style={{ position: 'relative', width: '300px', cursor: 'default', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', minHeight: '200px', transition: 'all 0.3s ease' }}
               onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
               onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
             >
@@ -587,7 +587,18 @@ export default function Dashboard() {
               ) : (
                 <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>{project.name}</h3>
               )}
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Last modified: {new Date(project.updatedAt).toLocaleDateString()}</p>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '1rem' }}>Last modified: {new Date(project.updatedAt).toLocaleDateString()}</p>
+              
+              <div style={{ width: '100%', marginTop: 'auto' }}>
+                <button 
+                  onClick={() => navigate(`/workspace/${project._id}`)}
+                  style={{ width: '100%', background: 'rgba(236, 72, 153, 0.2)', color: '#f472b6', border: '1px solid rgba(236, 72, 153, 0.5)', padding: '0.6rem', borderRadius: '0.5rem', cursor: 'pointer', transition: 'all 0.2s', fontWeight: 'bold' }}
+                  onMouseOver={e => e.currentTarget.style.background = 'rgba(236, 72, 153, 0.3)'}
+                  onMouseOut={e => e.currentTarget.style.background = 'rgba(236, 72, 153, 0.2)'}
+                >
+                  Open Project
+                </button>
+              </div>
             </div>
           ))}
         </div>
