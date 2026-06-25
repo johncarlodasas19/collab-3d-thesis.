@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Project = require('../models/Project');
 const Report = require('../models/Report');
@@ -50,9 +51,21 @@ router.put('/users/:id/role', async (req, res) => {
 
     const user = await User.findByIdAndUpdate(req.params.id, { role }, { new: true }).select('-password');
     
-    // Emit real-time role change to force token refresh
+    // Generate new token with updated role
+    const newToken = jwt.sign(
+      { userId: user._id, username: user.username, role: user.role },
+      process.env.JWT_SECRET || 'fallback_secret_key',
+      { expiresIn: '1d' }
+    );
+
+    // Emit real-time role change to seamlessly switch UI without forcing logout
     if (req.app.get('io')) {
-      req.app.get('io').emit('user-role-changed', { userId: req.params.id, role });
+      req.app.get('io').emit('user-role-changed', { 
+        userId: req.params.id, 
+        role, 
+        newToken, 
+        user: { id: user._id, username: user.username, email: user.email, avatarUrl: user.avatarUrl, role: user.role, status: user.status } 
+      });
     }
 
     res.json(user);

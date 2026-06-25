@@ -88,10 +88,14 @@ export default function AdminDashboard() {
     });
     newSocket.on('user-role-changed', (data) => {
       if (data.userId === currentUser.id) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        alert(`Your role has been changed to ${data.role.toUpperCase()} by an administrator. Please log in again.`);
-        navigate('/login');
+        localStorage.setItem('token', data.newToken);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        alert(`Your role has been changed to ${data.role.toUpperCase()} by an administrator.`);
+        if (data.role === 'user') {
+          navigate('/dashboard');
+        } else {
+          window.location.reload();
+        }
       } else {
         fetchData(); // Refresh list automatically when another user's role changes
       }
