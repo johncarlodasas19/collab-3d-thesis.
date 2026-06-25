@@ -214,7 +214,11 @@ export default function Workspace() {
     newSocket.on('object-added', (newObj) => {
       setObjects((prev) => [...prev, newObj]);
       if (newObj.uploadedBy) {
-        const message = `${newObj.uploadedBy} uploaded a new ${newObj.type === 'image' ? 'photo' : 'video'}! Check the Media Gallery.`;
+        const isMedia = newObj.type === 'image' || newObj.type === 'video';
+        const typeName = newObj.type === 'image' ? 'photo' : newObj.type === 'video' ? 'video' : newObj.type;
+        const message = isMedia 
+          ? `${newObj.uploadedBy} uploaded a new ${typeName}! Check the Media Gallery.`
+          : `${newObj.uploadedBy} added a new ${typeName} shape.`;
         showToast(message, 'upload', { username: newObj.uploadedBy, color: '#10b981' });
       }
     });
@@ -314,6 +318,10 @@ export default function Workspace() {
   const handleAddObject = (type, url = null, uploadedBy = null) => {
     try {
       saveHistory();
+      const userStr = localStorage.getItem('user');
+      const userObj = userStr ? JSON.parse(userStr) : { username: 'Someone' };
+      const actualUser = uploadedBy || userObj.username;
+      
       const offsetX = (Math.random() - 0.5) * 2;
       const offsetY = (Math.random() - 0.5) * 2;
       const offsetZ = (Math.random() - 0.5) * 2;
@@ -326,7 +334,7 @@ export default function Workspace() {
         rotation: [0, 0, 0],
         scale: [1, 1, 1],
         color: type === 'cube' ? '#4f46e5' : '#ec4899',
-        uploadedBy
+        uploadedBy: actualUser
       };
       setObjects((prev) => [...prev, newObj]);
       setSelectedId(newObj.id);
@@ -483,7 +491,9 @@ export default function Workspace() {
       if (!/^https?:\/\//i.test(url)) {
         url = 'https://' + url;
       }
-      handleAddObject('video', url);
+      const userStr = localStorage.getItem('user');
+      const userObj = userStr ? JSON.parse(userStr) : { username: 'Someone' };
+      handleAddObject('video', url, userObj.username);
     }
     setShowVideoModal(false);
     setVideoUrlInput('');
@@ -520,17 +530,18 @@ export default function Workspace() {
       showToast('Project renamed!', 'success');
     } catch (err) {
       console.error('Error renaming project', err);
-      showToast('Failed to rename project.', 'error');
+      showToast('Failed to rename project.', 'error', { position: 'top-right' });
     }
   };
 
   const handleDeleteObject = () => {
-    if (!selectedId) return;
+    if (!selectedId || !socket) return;
     saveHistory();
+    const userStr = localStorage.getItem('user');
+    const userObj = userStr ? JSON.parse(userStr) : { username: 'Someone' };
+    
     setObjects((prev) => prev.filter((obj) => obj.id !== selectedId));
-    if (socket) {
-      socket.emit('object-deleted', { roomId: projectId, id: selectedId });
-    }
+    socket.emit('object-deleted', { roomId: projectId, id: selectedId, deletedBy: userObj.username });
     setSelectedId(null);
   };
 
@@ -1303,34 +1314,33 @@ export default function Workspace() {
       {/* Toast Notification Stack */}
       <div style={{
         position: 'fixed',
-        top: '20px',
-        left: '50%',
-        transform: 'translateX(-50%)',
+        top: '24px',
+        right: '24px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '0.75rem',
+        gap: '12px',
         zIndex: 100000,
         pointerEvents: 'none',
-        alignItems: 'center'
+        alignItems: 'flex-end'
       }}>
         {toasts.map((t) => (
           <div key={t.id} style={{
-            background: 'rgba(15, 23, 42, 0.9)',
-            backdropFilter: 'blur(16px)',
-            border: `1px solid ${t.type === 'join' || t.type === 'upload' ? 'rgba(16, 185, 129, 0.5)' : t.type === 'leave' || t.type === 'delete' ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255,255,255,0.1)'}`,
+            background: 'rgba(15, 23, 42, 0.95)',
+            backdropFilter: 'blur(20px)',
+            border: `1px solid ${t.type === 'join' || t.type === 'upload' ? 'rgba(16, 185, 129, 0.6)' : t.type === 'leave' || t.type === 'delete' ? 'rgba(239, 68, 68, 0.6)' : 'rgba(255,255,255,0.1)'}`,
             color: 'white',
-            padding: (t.type === 'join' || t.type === 'leave' || t.type === 'upload' || t.type === 'delete') ? '0.5rem 1.5rem 0.5rem 0.5rem' : '0.75rem 1.5rem',
-            borderRadius: '3rem',
-            boxShadow: `0 20px 40px -10px rgba(0,0,0,0.5), 0 0 20px ${t.type === 'join' || t.type === 'upload' ? 'rgba(16, 185, 129, 0.3)' : t.type === 'leave' || t.type === 'delete' ? 'rgba(239, 68, 68, 0.3)' : 'transparent'}`,
+            padding: (t.type === 'join' || t.type === 'leave' || t.type === 'upload' || t.type === 'delete') ? '0.75rem 1.5rem 0.75rem 0.75rem' : '1rem 1.5rem',
+            borderRadius: '1rem',
+            boxShadow: `0 20px 40px -10px rgba(0,0,0,0.5), 0 0 30px ${t.type === 'join' || t.type === 'upload' ? 'rgba(16, 185, 129, 0.2)' : t.type === 'leave' || t.type === 'delete' ? 'rgba(239, 68, 68, 0.2)' : 'transparent'}`,
             transition: 'all 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
-            animation: 'toastSlideDown 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
+            animation: 'toastSlideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
             fontWeight: '600',
             display: 'flex',
             alignItems: 'center',
-            gap: '1rem',
+            gap: '1.2rem',
             minWidth: '320px',
-            maxWidth: '90vw',
-            justifyContent: 'center'
+            maxWidth: '400px',
+            justifyContent: 'flex-start'
           }}>
             {(t.type === 'join' || t.type === 'leave' || t.type === 'upload' || t.type === 'delete') && t.user ? (
               <div style={{ position: 'relative', flexShrink: 0 }}>
@@ -1351,7 +1361,7 @@ export default function Workspace() {
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.1rem', flex: 1 }}>
               {(t.type === 'join' || t.type === 'leave' || t.type === 'upload' || t.type === 'delete') && (
                 <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: t.type === 'join' || t.type === 'upload' ? '#10b981' : '#ef4444', fontWeight: '800' }}>
-                  {t.type === 'join' ? '● Connected' : t.type === 'leave' ? '○ Disconnected' : t.type === 'upload' ? '● Media Uploaded' : '○ Object Deleted'}
+                  {t.type === 'join' ? '● Connected' : t.type === 'leave' ? '○ Disconnected' : t.type === 'upload' ? (t.message.includes('shape') ? '● Object Added' : '● Media Uploaded') : '○ Object Deleted'}
                 </span>
               )}
               <span style={{ fontSize: '1rem', color: '#f8fafc', wordBreak: 'break-word' }}>{t.message}</span>
@@ -1359,9 +1369,9 @@ export default function Workspace() {
           </div>
         ))}
         <style>{`
-          @keyframes toastSlideDown {
-            from { opacity: 0; transform: translateY(-20px) scale(0.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
+          @keyframes toastSlideInRight {
+            from { opacity: 0; transform: translateX(50px) scale(0.9); }
+            to { opacity: 1; transform: translateX(0) scale(1); }
           }
         `}</style>
       </div>
