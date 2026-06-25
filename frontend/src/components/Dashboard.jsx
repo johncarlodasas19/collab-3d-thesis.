@@ -1044,9 +1044,9 @@ export default function Dashboard() {
             <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
               <AlertTriangle size={40} color="#ef4444" />
             </div>
-            <h3 style={{ marginBottom: '1rem', fontSize: '1.4rem', color: 'white', fontWeight: 'bold' }}>Account {adminActionModal.status === 'banned' ? 'Banned' : 'Deleted'}</h3>
+            <h3 style={{ marginBottom: '1rem', fontSize: '1.4rem', color: 'white', fontWeight: 'bold' }}>Account {adminActionModal.status === 'banned' ? 'Banned' : adminActionModal.status === 'suspended' ? 'Suspended' : 'Deleted'}</h3>
             <p style={{ color: '#94a3b8', marginBottom: '2rem', lineHeight: '1.6', fontSize: '1rem' }}>
-              {adminActionModal.status === 'banned' ? 'Your account has been banned by an administrator.' : 'Your account has been deleted by an administrator.'}
+              {adminActionModal.status === 'banned' ? 'Your account has been banned by an administrator.' : adminActionModal.status === 'suspended' ? 'Your account is temporarily suspended by an administrator.' : 'Your account has been deleted by an administrator.'}
             </p>
             <button 
               onClick={() => {
