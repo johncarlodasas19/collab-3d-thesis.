@@ -208,7 +208,8 @@ const GoogleAuthButton = ({ onError }) => {
                       color: '#94a3b8',
                       cursor: 'pointer',
                       padding: 0,
-                      display: 'flex'
+                      display: 'flex',
+                      zIndex: 10
                     }}
                     title={showAdminPasscode ? "Hide passcode" : "Show passcode"}
                   >
