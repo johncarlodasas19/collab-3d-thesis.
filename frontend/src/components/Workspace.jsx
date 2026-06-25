@@ -574,7 +574,7 @@ export default function Workspace() {
   const handlePointerMove = (e) => {
     if (!socket) return;
     const now = Date.now();
-    if (now - lastEmitTime.current < 8) return; // Throttle to 120fps for ZERO delay
+    if (now - lastEmitTime.current < 5) return; // Throttle to 200fps for absolute ZERO delay
     lastEmitTime.current = now;
 
     const x = e.clientX / window.innerWidth;
@@ -1169,7 +1169,7 @@ export default function Workspace() {
                 transform: `translate(${cursor.x * window.innerWidth}px, ${cursor.y * window.innerHeight}px)`,
                 pointerEvents: 'none',
                 zIndex: 1000,
-                transition: 'transform 0.02s linear',
+                transition: 'transform 0.01s linear',
                 willChange: 'transform'
               }}
             >
@@ -1286,7 +1286,7 @@ export default function Workspace() {
         borderRadius: '3rem',
         boxShadow: `0 20px 40px -10px rgba(0,0,0,0.5), 0 0 20px ${toast.type === 'join' ? 'rgba(16, 185, 129, 0.3)' : toast.type === 'leave' ? 'rgba(245, 158, 11, 0.3)' : 'transparent'}`,
         zIndex: 100000,
-        transition: 'all 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
+        transition: 'all 0.1s ease-out',
         opacity: toast.show ? 1 : 0,
         fontWeight: '600',
         display: 'flex',
