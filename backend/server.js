@@ -97,7 +97,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('object-deleted', (data) => {
-    socket.to(data.roomId).emit('object-deleted', data.id);
+    socket.to(data.roomId).emit('object-deleted', data);
   });
 
   socket.on('typing', (data) => {

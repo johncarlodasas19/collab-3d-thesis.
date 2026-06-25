@@ -347,6 +347,15 @@ export default function Workspace() {
       if (socket) {
         socket.emit('object-added', { roomId: projectId, object: newObj });
       }
+
+      if (actualUser) {
+        const isMedia = newObj.type === 'image' || newObj.type === 'video';
+        const typeName = newObj.type === 'image' ? 'photo' : newObj.type === 'video' ? 'video' : newObj.type;
+        const message = isMedia 
+          ? `You uploaded a new ${typeName}! Check the Media Gallery.`
+          : `You added a new ${typeName} shape.`;
+        showToast(message, 'upload', { username: 'You', color: '#10b981' });
+      }
     } catch (err) {
       showToast("Error adding shape: " + err.message, 'error');
     }
@@ -551,6 +560,13 @@ export default function Workspace() {
     setObjects((prev) => prev.filter((obj) => obj.id !== selectedId));
     socket.emit('object-deleted', { roomId: projectId, id: selectedId, deletedBy: userObj.username, deletedObjType: objType });
     setSelectedId(null);
+
+    const typeName = objType === 'image' ? 'photo' : objType === 'video' ? 'video' : objType || 'object';
+    const isMedia = typeName === 'photo' || typeName === 'video';
+    const message = isMedia 
+      ? `You deleted a ${typeName} from the media gallery.`
+      : `You deleted a ${typeName} shape.`;
+    showToast(message, 'delete', { username: 'You', color: '#ef4444' });
   };
 
   const handleInvite = () => {
@@ -1035,6 +1051,13 @@ export default function Workspace() {
                   const userObj = userStr ? JSON.parse(userStr) : { username: 'Someone' };
                   setObjects(prev => prev.filter(o => o.id !== obj.id));
                   if (socket) socket.emit('object-deleted', { roomId: projectId, id: obj.id, deletedBy: userObj.username, deletedObjType: obj.type });
+                  
+                  const typeName = obj.type === 'image' ? 'photo' : obj.type === 'video' ? 'video' : obj.type || 'object';
+                  const isMedia = typeName === 'photo' || typeName === 'video';
+                  const message = isMedia 
+                    ? `You deleted a ${typeName} from the media gallery.`
+                    : `You deleted a ${typeName} shape.`;
+                  showToast(message, 'delete', { username: 'You', color: '#ef4444' });
                 }}
               >
                 <Trash2 size={14} />
