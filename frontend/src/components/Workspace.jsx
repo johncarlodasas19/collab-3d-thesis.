@@ -356,6 +356,7 @@ export default function Workspace() {
       return;
     }
 
+    showToast('Uploading media...', 'info');
     try {
       saveHistory();
       const fileType = file.type.startsWith('video/') ? 'video' : 'image';
@@ -392,6 +393,7 @@ export default function Workspace() {
       return;
     }
 
+    showToast('Uploading file...', 'info');
     try {
       let fileType = 'file';
       if (file.type.startsWith('image/')) fileType = 'image';
@@ -464,22 +466,27 @@ export default function Workspace() {
     setVideoUrlInput('');
   };
 
-  const handleSaveProject = async () => {
+  const handleSaveProject = () => {
     setSaving(true);
-    try {
-      const token = localStorage.getItem('token');
-      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects/${projectId}`, {
-        data: { objects }
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      showToast('Project saved successfully!', 'success');
-    } catch (err) {
-      console.error('Error saving project', err);
-      showToast('Failed to save project.', 'error');
-    } finally {
-      setSaving(false);
-    }
+    showToast('Saving project...', 'info');
+    
+    // Yield to the main thread so the UI updates instantly
+    setTimeout(async () => {
+      try {
+        const token = localStorage.getItem('token');
+        await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects/${projectId}`, {
+          data: { objects }
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        showToast('Project saved successfully!', 'success');
+      } catch (err) {
+        console.error('Error saving project', err);
+        showToast('Failed to save project.', 'error');
+      } finally {
+        setSaving(false);
+      }
+    }, 100);
   };
 
   const handleRenameProject = async () => {
