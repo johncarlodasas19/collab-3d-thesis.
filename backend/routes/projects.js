@@ -26,10 +26,11 @@ router.get('/', async (req, res) => {
 // Create a new project
 router.post('/', async (req, res) => {
   try {
-    const { name, data } = req.body;
+    const { name, data, folderColor } = req.body;
     const newProject = new Project({
       name: name || 'Untitled Project',
       owner: req.user.userId,
+      folderColor: folderColor || '#ec4899',
       data: data || { objects: [] }
     });
     await newProject.save();

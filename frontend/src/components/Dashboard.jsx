@@ -43,6 +43,7 @@ export default function Dashboard() {
   const [editingProjectId, setEditingProjectId] = useState(null);
   const [editingProjectName, setEditingProjectName] = useState('');
   const [selectedTrashIds, setSelectedTrashIds] = useState([]);
+  const [newProjectColor, setNewProjectColor] = useState('#ec4899');
   const [editEmail, setEditEmail] = useState('');
   const [editPassword, setEditPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -234,6 +235,7 @@ export default function Dashboard() {
 
   const handleCreateProject = () => {
     setNewProjectName('My 3D Project');
+    setNewProjectColor('#ec4899');
     setShowCreateModal(true);
   };
 
@@ -241,7 +243,10 @@ export default function Dashboard() {
     if (!newProjectName.trim()) return;
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects`, { name: newProjectName.trim() }, {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects`, { 
+        name: newProjectName.trim(),
+        folderColor: newProjectColor
+      }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setShowCreateModal(false);
@@ -577,7 +582,7 @@ export default function Dashboard() {
                   <button onClick={(e) => handleDeleteProject(project._id, e)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.25rem', borderRadius: '0.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Delete Project"><Trash2 size={16} /></button>
                 </div>
               )}
-              <Folder size={40} color="#ec4899" style={{ marginBottom: '1rem' }} />
+              <Folder size={40} color={project.folderColor || "#ec4899"} style={{ marginBottom: '1rem' }} />
               {editingProjectId === project._id ? (
                 <div style={{ width: '100%', display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }} onClick={e => e.stopPropagation()}>
                   <input type="text" value={editingProjectName} onChange={e => setEditingProjectName(e.target.value)} onKeyDown={e => e.key === 'Enter' && submitRenameProject(project._id, e)} style={{ flex: 1, background: 'rgba(0,0,0,0.5)', border: '1px solid #6366f1', color: 'white', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', outline: 'none' }} autoFocus />
@@ -901,9 +906,24 @@ export default function Dashboard() {
                 value={newProjectName}
                 onChange={(e) => setNewProjectName(e.target.value)}
                 autoFocus
-                style={{ width: '100%', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '0.75rem', borderRadius: '0.5rem', fontSize: '1rem', outline: 'none' }}
+                style={{ width: '100%', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '0.75rem', borderRadius: '0.5rem', fontSize: '1rem', outline: 'none', marginBottom: '1.5rem' }}
                 onKeyDown={(e) => { if (e.key === 'Enter') confirmCreateProject(); }}
               />
+              <label style={{ display: 'block', marginBottom: '0.5rem', color: '#94a3b8', fontSize: '0.9rem' }}>Folder Color</label>
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                {['#ec4899', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#14b8a6', '#f43f5e'].map(color => (
+                  <button
+                    key={color}
+                    onClick={() => setNewProjectColor(color)}
+                    style={{
+                      width: '32px', height: '32px', borderRadius: '50%', background: color,
+                      border: newProjectColor === color ? '3px solid white' : 'none',
+                      cursor: 'pointer', transition: 'transform 0.2s',
+                      transform: newProjectColor === color ? 'scale(1.1)' : 'scale(1)'
+                    }}
+                  />
+                ))}
+              </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
               <button onClick={() => setShowCreateModal(false)} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer' }}>Cancel</button>

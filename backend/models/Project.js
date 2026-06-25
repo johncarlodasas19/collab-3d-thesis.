@@ -5,6 +5,7 @@ const projectSchema = new mongoose.Schema({
   owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   collaborators: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   data: { type: Object, default: {} }, // Will store 3D scene data
+  folderColor: { type: String, default: '#ec4899' },
   isDeleted: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
