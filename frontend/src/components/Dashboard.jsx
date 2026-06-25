@@ -555,15 +555,14 @@ export default function Dashboard() {
             style={{ display: 'none' }} 
           />
           <div 
-            className="glass-card" 
             onClick={() => importFileInputRef.current?.click()}
-            style={{ width: '300px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '200px', transition: 'all 0.3s ease' }}
-            onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
-            onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+            style={{ width: '300px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '200px', transition: 'all 0.3s ease', background: 'rgba(245, 158, 11, 0.05)', border: '2px dashed rgba(245, 158, 11, 0.4)', borderRadius: '1rem' }}
+            onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.background = 'rgba(245, 158, 11, 0.1)'; e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.8)'; }}
+            onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.background = 'rgba(245, 158, 11, 0.05)'; e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.4)'; }}
           >
-            <FolderOpen size={40} color="#10b981" style={{ marginBottom: '1rem' }} />
-            <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>Import Design</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Open a .collab3d file</p>
+            <Upload size={40} color="#f59e0b" style={{ marginBottom: '1rem' }} />
+            <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: '#fcd34d' }}>Import Design</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Upload a .collab3d file</p>
           </div>
 
           {projects.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase())).map((project) => (
