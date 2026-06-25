@@ -9,6 +9,37 @@ import ReportModal from './ReportModal';
 import { io } from 'socket.io-client';
 import EmojiPicker from 'emoji-picker-react';
 
+let globalAudioCtx = null;
+const playTone = (type) => {
+  try {
+    if (!globalAudioCtx) {
+      globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (globalAudioCtx.state === 'suspended') {
+      globalAudioCtx.resume();
+    }
+    const osc = globalAudioCtx.createOscillator();
+    const gain = globalAudioCtx.createGain();
+    osc.type = 'sine';
+    if (type === 'join') {
+      osc.frequency.setValueAtTime(440, globalAudioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, globalAudioCtx.currentTime + 0.1);
+    } else {
+      osc.frequency.setValueAtTime(660, globalAudioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(330, globalAudioCtx.currentTime + 0.1);
+    }
+    gain.gain.setValueAtTime(0, globalAudioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(1.0, globalAudioCtx.currentTime + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.01, globalAudioCtx.currentTime + 0.5);
+    osc.connect(gain);
+    gain.connect(globalAudioCtx.destination);
+    osc.start();
+    osc.stop(globalAudioCtx.currentTime + 0.5);
+  } catch (e) {
+    console.error('Audio failed', e);
+  }
+};
+
 export default function Workspace() {
   const { projectId } = useParams();
   const [objects, setObjects] = useState([]);
@@ -135,24 +166,7 @@ export default function Workspace() {
     });
 
     newSocket.on('user-joined', (userData) => {
-      try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const ctx = new AudioContext();
-        if (ctx.state === 'suspended') ctx.resume();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(440, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.1);
-        gain.gain.setValueAtTime(0, ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(1.0, ctx.currentTime + 0.05);
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.5);
-      } catch (e) { console.error('Audio failed', e); }
-
+      playTone('join');
       setToast({ show: true, message: `${userData.username} joined the workspace`, type: 'join', user: userData });
       setTimeout(() => setToast(t => t.message === `${userData.username} joined the workspace` ? { show: false, message: '', type: 'join', user: null } : t), 2000);
     });
@@ -162,24 +176,7 @@ export default function Workspace() {
       const leftUser = typeof payload === 'object' ? payload.user : null;
       
       if (leftUser) {
-        try {
-          const AudioContext = window.AudioContext || window.webkitAudioContext;
-          const ctx = new AudioContext();
-          if (ctx.state === 'suspended') ctx.resume();
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(660, ctx.currentTime);
-          osc.frequency.exponentialRampToValueAtTime(330, ctx.currentTime + 0.1);
-          gain.gain.setValueAtTime(0, ctx.currentTime);
-          gain.gain.linearRampToValueAtTime(1.0, ctx.currentTime + 0.05);
-          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start();
-          osc.stop(ctx.currentTime + 0.5);
-        } catch (e) { console.error('Audio failed', e); }
-
+        playTone('leave');
         setToast({ show: true, message: `${leftUser.username} left the workspace`, type: 'leave', user: leftUser });
         setTimeout(() => setToast(t => t.message === `${leftUser.username} left the workspace` ? { show: false, message: '', type: 'leave', user: null } : t), 2000);
       }
@@ -356,7 +353,6 @@ export default function Workspace() {
       return;
     }
 
-    showToast('Uploading media...', 'info');
     try {
       saveHistory();
       const fileType = file.type.startsWith('video/') ? 'video' : 'image';
@@ -393,7 +389,6 @@ export default function Workspace() {
       return;
     }
 
-    showToast('Uploading file...', 'info');
     try {
       let fileType = 'file';
       if (file.type.startsWith('image/')) fileType = 'image';
@@ -467,8 +462,7 @@ export default function Workspace() {
   };
 
   const handleSaveProject = () => {
-    setSaving(true);
-    showToast('Saving project...', 'info');
+    showToast('Project saved successfully!', 'success');
     
     // Yield to the main thread so the UI updates instantly
     setTimeout(async () => {
@@ -479,12 +473,9 @@ export default function Workspace() {
         }, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        showToast('Project saved successfully!', 'success');
       } catch (err) {
         console.error('Error saving project', err);
         showToast('Failed to save project.', 'error');
-      } finally {
-        setSaving(false);
       }
     }, 100);
   };
