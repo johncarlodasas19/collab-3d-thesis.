@@ -534,11 +534,11 @@ export default function Dashboard() {
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
           <div 
             className="glass-card" 
             onClick={handleCreateProject}
-            style={{ width: '300px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '200px', transition: 'all 0.3s ease' }}
+            style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '200px', transition: 'all 0.3s ease' }}
             onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
             onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
           >
@@ -556,7 +556,7 @@ export default function Dashboard() {
           />
           <div 
             onClick={() => importFileInputRef.current?.click()}
-            style={{ width: '300px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '200px', transition: 'all 0.3s ease', background: 'rgba(245, 158, 11, 0.05)', border: '2px dashed rgba(245, 158, 11, 0.4)', borderRadius: '1rem' }}
+            style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '200px', transition: 'all 0.3s ease', background: 'rgba(245, 158, 11, 0.05)', border: '2px dashed rgba(245, 158, 11, 0.4)', borderRadius: '1rem' }}
             onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.background = 'rgba(245, 158, 11, 0.1)'; e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.8)'; }}
             onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.background = 'rgba(245, 158, 11, 0.05)'; e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.4)'; }}
           >
@@ -570,7 +570,7 @@ export default function Dashboard() {
               key={project._id}
               className="glass-card" 
               onDoubleClick={() => navigate(`/workspace/${project._id}`)}
-              style={{ position: 'relative', width: '300px', cursor: 'default', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', minHeight: '200px', transition: 'all 0.3s ease' }}
+              style={{ position: 'relative', cursor: 'default', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', minHeight: '200px', transition: 'all 0.3s ease' }}
               onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
               onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
             >
@@ -694,7 +694,7 @@ export default function Dashboard() {
                 </div>
               )}
             </div>
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
             {trashProjects.length > 0 ? (
               trashProjects.map(project => (
                 <div 
@@ -707,7 +707,7 @@ export default function Dashboard() {
                       setSelectedTrashIds(prev => [...prev, project._id]);
                     }
                   }}
-                  style={{ position: 'relative', width: '300px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', minHeight: '200px', border: `2px solid ${selectedTrashIds.includes(project._id) ? '#6366f1' : 'rgba(239, 68, 68, 0.3)'}`, background: selectedTrashIds.includes(project._id) ? 'rgba(99, 102, 241, 0.1)' : 'rgba(239, 68, 68, 0.02)', transition: 'all 0.2s' }}
+                  style={{ position: 'relative', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', minHeight: '200px', border: `2px solid ${selectedTrashIds.includes(project._id) ? '#6366f1' : 'rgba(239, 68, 68, 0.3)'}`, background: selectedTrashIds.includes(project._id) ? 'rgba(99, 102, 241, 0.1)' : 'rgba(239, 68, 68, 0.02)', transition: 'all 0.2s' }}
                 >
                   <div style={{ position: 'absolute', top: '1rem', right: '1rem', width: '24px', height: '24px', borderRadius: '4px', border: `2px solid ${selectedTrashIds.includes(project._id) ? '#6366f1' : 'rgba(255,255,255,0.3)'}`, background: selectedTrashIds.includes(project._id) ? '#6366f1' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
                     {selectedTrashIds.includes(project._id) && <Check size={16} color="white" />}
