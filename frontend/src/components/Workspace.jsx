@@ -247,6 +247,14 @@ export default function Workspace() {
       }
     });
 
+    newSocket.on('workspace-state-sync', (newObjects) => {
+      setObjects(newObjects);
+    });
+
+    newSocket.on('toast-notification', (data) => {
+      showToast(data.message, data.type, { username: data.username, color: data.color });
+    });
+
     newSocket.on('chat-message', (data) => {
       setChatMessages((prev) => [...prev, data]);
     });
@@ -306,17 +314,10 @@ export default function Workspace() {
     setObjects(previousState);
     
     if (socket) {
-      previousState.forEach(obj => {
-        socket.emit('object-transformed', { roomId: projectId, transformData: obj });
-      });
-      const prevIds = previousState.map(o => o.id);
-      objects.forEach(obj => {
-        if (!prevIds.includes(obj.id)) {
-            const userStr = localStorage.getItem('user');
-            const userObj = userStr ? JSON.parse(userStr) : { username: 'Someone' };
-            socket.emit('object-deleted', { roomId: projectId, id: obj.id, deletedBy: userObj.username });
-        }
-      });
+      const userStr = localStorage.getItem('user');
+      const userObj = userStr ? JSON.parse(userStr) : { username: 'Someone' };
+      socket.emit('workspace-state-sync', { roomId: projectId, objects: previousState, username: userObj.username });
+      showToast('You performed an Undo.', 'info', { username: 'You', color: '#3b82f6' });
     }
   };
 

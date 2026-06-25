@@ -100,6 +100,18 @@ io.on('connection', (socket) => {
     socket.to(data.roomId).emit('object-deleted', data);
   });
 
+  socket.on('workspace-state-sync', (data) => {
+    socket.to(data.roomId).emit('workspace-state-sync', data.objects);
+    if (data.username) {
+      socket.to(data.roomId).emit('toast-notification', {
+        message: `${data.username} performed an Undo.`,
+        type: 'info',
+        username: data.username,
+        color: '#3b82f6'
+      });
+    }
+  });
+
   socket.on('typing', (data) => {
     socket.to(data.roomId).emit('typing', data);
   });
