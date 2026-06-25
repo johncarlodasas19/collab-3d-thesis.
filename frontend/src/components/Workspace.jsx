@@ -251,6 +251,10 @@ export default function Workspace() {
       setObjects(newObjects);
     });
 
+    newSocket.on('project-renamed', (newName) => {
+      setProjectName(newName);
+    });
+
     newSocket.on('toast-notification', (data) => {
       showToast(data.message, data.type, { username: data.username, color: data.color });
     });
@@ -535,17 +539,34 @@ export default function Workspace() {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       try {
         const importedObjects = JSON.parse(event.target.result);
         if (Array.isArray(importedObjects)) {
+          let newName = file.name.replace(/\.collab3d$/i, '').replace(/\.json$/i, '');
+          newName = newName.replace(/_/g, ' ');
+          
+          setProjectName(newName);
           setObjects(importedObjects);
+          
           if (socket) {
             const userStr = localStorage.getItem('user');
             const userObj = userStr ? JSON.parse(userStr) : { username: 'Someone' };
             socket.emit('workspace-state-sync', { roomId: projectId, objects: importedObjects, username: userObj.username });
+            socket.emit('project-renamed', { roomId: projectId, newName });
           }
-          showToast('You opened a workspace design from a file!', 'upload', { username: 'You', color: '#10b981' });
+          
+          try {
+            const token = localStorage.getItem('token');
+            await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects/${projectId}`, {
+              name: newName,
+              data: { objects: importedObjects }
+            }, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+          } catch (e) { console.error('Failed to save imported project name', e); }
+          
+          showToast(`You opened design: ${newName}`, 'upload', { username: 'You', color: '#10b981' });
         } else {
           showToast('Invalid file format. Must be an array of objects.', 'error');
         }
@@ -586,6 +607,9 @@ export default function Workspace() {
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      if (socket) {
+        socket.emit('project-renamed', { roomId: projectId, newName: projectName.trim() });
+      }
       showToast('Project renamed!', 'success');
     } catch (err) {
       console.error('Error renaming project', err);

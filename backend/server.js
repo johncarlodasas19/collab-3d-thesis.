@@ -112,6 +112,10 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('project-renamed', (data) => {
+    socket.to(data.roomId).emit('project-renamed', data.newName);
+  });
+
   socket.on('typing', (data) => {
     socket.to(data.roomId).emit('typing', data);
   });
