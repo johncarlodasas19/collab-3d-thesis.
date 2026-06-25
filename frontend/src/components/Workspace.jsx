@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Box, Circle, Move, RotateCw, Scaling, ArrowLeft, Image as ImageIcon, Video, Save, Trash2, UserPlus, Users, MessageSquare, Triangle, Database, CircleDashed, ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, Undo, Edit2, PlaySquare, Settings, MousePointer2, Hand, Type, Square, Cone, BoxSelect, Plus, FileUp, Flag, CheckCircle, Smile, Paperclip, X, ShieldAlert, AlertTriangle, Download, FolderOpen } from 'lucide-react';
+import { Box, Circle, Move, RotateCw, Scaling, ArrowLeft, Image as ImageIcon, Video, Save, Trash2, UserPlus, Users, MessageSquare, Triangle, Database, CircleDashed, ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, Undo, Edit2, PlaySquare, Settings, MousePointer2, Hand, Type, Square, Cone, BoxSelect, Plus, FileUp, Flag, CheckCircle, Smile, Paperclip, X, ShieldAlert, AlertTriangle, Download, FolderOpen, Camera, Eraser, Copy } from 'lucide-react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import ThreeCanvas from './ThreeCanvas';
@@ -532,6 +532,61 @@ export default function Workspace() {
     showToast('Design downloaded successfully!', 'success');
   };
 
+  const handleClearAll = () => {
+    if (window.confirm("Are you sure you want to clear the workspace? This will delete all 3D objects.")) {
+      setObjects([]);
+      setSelectedId(null);
+      if (socket) {
+        const userStr = localStorage.getItem('user');
+        const userObj = userStr ? JSON.parse(userStr) : { username: 'Someone' };
+        socket.emit('workspace-state-sync', { roomId: projectId, objects: [], username: userObj.username });
+      }
+      showToast('Workspace cleared', 'delete');
+    }
+  };
+
+  const handleDuplicateObject = () => {
+    if (!selectedId) return;
+    const objToCopy = objects.find(o => o.id === selectedId);
+    if (objToCopy) {
+      const newObj = {
+        ...objToCopy,
+        id: uuidv4(),
+        position: [objToCopy.position[0] + 1, objToCopy.position[1], objToCopy.position[2] + 1],
+      };
+      const newObjects = [...objects, newObj];
+      setObjects(newObjects);
+      setSelectedId(newObj.id);
+      if (socket) {
+        const userStr = localStorage.getItem('user');
+        const userObj = userStr ? JSON.parse(userStr) : { username: 'Someone' };
+        socket.emit('workspace-state-sync', { roomId: projectId, objects: newObjects, username: userObj.username });
+      }
+      showToast(`${newObj.type} duplicated`, 'success');
+    }
+  };
+
+  const handleScreenshot = () => {
+    const canvas = document.querySelector('canvas');
+    if (canvas) {
+      try {
+        const dataUrl = canvas.toDataURL('image/png');
+        const link = document.createElement("a");
+        link.href = dataUrl;
+        link.download = `${projectName.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'design'}_screenshot.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast('Screenshot saved successfully!', 'success');
+      } catch (err) {
+        console.error('Screenshot failed', err);
+        showToast('Failed to take screenshot.', 'error');
+      }
+    } else {
+      showToast('No canvas found.', 'error');
+    }
+  };
+
   const handleSaveProject = () => {
     showToast('Project saved successfully!', 'success');
     
@@ -808,6 +863,14 @@ export default function Workspace() {
           </button>
           
           <button 
+            onClick={handleScreenshot}
+            title="Take a picture of your design"
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: '500' }}
+          >
+            <Camera size={16} /> Screenshot
+          </button>
+          
+          <button 
             onClick={handleExportDesign}
             title="Download design as a .collab3d file"
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: '500' }}
@@ -921,12 +984,30 @@ export default function Workspace() {
             </button>
             <button 
               className="tool-btn" 
+              onClick={handleDuplicateObject} 
+              title="Duplicate Selected"
+              disabled={!selectedId}
+              style={{ opacity: selectedId ? 1 : 0.5, color: '#10b981' }}
+            >
+              <Copy size={24} />
+            </button>
+            <button 
+              className="tool-btn" 
               onClick={handleDeleteObject} 
               title="Delete Selected"
               disabled={!selectedId}
               style={{ opacity: selectedId ? 1 : 0.5, color: '#ef4444' }}
             >
               <Trash2 size={24} />
+            </button>
+            <button 
+              className="tool-btn" 
+              onClick={handleClearAll} 
+              title="Clear All Objects"
+              disabled={objects.length === 0}
+              style={{ opacity: objects.length === 0 ? 0.3 : 1, color: '#ef4444', marginTop: '1rem' }}
+            >
+              <Eraser size={24} />
             </button>
           </div>
         </aside>

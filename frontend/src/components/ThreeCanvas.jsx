@@ -10,6 +10,7 @@ export default function ThreeCanvas({ objects, selectedId, setSelectedId, transf
       <Canvas 
         camera={{ position: [5, 5, 5], fov: 50 }}
         onPointerMissed={() => setSelectedId(null)}
+        gl={{ preserveDrawingBuffer: true }}
       >
         <color attach="background" args={['#1e1e24']} />
         

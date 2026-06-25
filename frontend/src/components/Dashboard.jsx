@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Box, LogOut, Settings, Layout, Plus, Folder, FolderOpen, Bell, Trash2, Menu, Upload, User as UserIcon, Mail, Lock, Eye, EyeOff, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Box, LogOut, Settings, Layout, Plus, Folder, FolderOpen, Bell, Trash2, Menu, Upload, User as UserIcon, Mail, Lock, Eye, EyeOff, CheckCircle, AlertTriangle, Search, Copy, Edit2, Check, X } from 'lucide-react';
 import axios from 'axios';
 import AvatarEditor from 'react-avatar-editor';
 import { io } from 'socket.io-client';
@@ -38,6 +38,10 @@ export default function Dashboard() {
   const [newProjectName, setNewProjectName] = useState('My 3D Project');
   const [modalConfig, setModalConfig] = useState({ isOpen: false, type: '', title: '', message: '', onConfirm: null, isProcessing: false });
   const [editUsername, setEditUsername] = useState('');
+  
+  const [searchQuery, setSearchQuery] = useState('');
+  const [editingProjectId, setEditingProjectId] = useState(null);
+  const [editingProjectName, setEditingProjectName] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [editPassword, setEditPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -100,6 +104,45 @@ export default function Dashboard() {
       if (importFileInputRef.current) importFileInputRef.current.value = '';
     };
     reader.readAsText(file);
+  };
+
+  const handleDuplicateProject = async (project, e) => {
+    e.stopPropagation();
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects`, { 
+        name: `${project.name} (Copy)`,
+        data: project.data || { objects: [] }
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setProjects([res.data, ...projects]);
+      setModalConfig({
+        isOpen: true, type: 'info', title: 'Project Duplicated',
+        message: `Successfully duplicated "${project.name}"!`,
+        onConfirm: () => setModalConfig(prev => ({ ...prev, isOpen: false }))
+      });
+    } catch (err) { console.error('Failed to duplicate:', err); }
+  };
+
+  const startRenameProject = (project, e) => {
+    e.stopPropagation();
+    setEditingProjectId(project._id);
+    setEditingProjectName(project.name);
+  };
+
+  const submitRenameProject = async (projectId, e) => {
+    if (e) e.stopPropagation();
+    if (!editingProjectName.trim()) { setEditingProjectId(null); return; }
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects/${projectId}`, {
+        name: editingProjectName.trim()
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      
+      setProjects(projects.map(p => p._id === projectId ? { ...p, name: editingProjectName.trim() } : p));
+      setEditingProjectId(null);
+    } catch (err) { console.error('Failed to rename:', err); }
   };
 
   useEffect(() => {
@@ -437,14 +480,28 @@ export default function Dashboard() {
 
         {activeTab === 'projects' ? (
           <div style={{ padding: '2rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-              <button 
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', padding: '0.5rem', borderRadius: '0.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              >
-                <Menu size={20} />
-              </button>
-              <h2 style={{ margin: 0, color: 'white' }}>My Projects</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <button 
+                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                  style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', padding: '0.5rem', borderRadius: '0.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <Menu size={20} />
+                </button>
+                <h2 style={{ margin: 0, color: 'white' }}>My Projects</h2>
+              </div>
+              <div style={{ position: 'relative', width: '300px', maxWidth: '100%' }}>
+                <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                <input 
+                  type="text" 
+                  placeholder="Search projects..." 
+                  value={searchQuery} 
+                  onChange={e => setSearchQuery(e.target.value)} 
+                  style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.75rem 1rem 0.75rem 2.5rem', borderRadius: '2rem', outline: 'none', transition: 'border-color 0.2s' }} 
+                  onFocus={e => e.target.style.borderColor = '#6366f1'} 
+                  onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'} 
+                />
+              </div>
             </div>
             {invitations.length > 0 && (
               <div style={{ marginBottom: '2rem', padding: '1rem', background: 'rgba(79, 70, 229, 0.1)', border: '1px solid rgba(79, 70, 229, 0.4)', borderRadius: '0.5rem' }}>
@@ -503,7 +560,7 @@ export default function Dashboard() {
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Open a .collab3d file</p>
           </div>
 
-          {projects.map((project) => (
+          {projects.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase())).map((project) => (
             <div 
               key={project._id}
               className="glass-card" 
@@ -513,16 +570,22 @@ export default function Dashboard() {
               onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
             >
               {user.id === project.owner && (
-                <button 
-                  onClick={(e) => handleDeleteProject(project._id, e)}
-                  style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.25rem', borderRadius: '0.25rem' }}
-                  title="Delete Project"
-                >
-                  <Trash2 size={20} />
-                </button>
+                <div style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', display: 'flex', gap: '0.25rem', background: 'rgba(0,0,0,0.5)', padding: '0.25rem', borderRadius: '0.5rem' }} onClick={e => e.stopPropagation()}>
+                  <button onClick={(e) => startRenameProject(project, e)} style={{ background: 'transparent', border: 'none', color: '#a78bfa', cursor: 'pointer', padding: '0.25rem', borderRadius: '0.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Rename Project"><Edit2 size={16} /></button>
+                  <button onClick={(e) => handleDuplicateProject(project, e)} style={{ background: 'transparent', border: 'none', color: '#34d399', cursor: 'pointer', padding: '0.25rem', borderRadius: '0.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Duplicate Project"><Copy size={16} /></button>
+                  <button onClick={(e) => handleDeleteProject(project._id, e)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.25rem', borderRadius: '0.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Delete Project"><Trash2 size={16} /></button>
+                </div>
               )}
               <Folder size={40} color="#ec4899" style={{ marginBottom: '1rem' }} />
-              <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>{project.name}</h3>
+              {editingProjectId === project._id ? (
+                <div style={{ width: '100%', display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }} onClick={e => e.stopPropagation()}>
+                  <input type="text" value={editingProjectName} onChange={e => setEditingProjectName(e.target.value)} onKeyDown={e => e.key === 'Enter' && submitRenameProject(project._id, e)} style={{ flex: 1, background: 'rgba(0,0,0,0.5)', border: '1px solid #6366f1', color: 'white', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', outline: 'none' }} autoFocus />
+                  <button onClick={e => submitRenameProject(project._id, e)} style={{ background: '#10b981', border: 'none', color: 'white', borderRadius: '0.25rem', cursor: 'pointer', padding: '0.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Check size={16}/></button>
+                  <button onClick={e => { e.stopPropagation(); setEditingProjectId(null); }} style={{ background: '#ef4444', border: 'none', color: 'white', borderRadius: '0.25rem', cursor: 'pointer', padding: '0.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={16}/></button>
+                </div>
+              ) : (
+                <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>{project.name}</h3>
+              )}
               <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Last modified: {new Date(project.updatedAt).toLocaleDateString()}</p>
             </div>
           ))}
