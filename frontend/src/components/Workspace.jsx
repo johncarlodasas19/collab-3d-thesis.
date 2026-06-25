@@ -154,7 +154,7 @@ export default function Workspace() {
       } catch (e) { console.error('Audio failed', e); }
 
       setToast({ show: true, message: `${userData.username} joined the workspace`, type: 'join', user: userData });
-      setTimeout(() => setToast(t => t.message === `${userData.username} joined the workspace` ? { show: false, message: '', type: 'join', user: null } : t), 3500);
+      setTimeout(() => setToast(t => t.message === `${userData.username} joined the workspace` ? { show: false, message: '', type: 'join', user: null } : t), 2000);
     });
 
     newSocket.on('user-left', (payload) => {
@@ -181,7 +181,7 @@ export default function Workspace() {
         } catch (e) { console.error('Audio failed', e); }
 
         setToast({ show: true, message: `${leftUser.username} left the workspace`, type: 'leave', user: leftUser });
-        setTimeout(() => setToast(t => t.message === `${leftUser.username} left the workspace` ? { show: false, message: '', type: 'leave', user: null } : t), 3500);
+        setTimeout(() => setToast(t => t.message === `${leftUser.username} left the workspace` ? { show: false, message: '', type: 'leave', user: null } : t), 2000);
       }
       
       setCursors((prev) => {
@@ -583,7 +583,7 @@ export default function Workspace() {
   const handlePointerMove = (e) => {
     if (!socket) return;
     const now = Date.now();
-    if (now - lastEmitTime.current < 16) return; // Throttle to ~60fps for ultra-smooth cursors
+    if (now - lastEmitTime.current < 8) return; // Throttle to 120fps for ZERO delay
     lastEmitTime.current = now;
 
     const x = e.clientX / window.innerWidth;
@@ -1178,7 +1178,7 @@ export default function Workspace() {
                 transform: `translate(${cursor.x * window.innerWidth}px, ${cursor.y * window.innerHeight}px)`,
                 pointerEvents: 'none',
                 zIndex: 1000,
-                transition: 'transform 0.05s linear',
+                transition: 'transform 0.02s linear',
                 willChange: 'transform'
               }}
             >

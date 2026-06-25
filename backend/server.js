@@ -18,7 +18,10 @@ const io = new Server(server, {
   cors: {
     origin: '*', // For development
     methods: ['GET', 'POST']
-  }
+  },
+  maxHttpBufferSize: 1e8, // 100 MB limit
+  pingInterval: 5000, // Check for connection every 5 seconds
+  pingTimeout: 5000 // Disconnect if no response within 5 seconds
 });
 app.set('io', io);
 
