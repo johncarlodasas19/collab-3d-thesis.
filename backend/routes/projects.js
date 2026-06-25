@@ -26,11 +26,11 @@ router.get('/', async (req, res) => {
 // Create a new project
 router.post('/', async (req, res) => {
   try {
-    const { name } = req.body;
+    const { name, data } = req.body;
     const newProject = new Project({
       name: name || 'Untitled Project',
       owner: req.user.userId,
-      data: { objects: [] }
+      data: data || { objects: [] }
     });
     await newProject.save();
     res.status(201).json(newProject);
