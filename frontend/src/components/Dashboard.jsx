@@ -42,6 +42,7 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [editingProjectId, setEditingProjectId] = useState(null);
   const [editingProjectName, setEditingProjectName] = useState('');
+  const [selectedTrashIds, setSelectedTrashIds] = useState([]);
   const [editEmail, setEditEmail] = useState('');
   const [editPassword, setEditPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -593,20 +594,110 @@ export default function Dashboard() {
           </div>
         ) : activeTab === 'trash' ? (
           <div style={{ padding: '2rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-              <button 
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', padding: '0.5rem', borderRadius: '0.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              >
-                <Menu size={20} />
-              </button>
-              <h2 style={{ margin: 0, color: 'white' }}>Trash</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <button 
+                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                  style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', padding: '0.5rem', borderRadius: '0.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <Menu size={20} />
+                </button>
+                <h2 style={{ margin: 0, color: 'white' }}>Trash</h2>
+              </div>
+              
+              {trashProjects.length > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <button 
+                    onClick={() => {
+                      if (selectedTrashIds.length === trashProjects.length) {
+                        setSelectedTrashIds([]);
+                      } else {
+                        setSelectedTrashIds(trashProjects.map(p => p._id));
+                      }
+                    }}
+                    style={{ background: 'transparent', color: '#818cf8', border: '1px solid #818cf8', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: '600' }}
+                  >
+                    {selectedTrashIds.length === trashProjects.length ? 'Deselect All' : 'Select All'}
+                  </button>
+                  
+                  {selectedTrashIds.length > 0 && (
+                    <>
+                      <button 
+                        onClick={async () => {
+                          setModalConfig({
+                            isOpen: true,
+                            type: 'info',
+                            title: `Restore ${selectedTrashIds.length} Projects?`,
+                            message: `Are you sure you want to restore ${selectedTrashIds.length} projects?`,
+                            onConfirm: async () => {
+                              try {
+                                const token = localStorage.getItem('token');
+                                await Promise.all(selectedTrashIds.map(id => 
+                                  axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects/${id}/restore`, {}, { headers: { Authorization: `Bearer ${token}` } })
+                                ));
+                                const resActive = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects`, { headers: { Authorization: `Bearer ${token}` } });
+                                const resTrash = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects/trash`, { headers: { Authorization: `Bearer ${token}` } });
+                                setProjects(resActive.data);
+                                setTrashProjects(resTrash.data);
+                                setSelectedTrashIds([]);
+                              } catch (err) { console.error(err); }
+                              setModalConfig(prev => ({ ...prev, isOpen: false }));
+                            }
+                          });
+                        }}
+                        style={{ background: '#10b981', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                      >
+                        Restore Selected
+                      </button>
+                      <button 
+                        onClick={async () => {
+                          setModalConfig({
+                            isOpen: true,
+                            type: 'permanent',
+                            title: `Delete ${selectedTrashIds.length} Projects?`,
+                            message: `Are you sure you want to PERMANENTLY delete ${selectedTrashIds.length} projects? This cannot be undone.`,
+                            onConfirm: async () => {
+                              try {
+                                const token = localStorage.getItem('token');
+                                await Promise.all(selectedTrashIds.map(id => 
+                                  axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects/${id}/permanent`, { headers: { Authorization: `Bearer ${token}` } })
+                                ));
+                                const resTrash = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects/trash`, { headers: { Authorization: `Bearer ${token}` } });
+                                setTrashProjects(resTrash.data);
+                                setSelectedTrashIds([]);
+                              } catch (err) { console.error(err); }
+                              setModalConfig(prev => ({ ...prev, isOpen: false }));
+                            }
+                          });
+                        }}
+                        style={{ background: '#ef4444', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                      >
+                        Delete Selected
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
             {trashProjects.length > 0 ? (
               trashProjects.map(project => (
-                <div key={project._id} className="glass-card" style={{ width: '300px', cursor: 'default', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', minHeight: '200px', border: '1px solid rgba(239, 68, 68, 0.3)', background: 'rgba(239, 68, 68, 0.02)' }}>
-                  <Trash2 size={40} color="rgba(239, 68, 68, 0.5)" style={{ marginBottom: '1rem' }} />
+                <div 
+                  key={project._id} 
+                  className="glass-card" 
+                  onClick={() => {
+                    if (selectedTrashIds.includes(project._id)) {
+                      setSelectedTrashIds(prev => prev.filter(id => id !== project._id));
+                    } else {
+                      setSelectedTrashIds(prev => [...prev, project._id]);
+                    }
+                  }}
+                  style={{ position: 'relative', width: '300px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', minHeight: '200px', border: `2px solid ${selectedTrashIds.includes(project._id) ? '#6366f1' : 'rgba(239, 68, 68, 0.3)'}`, background: selectedTrashIds.includes(project._id) ? 'rgba(99, 102, 241, 0.1)' : 'rgba(239, 68, 68, 0.02)', transition: 'all 0.2s' }}
+                >
+                  <div style={{ position: 'absolute', top: '1rem', right: '1rem', width: '24px', height: '24px', borderRadius: '4px', border: `2px solid ${selectedTrashIds.includes(project._id) ? '#6366f1' : 'rgba(255,255,255,0.3)'}`, background: selectedTrashIds.includes(project._id) ? '#6366f1' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
+                    {selectedTrashIds.includes(project._id) && <Check size={16} color="white" />}
+                  </div>
+                  <Trash2 size={40} color={selectedTrashIds.includes(project._id) ? '#818cf8' : 'rgba(239, 68, 68, 0.5)'} style={{ marginBottom: '1rem' }} />
                   <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>{project.name}</h3>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '1.5rem' }}>Deleted: {new Date(project.updatedAt).toLocaleDateString()}</p>
                   
