@@ -176,6 +176,14 @@ export default function Dashboard() {
           setAdminActionModal({ show: true, status: data.status });
         }
       });
+      newSocket.on('user-role-changed', (data) => {
+        if (data.userId === parsedUser.id) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          alert(`Your role has been updated to ${data.role.toUpperCase()} by an administrator. Please log in again.`);
+          navigate('/login');
+        }
+      });
       return () => newSocket.disconnect();
     }
   }, [navigate]);

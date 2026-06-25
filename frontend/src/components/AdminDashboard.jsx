@@ -86,6 +86,16 @@ export default function AdminDashboard() {
         fetchData(); // Refresh list automatically when another user's status changes
       }
     });
+    newSocket.on('user-role-changed', (data) => {
+      if (data.userId === currentUser.id) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        alert(`Your role has been changed to ${data.role.toUpperCase()} by an administrator. Please log in again.`);
+        navigate('/login');
+      } else {
+        fetchData(); // Refresh list automatically when another user's role changes
+      }
+    });
     return () => newSocket.disconnect();
   }, [navigate]);
 

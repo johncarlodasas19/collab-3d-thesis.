@@ -49,6 +49,12 @@ router.put('/users/:id/role', async (req, res) => {
     }
 
     const user = await User.findByIdAndUpdate(req.params.id, { role }, { new: true }).select('-password');
+    
+    // Emit real-time role change to force token refresh
+    if (req.app.get('io')) {
+      req.app.get('io').emit('user-role-changed', { userId: req.params.id, role });
+    }
+
     res.json(user);
   } catch (err) {
     res.status(500).json({ message: 'Error updating role', error: err.message });
