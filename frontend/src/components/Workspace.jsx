@@ -121,6 +121,21 @@ export default function Workspace() {
   };
 
   useEffect(() => {
+    const unlockAudio = () => {
+      if (!globalAudioCtx) {
+        try { globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+      }
+      if (globalAudioCtx && globalAudioCtx.state === 'suspended') {
+        globalAudioCtx.resume();
+      }
+      document.body.removeEventListener('click', unlockAudio);
+      document.body.removeEventListener('touchstart', unlockAudio);
+      document.body.removeEventListener('keydown', unlockAudio);
+    };
+    document.body.addEventListener('click', unlockAudio);
+    document.body.addEventListener('touchstart', unlockAudio);
+    document.body.addEventListener('keydown', unlockAudio);
+
     const token = localStorage.getItem('token');
     if (!token) {
       navigate('/login', { state: { from: location.pathname } });
@@ -197,6 +212,11 @@ export default function Workspace() {
 
     newSocket.on('object-added', (newObj) => {
       setObjects((prev) => [...prev, newObj]);
+      if (newObj.uploadedBy) {
+        const message = `${newObj.uploadedBy} uploaded a new ${newObj.type === 'image' ? 'photo' : 'video'}! Check the Media Gallery.`;
+        setToast({ show: true, message, type: 'join' });
+        setTimeout(() => setToast(t => t.message === message ? { show: false, message: '', type: 'join' } : t), 3500);
+      }
     });
 
     newSocket.on('object-transformed', (data) => {
@@ -283,7 +303,7 @@ export default function Workspace() {
     }
   };
 
-  const handleAddObject = (type, url = null) => {
+  const handleAddObject = (type, url = null, uploadedBy = null) => {
     try {
       saveHistory();
       const offsetX = (Math.random() - 0.5) * 2;
@@ -297,7 +317,8 @@ export default function Workspace() {
         position: [offsetX, offsetY, offsetZ],
         rotation: [0, 0, 0],
         scale: [1, 1, 1],
-        color: type === 'cube' ? '#4f46e5' : '#ec4899'
+        color: type === 'cube' ? '#4f46e5' : '#ec4899',
+        uploadedBy
       };
       setObjects((prev) => [...prev, newObj]);
       setSelectedId(newObj.id);
@@ -356,6 +377,8 @@ export default function Workspace() {
     try {
       saveHistory();
       const fileType = file.type.startsWith('video/') ? 'video' : 'image';
+      const userStr = localStorage.getItem('user');
+      const userObj = userStr ? JSON.parse(userStr) : { username: 'Someone' };
       
       let finalUrl;
       if (fileType === 'image') {
@@ -373,7 +396,7 @@ export default function Workspace() {
         });
       }
       
-      handleAddObject(fileType, finalUrl);
+      handleAddObject(fileType, finalUrl, userObj.username);
     } catch (err) {
       console.error('Upload failed', err);
     }
@@ -393,6 +416,9 @@ export default function Workspace() {
       let fileType = 'file';
       if (file.type.startsWith('image/')) fileType = 'image';
       if (file.type.startsWith('video/')) fileType = 'video';
+      
+      const userStr = localStorage.getItem('user');
+      const userObj = userStr ? JSON.parse(userStr) : { username: 'Someone' };
 
       let finalUrl;
       if (fileType === 'image') {
@@ -416,8 +442,6 @@ export default function Workspace() {
         });
       }
 
-      const userStr = localStorage.getItem('user');
-      const userObj = userStr ? JSON.parse(userStr) : { username: 'Guest' };
       if (userObj.role === 'admin') { userObj.username = 'ADMIN'; userObj.avatarUrl = 'admin-shield'; userObj.color = '#ef4444'; }
       const myColor = activeUsers.find(u => u.socketId === socket?.id)?.color || '#4f46e5';
 
