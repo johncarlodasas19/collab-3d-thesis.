@@ -179,7 +179,7 @@ export default function Register() {
           <div style={{ flex: 1, height: '1px', backgroundColor: 'rgba(255,255,255,0.1)' }}></div>
         </div>
 
-        <GoogleAuthButton />
+        <GoogleAuthButton onError={setError} />
 
         <div className="auth-links" style={{ marginTop: '1.5rem' }}>
           Already have an account? <Link to="/login" state={location.state}>Sign in</Link>

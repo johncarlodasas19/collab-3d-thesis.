@@ -84,6 +84,13 @@ router.post('/google', async (req, res) => {
     let user = await User.findOne({ email });
 
     if (user) {
+      if (user.status === 'banned') {
+        return res.status(403).json({ message: 'Your account has been banned by an administrator.' });
+      }
+      if (user.status === 'suspended') {
+        return res.status(403).json({ message: 'Your account is temporarily suspended. Please contact support.' });
+      }
+
       // User exists, log them in
       const jwtToken = jwt.sign(
         { userId: user._id, username: user.username, role: user.role },

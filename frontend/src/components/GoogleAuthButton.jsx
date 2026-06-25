@@ -3,7 +3,7 @@ import { GoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const GoogleAuthButton = () => {
+const GoogleAuthButton = ({ onError }) => {
   const [showModal, setShowModal] = useState(false);
   const [role, setRole] = useState('user');
   const [adminCode, setAdminCode] = useState('');
@@ -33,13 +33,25 @@ const GoogleAuthButton = () => {
         window.location.href = '/dashboard';
       }
     } catch (err) {
-      setErrorMsg(err.response?.data?.message || 'Google Authentication failed.');
+      const message = err.response?.data?.message || 'Google Authentication failed.';
+      if (onError) {
+        onError(message);
+      } else {
+        setErrorMsg(message);
+      }
+      setShowModal(false);
       setLoading(false);
     }
   };
 
   const handleError = () => {
-    setErrorMsg('Google Sign-In was unsuccessful. Try again later.');
+    const message = 'Google Sign-In was unsuccessful. Try again later.';
+    if (onError) {
+      onError(message);
+    } else {
+      setErrorMsg(message);
+    }
+    setShowModal(false);
   };
 
   return (
