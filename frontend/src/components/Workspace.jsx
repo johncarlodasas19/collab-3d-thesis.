@@ -237,7 +237,12 @@ export default function Workspace() {
       } else {
         setObjects((prev) => prev.filter((obj) => obj.id !== data.id));
         if (data.deletedBy) {
-          showToast(`${data.deletedBy} deleted an object from the workspace`, 'delete', { username: data.deletedBy, color: '#ef4444' });
+          const typeName = data.deletedObjType === 'image' ? 'photo' : data.deletedObjType === 'video' ? 'video' : data.deletedObjType || 'object';
+          const isMedia = typeName === 'photo' || typeName === 'video';
+          const message = isMedia 
+            ? `${data.deletedBy} deleted a ${typeName} from the media gallery.`
+            : `${data.deletedBy} deleted a ${typeName} shape.`;
+          showToast(message, 'delete', { username: data.deletedBy, color: '#ef4444' });
         }
       }
     });
@@ -540,8 +545,11 @@ export default function Workspace() {
     const userStr = localStorage.getItem('user');
     const userObj = userStr ? JSON.parse(userStr) : { username: 'Someone' };
     
+    const objToDelete = objects.find((o) => o.id === selectedId);
+    const objType = objToDelete ? objToDelete.type : 'object';
+
     setObjects((prev) => prev.filter((obj) => obj.id !== selectedId));
-    socket.emit('object-deleted', { roomId: projectId, id: selectedId, deletedBy: userObj.username });
+    socket.emit('object-deleted', { roomId: projectId, id: selectedId, deletedBy: userObj.username, deletedObjType: objType });
     setSelectedId(null);
   };
 
@@ -1021,8 +1029,10 @@ export default function Workspace() {
                 className="media-item-delete"
                 title="Delete Media"
                 onClick={() => {
+                  const userStr = localStorage.getItem('user');
+                  const userObj = userStr ? JSON.parse(userStr) : { username: 'Someone' };
                   setObjects(prev => prev.filter(o => o.id !== obj.id));
-                  if (socket) socket.emit('object-deleted', { roomId: projectId, id: obj.id });
+                  if (socket) socket.emit('object-deleted', { roomId: projectId, id: obj.id, deletedBy: userObj.username, deletedObjType: obj.type });
                 }}
               >
                 <Trash2 size={14} />
