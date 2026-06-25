@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
 
 const GoogleAuthButton = ({ onError }) => {
   const [showModal, setShowModal] = useState(false);
   const [role, setRole] = useState('user');
   const [adminCode, setAdminCode] = useState('');
+  const [showAdminPasscode, setShowAdminPasscode] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -171,27 +173,48 @@ const GoogleAuthButton = ({ onError }) => {
             {role === 'admin' && (
               <div style={{ marginBottom: '24px' }}>
                 <label style={{ display: 'block', marginBottom: '8px', color: '#f1f5f9', fontSize: '1rem', fontWeight: 600 }}>Admin Passcode</label>
-                <input 
-                  type="password" 
-                  value={adminCode}
-                  onChange={(e) => setAdminCode(e.target.value)}
-                  placeholder="Enter secret passcode"
-                  style={{
-                    width: '100%',
-                    padding: '12px 15px',
-                    backgroundColor: 'rgba(0,0,0,0.2)',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    borderRadius: '8px',
-                    color: '#ffffff',
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                    transition: 'border-color 0.2s',
-                    fontFamily: 'inherit',
-                    fontSize: '1rem'
-                  }}
-                  onFocus={(e) => { e.target.style.borderColor = '#60a5fa'; e.target.style.backgroundColor = 'rgba(0,0,0,0.3)'; }}
-                  onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.2)'; e.target.style.backgroundColor = 'rgba(0,0,0,0.2)'; }}
-                />
+                <div style={{ position: 'relative' }}>
+                  <input 
+                    type={showAdminPasscode ? "text" : "password"} 
+                    value={adminCode}
+                    onChange={(e) => setAdminCode(e.target.value)}
+                    placeholder="Enter secret passcode"
+                    style={{
+                      width: '100%',
+                      padding: '12px 40px 12px 15px',
+                      backgroundColor: 'rgba(0,0,0,0.2)',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      borderRadius: '8px',
+                      color: '#ffffff',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                      transition: 'border-color 0.2s',
+                      fontFamily: 'inherit',
+                      fontSize: '1rem'
+                    }}
+                    onFocus={(e) => { e.target.style.borderColor = '#60a5fa'; e.target.style.backgroundColor = 'rgba(0,0,0,0.3)'; }}
+                    onBlur={(e) => { e.target.style.borderColor = 'rgba(255,255,255,0.2)'; e.target.style.backgroundColor = 'rgba(0,0,0,0.2)'; }}
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => setShowAdminPasscode(!showAdminPasscode)}
+                    style={{
+                      position: 'absolute',
+                      right: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      color: '#94a3b8',
+                      cursor: 'pointer',
+                      padding: 0,
+                      display: 'flex'
+                    }}
+                    title={showAdminPasscode ? "Hide passcode" : "Show passcode"}
+                  >
+                    {showAdminPasscode ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
             )}
 
