@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const GoogleAuthButton = ({ onError }) => {
   const [showModal, setShowModal] = useState(false);
@@ -10,6 +10,7 @@ const GoogleAuthButton = ({ onError }) => {
   const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSuccess = async (credentialResponse) => {
     setLoading(true);
@@ -27,10 +28,12 @@ const GoogleAuthButton = ({ onError }) => {
       
       setShowModal(false);
       
-      if (user.role === 'admin') {
-        window.location.href = '/admin-dashboard';
+      if (location.state?.from) {
+        navigate(location.state.from);
+      } else if (user.role === 'admin') {
+        navigate('/admin-dashboard');
       } else {
-        window.location.href = '/dashboard';
+        navigate('/dashboard');
       }
     } catch (err) {
       const message = err.response?.data?.message || 'Google Authentication failed.';
