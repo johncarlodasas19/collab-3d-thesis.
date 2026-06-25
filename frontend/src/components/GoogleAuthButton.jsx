@@ -110,24 +110,46 @@ const GoogleAuthButton = ({ onError }) => {
               </div>
             )}
 
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', color: '#aaa', fontSize: '0.9rem' }}>Select your Role:</label>
-              <select 
-                value={role} 
-                onChange={(e) => setRole(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  backgroundColor: 'rgba(255,255,255,0.05)',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: '5px',
-                  color: 'white',
-                  outline: 'none'
-                }}
-              >
-                <option value="user" style={{color: 'black'}}>User</option>
-                <option value="admin" style={{color: 'black'}}>Admin</option>
-              </select>
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'block', marginBottom: '12px', color: '#94a3b8', fontSize: '0.9rem', fontWeight: 500 }}>Select your Role</label>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setRole('user')}
+                  style={{
+                    flex: 1,
+                    padding: '12px',
+                    backgroundColor: role === 'user' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(255,255,255,0.03)',
+                    border: `1px solid ${role === 'user' ? '#3b82f6' : 'rgba(255,255,255,0.1)'}`,
+                    borderRadius: '8px',
+                    color: role === 'user' ? '#60a5fa' : '#94a3b8',
+                    fontWeight: role === 'user' ? '600' : 'normal',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    outline: 'none'
+                  }}
+                >
+                  User
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRole('admin')}
+                  style={{
+                    flex: 1,
+                    padding: '12px',
+                    backgroundColor: role === 'admin' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(255,255,255,0.03)',
+                    border: `1px solid ${role === 'admin' ? '#3b82f6' : 'rgba(255,255,255,0.1)'}`,
+                    borderRadius: '8px',
+                    color: role === 'admin' ? '#60a5fa' : '#94a3b8',
+                    fontWeight: role === 'admin' ? '600' : 'normal',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    outline: 'none'
+                  }}
+                >
+                  Admin
+                </button>
+              </div>
             </div>
 
             {role === 'admin' && (
@@ -140,14 +162,19 @@ const GoogleAuthButton = ({ onError }) => {
                   placeholder="Enter secret passcode"
                   style={{
                     width: '100%',
-                    padding: '10px',
-                    backgroundColor: 'rgba(255,255,255,0.05)',
+                    padding: '12px 15px',
+                    backgroundColor: 'rgba(255,255,255,0.03)',
                     border: '1px solid rgba(255,255,255,0.1)',
-                    borderRadius: '5px',
+                    borderRadius: '8px',
                     color: 'white',
                     outline: 'none',
-                    boxSizing: 'border-box'
+                    boxSizing: 'border-box',
+                    transition: 'border-color 0.2s',
+                    fontFamily: 'inherit',
+                    fontSize: '1rem'
                   }}
+                  onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                  onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
                 />
               </div>
             )}
