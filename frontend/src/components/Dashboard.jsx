@@ -462,7 +462,7 @@ export default function Dashboard() {
       <main className="main-content">
         <header className="main-header" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(15, 23, 42, 0.8)', borderBottom: '1px solid rgba(255,255,255,0.05)', padding: '1rem 2rem' }}>
           <div style={{ width: '24px' }}></div> {/* Spacer */}
-          <h1 style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', margin: 0, fontSize: '1.5rem', color: 'white', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <h1 style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', margin: 0, fontSize: '1.5rem', background: 'linear-gradient(135deg, #a855f7, #ec4899, #f43f5e)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', display: 'flex', alignItems: 'center', gap: '0.5rem', filter: 'drop-shadow(0 2px 4px rgba(236,72,153,0.3))' }}>
             User Administration
           </h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
