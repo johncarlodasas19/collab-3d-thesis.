@@ -1041,8 +1041,8 @@ export default function Dashboard() {
       {adminActionModal.show && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999 }}>
           <div style={{ background: 'linear-gradient(145deg, #1e293b 0%, #0f172a 100%)', padding: '3rem', borderRadius: '1.5rem', maxWidth: '400px', width: '90%', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
-            <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
-              <AlertTriangle size={40} color="#ef4444" />
+            <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: adminActionModal.status === 'suspended' ? 'rgba(234, 179, 8, 0.1)' : 'rgba(239, 68, 68, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', border: `1px solid ${adminActionModal.status === 'suspended' ? 'rgba(234, 179, 8, 0.2)' : 'rgba(239, 68, 68, 0.2)'}` }}>
+              <AlertTriangle size={40} color={adminActionModal.status === 'suspended' ? "#eab308" : "#ef4444"} />
             </div>
             <h3 style={{ marginBottom: '1rem', fontSize: '1.4rem', color: 'white', fontWeight: 'bold' }}>Account {adminActionModal.status === 'banned' ? 'Banned' : adminActionModal.status === 'suspended' ? 'Suspended' : 'Deleted'}</h3>
             <p style={{ color: '#94a3b8', marginBottom: '2rem', lineHeight: '1.6', fontSize: '1rem' }}>
