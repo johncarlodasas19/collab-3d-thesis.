@@ -713,19 +713,21 @@ export default function Workspace() {
       )}
     <div className="workspace-container" onPointerMove={handlePointerMove}>
       <header className="workspace-header">
-        <button className="icon-btn" onClick={handleGoBack} title={currentUser.role === 'admin' ? "Back to Admin Console" : "Back to Dashboard"}>
-          <ArrowLeft size={20} />
-        </button>
-        <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.15)', borderRadius: '0.5rem', padding: '0.25rem 0.5rem', border: '1px solid rgba(255,255,255,0.05)', transition: 'all 0.2s' }} onMouseOver={e => e.currentTarget.style.border = '1px solid rgba(255,255,255,0.2)'} onMouseOut={e => { if (document.activeElement !== e.currentTarget.querySelector('input')) e.currentTarget.style.border = '1px solid rgba(255,255,255,0.05)'; }} onFocus={e => e.currentTarget.style.border = '1px solid #6366f1'} onBlur={e => e.currentTarget.style.border = '1px solid rgba(255,255,255,0.05)'}>
-          <input 
-            value={projectName}
-            onChange={(e) => setProjectName(e.target.value)}
-            onBlur={handleRenameProject}
-            onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
-            style={{ background: 'transparent', border: 'none', color: 'white', fontSize: '1.2rem', fontWeight: 'bold', outline: 'none', padding: '0', width: '250px', cursor: 'text' }}
-            title="Click to rename project"
-          />
-          <Edit2 size={16} color="#94a3b8" style={{ marginLeft: '0.5rem', cursor: 'pointer' }} title="Rename Project" onClick={(e) => e.currentTarget.previousSibling.focus()} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <button className="icon-btn" onClick={handleGoBack} title={currentUser.role === 'admin' ? "Back to Admin Console" : "Back to Dashboard"}>
+            <ArrowLeft size={20} />
+          </button>
+          <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.15)', borderRadius: '0.5rem', padding: '0.25rem 0.5rem', border: '1px solid rgba(255,255,255,0.05)', transition: 'all 0.2s' }} onMouseOver={e => e.currentTarget.style.border = '1px solid rgba(255,255,255,0.2)'} onMouseOut={e => { if (document.activeElement !== e.currentTarget.querySelector('input')) e.currentTarget.style.border = '1px solid rgba(255,255,255,0.05)'; }} onFocus={e => e.currentTarget.style.border = '1px solid #6366f1'} onBlur={e => e.currentTarget.style.border = '1px solid rgba(255,255,255,0.05)'}>
+            <input 
+              value={projectName}
+              onChange={(e) => setProjectName(e.target.value)}
+              onBlur={handleRenameProject}
+              onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
+              style={{ background: 'transparent', border: 'none', color: 'white', fontSize: '1.2rem', fontWeight: 'bold', outline: 'none', padding: '0', width: '250px', cursor: 'text' }}
+              title="Click to rename project"
+            />
+            <Edit2 size={16} color="#94a3b8" style={{ marginLeft: '0.5rem', cursor: 'pointer' }} title="Rename Project" onClick={(e) => e.currentTarget.previousSibling.focus()} />
+          </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <div style={{ display: 'flex' }}>
