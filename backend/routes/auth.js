@@ -1,8 +1,11 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
+const crypto = require('crypto');
 
 const router = express.Router();
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || '794547424764-vn9qg94v80pog8odcr4b7kfgotpg5oha.apps.googleusercontent.com');
 
 // Register a new user
 router.post('/register', async (req, res) => {
@@ -62,6 +65,70 @@ router.post('/login', async (req, res) => {
     res.json({ token, user: { id: user._id, username: user.username, email: user.email, avatarUrl: user.avatarUrl, role: user.role, status: user.status } });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Google Login / Register
+router.post('/google', async (req, res) => {
+  try {
+    const { token, role, adminSecretCode } = req.body;
+    
+    // Verify Google Token
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID || '794547424764-vn9qg94v80pog8odcr4b7kfgotpg5oha.apps.googleusercontent.com',
+    });
+    const payload = ticket.getPayload();
+    const { email, name, picture } = payload;
+
+    let user = await User.findOne({ email });
+
+    if (user) {
+      // User exists, log them in
+      const jwtToken = jwt.sign(
+        { userId: user._id, username: user.username, role: user.role },
+        process.env.JWT_SECRET || 'fallback_secret_key',
+        { expiresIn: '1d' }
+      );
+      return res.json({ token: jwtToken, user: { id: user._id, username: user.username, email: user.email, avatarUrl: user.avatarUrl, role: user.role, status: user.status } });
+    }
+
+    // User doesn't exist, register them
+    let assignedRole = 'user';
+    if (role === 'admin') {
+      if (adminSecretCode !== (process.env.ADMIN_SECRET_CODE || 'SECRET_ADMIN_123')) {
+        return res.status(403).json({ message: 'Invalid Admin Passcode' });
+      }
+      assignedRole = 'admin';
+    }
+
+    // Generate a random secure password for Google users
+    const randomPassword = crypto.randomBytes(16).toString('hex');
+    
+    // Check if username (from Google name) already exists
+    let finalUsername = name;
+    let usernameExists = await User.findOne({ username: finalUsername });
+    if (usernameExists) {
+      finalUsername = `${name}_${crypto.randomBytes(4).toString('hex')}`;
+    }
+
+    user = new User({ 
+      username: finalUsername, 
+      email, 
+      password: randomPassword, 
+      role: assignedRole,
+      avatarUrl: picture
+    });
+    await user.save();
+
+    const jwtToken = jwt.sign(
+      { userId: user._id, username: user.username, role: user.role },
+      process.env.JWT_SECRET || 'fallback_secret_key',
+      { expiresIn: '1d' }
+    );
+    res.status(201).json({ token: jwtToken, user: { id: user._id, username: user.username, email: user.email, avatarUrl: user.avatarUrl, role: user.role, status: user.status } });
+  } catch (error) {
+    res.status(500).json({ message: 'Google Authentication failed', error: error.message });
   }
 });
 

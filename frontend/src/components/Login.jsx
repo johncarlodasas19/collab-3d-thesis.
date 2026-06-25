@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { LogIn, Box, Eye, EyeOff } from 'lucide-react';
+import GoogleAuthButton from './GoogleAuthButton';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -172,7 +173,15 @@ export default function Login() {
           </button>
         </form>
 
-        <div className="auth-links">
+        <div style={{ marginTop: '1rem', display: 'flex', alignItems: 'center' }}>
+          <div style={{ flex: 1, height: '1px', backgroundColor: 'rgba(255,255,255,0.1)' }}></div>
+          <span style={{ padding: '0 10px', color: '#64748b', fontSize: '0.9rem' }}>OR</span>
+          <div style={{ flex: 1, height: '1px', backgroundColor: 'rgba(255,255,255,0.1)' }}></div>
+        </div>
+
+        <GoogleAuthButton />
+
+        <div className="auth-links" style={{ marginTop: '1.5rem' }}>
           Don't have an account? <Link to="/register" state={location.state}>Create one now</Link>
         </div>
       </div>
