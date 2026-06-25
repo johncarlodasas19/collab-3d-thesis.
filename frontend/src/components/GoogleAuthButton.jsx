@@ -28,9 +28,9 @@ const GoogleAuthButton = () => {
       setShowModal(false);
       
       if (user.role === 'admin') {
-        navigate('/admin');
+        navigate('/admin-dashboard');
       } else {
-        navigate('/');
+        navigate('/dashboard');
       }
     } catch (err) {
       setErrorMsg(err.response?.data?.message || 'Google Authentication failed.');
