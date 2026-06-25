@@ -1325,13 +1325,14 @@ export default function Workspace() {
       <div style={{
         position: 'fixed',
         top: '24px',
-        right: '24px',
+        left: '50%',
+        transform: 'translateX(-50%)',
         display: 'flex',
         flexDirection: 'column',
         gap: '12px',
         zIndex: 100000,
         pointerEvents: 'none',
-        alignItems: 'flex-end'
+        alignItems: 'center'
       }}>
         {toasts.map((t) => (
           <div key={t.id} style={{
@@ -1343,14 +1344,14 @@ export default function Workspace() {
             borderRadius: '1rem',
             boxShadow: `0 20px 40px -10px rgba(0,0,0,0.5), 0 0 30px ${t.type === 'join' || t.type === 'upload' ? 'rgba(16, 185, 129, 0.2)' : t.type === 'leave' || t.type === 'delete' ? 'rgba(239, 68, 68, 0.2)' : 'transparent'}`,
             transition: 'all 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
-            animation: 'toastSlideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+            animation: 'toastSlideDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
             fontWeight: '600',
             display: 'flex',
             alignItems: 'center',
             gap: '1.2rem',
             minWidth: '320px',
-            maxWidth: '400px',
-            justifyContent: 'flex-start'
+            maxWidth: '90vw',
+            justifyContent: 'center'
           }}>
             {(t.type === 'join' || t.type === 'leave' || t.type === 'upload' || t.type === 'delete') && t.user ? (
               <div style={{ position: 'relative', flexShrink: 0 }}>
@@ -1379,9 +1380,9 @@ export default function Workspace() {
           </div>
         ))}
         <style>{`
-          @keyframes toastSlideInRight {
-            from { opacity: 0; transform: translateX(50px) scale(0.9); }
-            to { opacity: 1; transform: translateX(0) scale(1); }
+          @keyframes toastSlideDown {
+            from { opacity: 0; transform: translateY(-30px) scale(0.9); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
           }
         `}</style>
       </div>
