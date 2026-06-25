@@ -749,34 +749,36 @@ export default function Dashboard() {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}>
           <div style={{ background: 'linear-gradient(145deg, rgba(30, 32, 47, 0.95), rgba(20, 22, 33, 0.98))', padding: '2.5rem', borderRadius: '1.5rem', border: `1px solid ${modalConfig.type === 'permanent' ? 'rgba(239,68,68,0.3)' : 'rgba(255,255,255,0.1)'}`, width: '420px', maxWidth: '90%', boxShadow: `0 25px 50px -12px ${modalConfig.type === 'permanent' ? 'rgba(239,68,68,0.2)' : 'rgba(0,0,0,0.5)'}` }}>
             <h3 style={{ marginBottom: '1rem', fontSize: '1.4rem', color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              {modalConfig.type === 'permanent' ? <Trash2 color="#ef4444" size={24} /> : <Trash2 color="#6366f1" size={24} />} 
+              {modalConfig.type === 'permanent' ? <Trash2 color="#ef4444" size={24} /> : modalConfig.type === 'info' ? <CheckCircle color="#10b981" size={24} /> : <Trash2 color="#6366f1" size={24} />} 
               {modalConfig.title}
             </h3>
             <p style={{ color: '#94a3b8', marginBottom: '2rem', lineHeight: '1.6', fontSize: '1rem' }}>
               {modalConfig.message}
             </p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-              <button 
-                onClick={closeConfirmModal} 
-                disabled={modalConfig.isProcessing}
-                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.75rem 1.5rem', borderRadius: '0.5rem', cursor: modalConfig.isProcessing ? 'not-allowed' : 'pointer', transition: 'all 0.2s', fontWeight: '500' }}
-                onMouseOver={e => !modalConfig.isProcessing && (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
-                onMouseOut={e => !modalConfig.isProcessing && (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
-              >
-                Cancel
-              </button>
+              {modalConfig.type !== 'info' && (
+                <button 
+                  onClick={closeConfirmModal} 
+                  disabled={modalConfig.isProcessing}
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.75rem 1.5rem', borderRadius: '0.5rem', cursor: modalConfig.isProcessing ? 'not-allowed' : 'pointer', transition: 'all 0.2s', fontWeight: '500' }}
+                  onMouseOver={e => !modalConfig.isProcessing && (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
+                  onMouseOut={e => !modalConfig.isProcessing && (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
+                >
+                  Cancel
+                </button>
+              )}
               <button 
                 onClick={async () => {
                   setModalConfig(prev => ({ ...prev, isProcessing: true }));
-                  await modalConfig.onConfirm();
+                  if (modalConfig.onConfirm) await modalConfig.onConfirm();
                   closeConfirmModal();
                 }} 
                 disabled={modalConfig.isProcessing}
-                style={{ background: modalConfig.type === 'permanent' ? '#ef4444' : '#6366f1', border: 'none', color: 'white', padding: '0.75rem 1.5rem', borderRadius: '0.5rem', cursor: modalConfig.isProcessing ? 'not-allowed' : 'pointer', fontWeight: '600', transition: 'all 0.2s', boxShadow: `0 4px 12px ${modalConfig.type === 'permanent' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(99, 102, 241, 0.3)'}` }}
+                style={{ background: modalConfig.type === 'permanent' ? '#ef4444' : modalConfig.type === 'info' ? '#10b981' : '#6366f1', border: 'none', color: 'white', padding: '0.75rem 1.5rem', borderRadius: '0.5rem', cursor: modalConfig.isProcessing ? 'not-allowed' : 'pointer', fontWeight: '600', transition: 'all 0.2s', boxShadow: `0 4px 12px ${modalConfig.type === 'permanent' ? 'rgba(239, 68, 68, 0.3)' : modalConfig.type === 'info' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(99, 102, 241, 0.3)'}` }}
                 onMouseOver={e => !modalConfig.isProcessing && (e.currentTarget.style.transform = 'translateY(-2px)')}
                 onMouseOut={e => !modalConfig.isProcessing && (e.currentTarget.style.transform = 'translateY(0)')}
               >
-                {modalConfig.isProcessing ? 'Processing...' : (modalConfig.type === 'permanent' ? 'Delete Permanently' : 'Yes, Move to Trash')}
+                {modalConfig.isProcessing ? 'Processing...' : (modalConfig.type === 'permanent' ? 'Delete Permanently' : modalConfig.type === 'info' ? 'Awesome!' : 'Yes, Move to Trash')}
               </button>
             </div>
           </div>
