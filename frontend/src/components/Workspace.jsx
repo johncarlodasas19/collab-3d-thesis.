@@ -518,8 +518,6 @@ export default function Workspace() {
     setVideoUrlInput('');
   };
 
-  const designFileInputRef = useRef(null);
-
   const handleExportDesign = () => {
     const dataStr = JSON.stringify(objects, null, 2);
     const blob = new Blob([dataStr], { type: "application/json" });
@@ -532,51 +530,6 @@ export default function Workspace() {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
     showToast('Design downloaded successfully!', 'success');
-  };
-
-  const handleImportDesign = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      try {
-        const importedObjects = JSON.parse(event.target.result);
-        if (Array.isArray(importedObjects)) {
-          let newName = file.name.replace(/\.collab3d$/i, '').replace(/\.json$/i, '');
-          newName = newName.replace(/_/g, ' ');
-          
-          setProjectName(newName);
-          setObjects(importedObjects);
-          
-          if (socket) {
-            const userStr = localStorage.getItem('user');
-            const userObj = userStr ? JSON.parse(userStr) : { username: 'Someone' };
-            socket.emit('workspace-state-sync', { roomId: projectId, objects: importedObjects, username: userObj.username });
-            socket.emit('project-renamed', { roomId: projectId, newName });
-          }
-          
-          try {
-            const token = localStorage.getItem('token');
-            await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects/${projectId}`, {
-              name: newName,
-              data: { objects: importedObjects }
-            }, {
-              headers: { Authorization: `Bearer ${token}` }
-            });
-          } catch (e) { console.error('Failed to save imported project name', e); }
-          
-          showToast(`You opened design: ${newName}`, 'upload', { username: 'You', color: '#10b981' });
-        } else {
-          showToast('Invalid file format. Must be an array of objects.', 'error');
-        }
-      } catch (err) {
-        console.error('Failed to parse file:', err);
-        showToast('Failed to read the .collab3d file.', 'error');
-      }
-      if (designFileInputRef.current) designFileInputRef.current.value = '';
-    };
-    reader.readAsText(file);
   };
 
   const handleSaveProject = () => {
@@ -854,20 +807,6 @@ export default function Workspace() {
             <UserPlus size={16} /> Share
           </button>
           
-          <input 
-            type="file" 
-            ref={designFileInputRef} 
-            onChange={handleImportDesign} 
-            accept=".collab3d,.json" 
-            style={{ display: 'none' }} 
-          />
-          <button 
-            onClick={() => designFileInputRef.current?.click()}
-            title="Open a .collab3d design file"
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: '500' }}
-          >
-            <FolderOpen size={16} /> Open
-          </button>
           <button 
             onClick={handleExportDesign}
             title="Download design as a .collab3d file"

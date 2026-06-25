@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Box, LogOut, Settings, Layout, Plus, Folder, Bell, Trash2, Menu, Upload, User as UserIcon, Mail, Lock, Eye, EyeOff, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Box, LogOut, Settings, Layout, Plus, Folder, FolderOpen, Bell, Trash2, Menu, Upload, User as UserIcon, Mail, Lock, Eye, EyeOff, CheckCircle, AlertTriangle } from 'lucide-react';
 import axios from 'axios';
 import AvatarEditor from 'react-avatar-editor';
 import { io } from 'socket.io-client';
@@ -51,7 +51,52 @@ export default function Dashboard() {
   const [editorScale, setEditorScale] = useState(1.2);
   const avatarInputRef = useRef(null);
   const editorRef = useRef(null);
+  const importFileInputRef = useRef(null);
   const navigate = useNavigate();
+
+  const handleImportDesign = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const importedObjects = JSON.parse(event.target.result);
+        if (Array.isArray(importedObjects)) {
+          let newName = file.name.replace(/\.collab3d$/i, '').replace(/\.json$/i, '');
+          newName = newName.replace(/_/g, ' ');
+          
+          const token = localStorage.getItem('token');
+          const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects`, { 
+            name: newName,
+            data: { objects: importedObjects }
+          }, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          
+          setProjects([res.data, ...projects]);
+          
+          setModalConfig({
+            isOpen: true,
+            type: 'info',
+            title: 'Import Successful',
+            message: `Created new project "${newName}" from the imported file!`,
+            onConfirm: () => setModalConfig({ ...modalConfig, isOpen: false })
+          });
+          
+        } else {
+          setSettingsError('Invalid file format. Must be an array of objects.');
+          setTimeout(() => setSettingsError(''), 3000);
+        }
+      } catch (err) {
+        console.error('Failed to parse file:', err);
+        setSettingsError('Failed to read the .collab3d file.');
+        setTimeout(() => setSettingsError(''), 3000);
+      }
+      if (importFileInputRef.current) importFileInputRef.current.value = '';
+    };
+    reader.readAsText(file);
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -433,6 +478,25 @@ export default function Dashboard() {
             <Plus size={40} color="var(--primary)" style={{ marginBottom: '1rem' }} />
             <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>Create New Project</h3>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Start modeling from scratch</p>
+          </div>
+
+          <input 
+            type="file" 
+            ref={importFileInputRef} 
+            onChange={handleImportDesign} 
+            accept=".collab3d,.json" 
+            style={{ display: 'none' }} 
+          />
+          <div 
+            className="glass-card" 
+            onClick={() => importFileInputRef.current?.click()}
+            style={{ width: '300px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '200px', transition: 'all 0.3s ease' }}
+            onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+            onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+          >
+            <FolderOpen size={40} color="#10b981" style={{ marginBottom: '1rem' }} />
+            <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>Import Design</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Open a .collab3d file</p>
           </div>
 
           {projects.map((project) => (
