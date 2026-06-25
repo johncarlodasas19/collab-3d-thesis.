@@ -63,7 +63,7 @@ export default function Workspace() {
   const [newMessage, setNewMessage] = useState('');
   const [typingUsers, setTypingUsers] = useState({});
   const typingTimeoutRef = useRef(null);
-  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+  const [toasts, setToasts] = useState([]);
   const [history, setHistory] = useState([]);
   const lastEmitTime = useRef(0);
   const navigate = useNavigate();
@@ -115,9 +115,12 @@ export default function Workspace() {
 
   const hasValidAvatar = (url) => typeof url === 'string' && url !== 'null' && url !== 'undefined' && url.trim() !== '' && url !== 'admin-shield';
 
-  const showToast = (message, type = 'success') => {
-    setToast({ show: true, message, type });
-    setTimeout(() => setToast(prev => ({ ...prev, show: false })), 3000);
+  const showToast = (message, type = 'success', user = null) => {
+    const id = Date.now() + Math.random();
+    setToasts(prev => [...prev, { id, message, type, user }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, (type === 'join' || type === 'leave' || type === 'upload' || type === 'delete') ? 4000 : 3000);
   };
 
   useEffect(() => {
@@ -182,8 +185,7 @@ export default function Workspace() {
 
     newSocket.on('user-joined', (userData) => {
       playTone('join');
-      setToast({ show: true, message: `${userData.username} joined the workspace`, type: 'join', user: userData });
-      setTimeout(() => setToast(t => t.message === `${userData.username} joined the workspace` ? { show: false, message: '', type: 'join', user: null } : t), 2000);
+      showToast(`${userData.username} joined the workspace`, 'join', userData);
     });
 
     newSocket.on('user-left', (payload) => {
@@ -192,8 +194,7 @@ export default function Workspace() {
       
       if (leftUser) {
         playTone('leave');
-        setToast({ show: true, message: `${leftUser.username} left the workspace`, type: 'leave', user: leftUser });
-        setTimeout(() => setToast(t => t.message === `${leftUser.username} left the workspace` ? { show: false, message: '', type: 'leave', user: null } : t), 2000);
+        showToast(`${leftUser.username} left the workspace`, 'leave', leftUser);
       }
       
       setCursors((prev) => {
@@ -214,8 +215,7 @@ export default function Workspace() {
       setObjects((prev) => [...prev, newObj]);
       if (newObj.uploadedBy) {
         const message = `${newObj.uploadedBy} uploaded a new ${newObj.type === 'image' ? 'photo' : 'video'}! Check the Media Gallery.`;
-        setToast({ show: true, message, type: 'join' });
-        setTimeout(() => setToast(t => t.message === message ? { show: false, message: '', type: 'join' } : t), 3500);
+        showToast(message, 'upload', { username: newObj.uploadedBy, color: '#10b981' });
       }
     });
 
@@ -227,9 +227,15 @@ export default function Workspace() {
       );
     });
 
-    newSocket.on('object-deleted', (id) => {
-      setObjects((prev) => prev.filter((obj) => obj.id !== id));
-      setSelectedId((prev) => (prev === id ? null : prev));
+    newSocket.on('object-deleted', (data) => {
+      if (typeof data === 'string') {
+        setObjects((prev) => prev.filter((obj) => obj.id !== data));
+      } else {
+        setObjects((prev) => prev.filter((obj) => obj.id !== data.id));
+        if (data.deletedBy) {
+          showToast(`${data.deletedBy} deleted an object from the workspace`, 'delete', { username: data.deletedBy, color: '#ef4444' });
+        }
+      }
     });
 
     newSocket.on('chat-message', (data) => {
@@ -297,7 +303,9 @@ export default function Workspace() {
       const prevIds = previousState.map(o => o.id);
       objects.forEach(obj => {
         if (!prevIds.includes(obj.id)) {
-          socket.emit('object-deleted', { roomId: projectId, id: obj.id });
+            const userStr = localStorage.getItem('user');
+            const userObj = userStr ? JSON.parse(userStr) : { username: 'Someone' };
+            socket.emit('object-deleted', { roomId: projectId, id: obj.id, deletedBy: userObj.username });
         }
       });
     }
@@ -369,8 +377,7 @@ export default function Workspace() {
     if (!file) return;
 
     if (file.size > 10 * 1024 * 1024) {
-      setToast({ show: true, message: 'File is too large (max 10MB)', type: 'error' });
-      setTimeout(() => setToast(t => ({ ...t, show: false })), 3000);
+      showToast('File is too large (max 10MB)', 'error');
       return;
     }
 
@@ -385,8 +392,7 @@ export default function Workspace() {
         finalUrl = await compressImage(file);
       } else {
         if (file.size > 3 * 1024 * 1024) {
-          setToast({ show: true, message: 'Video must be under 3MB to save permanently.', type: 'error' });
-          setTimeout(() => setToast(t => ({ ...t, show: false })), 4000);
+          showToast('Video must be under 3MB to save permanently.', 'error');
           return;
         }
         finalUrl = await new Promise((resolve) => {
@@ -407,8 +413,7 @@ export default function Workspace() {
     if (!file) return;
 
     if (file.size > 10 * 1024 * 1024) {
-      setToast({ show: true, message: 'File is too large (max 10MB)', type: 'error' });
-      setTimeout(() => setToast(t => ({ ...t, show: false })), 3000);
+      showToast('File is too large (max 10MB)', 'error');
       return;
     }
 
@@ -425,8 +430,7 @@ export default function Workspace() {
         finalUrl = await compressImage(file);
       } else if (fileType === 'video') {
         if (file.size > 3 * 1024 * 1024) {
-          setToast({ show: true, message: 'Video must be under 3MB to save permanently.', type: 'error' });
-          setTimeout(() => setToast(t => ({ ...t, show: false })), 4000);
+          showToast('Video must be under 3MB to save permanently.', 'error');
           return;
         }
         finalUrl = await new Promise((resolve) => {
@@ -1296,49 +1300,70 @@ export default function Workspace() {
         </div>
       )}
 
-      {/* Toast Notification */}
+      {/* Toast Notification Stack */}
       <div style={{
         position: 'fixed',
-        top: toast.show ? '30px' : '-100px',
+        top: '20px',
         left: '50%',
         transform: 'translateX(-50%)',
-        background: 'rgba(15, 23, 42, 0.85)',
-        backdropFilter: 'blur(16px)',
-        border: `1px solid ${toast.type === 'join' ? 'rgba(16, 185, 129, 0.5)' : toast.type === 'leave' ? 'rgba(245, 158, 11, 0.5)' : 'rgba(255,255,255,0.1)'}`,
-        color: 'white',
-        padding: (toast.type === 'join' || toast.type === 'leave') ? '0.5rem 1.5rem 0.5rem 0.5rem' : '0.75rem 1.5rem',
-        borderRadius: '3rem',
-        boxShadow: `0 20px 40px -10px rgba(0,0,0,0.5), 0 0 20px ${toast.type === 'join' ? 'rgba(16, 185, 129, 0.3)' : toast.type === 'leave' ? 'rgba(245, 158, 11, 0.3)' : 'transparent'}`,
-        zIndex: 100000,
-        transition: 'all 0.1s ease-out',
-        opacity: toast.show ? 1 : 0,
-        fontWeight: '600',
         display: 'flex',
-        alignItems: 'center',
-        gap: '1rem',
+        flexDirection: 'column',
+        gap: '0.75rem',
+        zIndex: 100000,
         pointerEvents: 'none',
-        minWidth: '280px',
-        maxWidth: '90%',
-        justifyContent: 'center'
+        alignItems: 'center'
       }}>
-        {(toast.type === 'join' || toast.type === 'leave') && toast.user ? (
-          <div style={{ position: 'relative' }}>
-            <div style={{ width: '40px', height: '40px', borderRadius: '50%', overflow: 'hidden', border: `2px solid ${toast.type === 'join' ? '#10b981' : '#f59e0b'}` }}>
-              <img src={getMediaUrl(toast.user.avatarUrl)} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.onerror = null; e.target.src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><rect width="40" height="40" fill="${encodeURIComponent(toast.user.color || '#6366f1')}"/><text x="50%" y="50%" font-family="Arial" font-size="18" fill="white" font-weight="bold" text-anchor="middle" dy=".3em">${(toast.user.username || 'U')[0].toUpperCase()}</text></svg>`; }} />
+        {toasts.map((t) => (
+          <div key={t.id} style={{
+            background: 'rgba(15, 23, 42, 0.9)',
+            backdropFilter: 'blur(16px)',
+            border: `1px solid ${t.type === 'join' || t.type === 'upload' ? 'rgba(16, 185, 129, 0.5)' : t.type === 'leave' || t.type === 'delete' ? 'rgba(239, 68, 68, 0.5)' : 'rgba(255,255,255,0.1)'}`,
+            color: 'white',
+            padding: (t.type === 'join' || t.type === 'leave' || t.type === 'upload' || t.type === 'delete') ? '0.5rem 1.5rem 0.5rem 0.5rem' : '0.75rem 1.5rem',
+            borderRadius: '3rem',
+            boxShadow: `0 20px 40px -10px rgba(0,0,0,0.5), 0 0 20px ${t.type === 'join' || t.type === 'upload' ? 'rgba(16, 185, 129, 0.3)' : t.type === 'leave' || t.type === 'delete' ? 'rgba(239, 68, 68, 0.3)' : 'transparent'}`,
+            transition: 'all 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
+            animation: 'toastSlideDown 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
+            fontWeight: '600',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1rem',
+            minWidth: '320px',
+            maxWidth: '90vw',
+            justifyContent: 'center'
+          }}>
+            {(t.type === 'join' || t.type === 'leave' || t.type === 'upload' || t.type === 'delete') && t.user ? (
+              <div style={{ position: 'relative', flexShrink: 0 }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '50%', overflow: 'hidden', border: `2px solid ${t.type === 'join' || t.type === 'upload' ? '#10b981' : '#ef4444'}` }}>
+                  {t.user.avatarUrl ? (
+                    <img src={getMediaUrl(t.user.avatarUrl)} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.onerror = null; e.target.src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><rect width="40" height="40" fill="${encodeURIComponent(t.user.color || '#6366f1')}"/><text x="50%" y="50%" font-family="Arial" font-size="18" fill="white" font-weight="bold" text-anchor="middle" dy=".3em">${(t.user.username || 'U')[0].toUpperCase()}</text></svg>`; }} />
+                  ) : (
+                    <div style={{ width: '100%', height: '100%', background: t.user.color || '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '18px', fontWeight: 'bold' }}>
+                      {(t.user.username || 'U')[0].toUpperCase()}
+                    </div>
+                  )}
+                </div>
+                <div style={{ position: 'absolute', bottom: '0', right: '0', width: '12px', height: '12px', borderRadius: '50%', background: t.type === 'join' || t.type === 'upload' ? '#10b981' : '#ef4444', border: '2px solid #0f172a' }}></div>
+              </div>
+            ) : (
+              t.type === 'success' ? <CheckCircle2 size={24} color="#10b981" /> : <AlertCircle size={24} color="#ef4444" />
+            )}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.1rem', flex: 1 }}>
+              {(t.type === 'join' || t.type === 'leave' || t.type === 'upload' || t.type === 'delete') && (
+                <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: t.type === 'join' || t.type === 'upload' ? '#10b981' : '#ef4444', fontWeight: '800' }}>
+                  {t.type === 'join' ? '● Connected' : t.type === 'leave' ? '○ Disconnected' : t.type === 'upload' ? '● Media Uploaded' : '○ Object Deleted'}
+                </span>
+              )}
+              <span style={{ fontSize: '1rem', color: '#f8fafc', wordBreak: 'break-word' }}>{t.message}</span>
             </div>
-            <div style={{ position: 'absolute', bottom: '0', right: '0', width: '12px', height: '12px', borderRadius: '50%', background: toast.type === 'join' ? '#10b981' : '#f59e0b', border: '2px solid #0f172a' }}></div>
           </div>
-        ) : (
-          toast.type === 'success' ? <CheckCircle2 size={24} color="#10b981" /> : <AlertCircle size={24} color="#ef4444" />
-        )}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.1rem' }}>
-          {(toast.type === 'join' || toast.type === 'leave') && (
-            <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: toast.type === 'join' ? '#10b981' : '#f59e0b', fontWeight: '800' }}>
-              {toast.type === 'join' ? '● Connected' : '○ Disconnected'}
-            </span>
-          )}
-          <span style={{ fontSize: '1rem', color: '#f8fafc' }}>{toast.message}</span>
-        </div>
+        ))}
+        <style>{`
+          @keyframes toastSlideDown {
+            from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+          }
+        `}</style>
       </div>
     </div>
     </>
