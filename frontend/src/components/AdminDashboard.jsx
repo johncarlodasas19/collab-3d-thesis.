@@ -78,7 +78,7 @@ export default function AdminDashboard() {
 
     const newSocket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000');
     newSocket.on('user-status-changed', (data) => {
-      if (data.userId === currentUser.id && (data.status === 'banned' || data.status === 'deleted')) {
+      if (data.userId === currentUser.id && (data.status === 'banned' || data.status === 'deleted' || data.status === 'suspended')) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         setAdminActionModal({ show: true, status: data.status });
