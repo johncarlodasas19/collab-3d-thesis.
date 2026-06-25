@@ -583,7 +583,7 @@ export default function Workspace() {
   const handlePointerMove = (e) => {
     if (!socket) return;
     const now = Date.now();
-    if (now - lastEmitTime.current < 50) return; // Throttle to ~20fps
+    if (now - lastEmitTime.current < 16) return; // Throttle to ~60fps for ultra-smooth cursors
     lastEmitTime.current = now;
 
     const x = e.clientX / window.innerWidth;
@@ -1173,11 +1173,13 @@ export default function Workspace() {
               key={socketId}
               style={{
                 position: 'absolute',
-                left: cursor.x * window.innerWidth,
-                top: cursor.y * window.innerHeight,
+                left: 0,
+                top: 0,
+                transform: `translate(${cursor.x * window.innerWidth}px, ${cursor.y * window.innerHeight}px)`,
                 pointerEvents: 'none',
                 zIndex: 1000,
-                transition: 'left 0.1s linear, top 0.1s linear'
+                transition: 'transform 0.05s linear',
+                willChange: 'transform'
               }}
             >
               <svg width="24" height="36" viewBox="0 0 24 36" fill="none" stroke="white" strokeWidth="2" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.4))' }}>
@@ -1293,7 +1295,7 @@ export default function Workspace() {
         borderRadius: '3rem',
         boxShadow: `0 20px 40px -10px rgba(0,0,0,0.5), 0 0 20px ${toast.type === 'join' ? 'rgba(16, 185, 129, 0.3)' : toast.type === 'leave' ? 'rgba(245, 158, 11, 0.3)' : 'transparent'}`,
         zIndex: 100000,
-        transition: 'all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        transition: 'all 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
         opacity: toast.show ? 1 : 0,
         fontWeight: '600',
         display: 'flex',
