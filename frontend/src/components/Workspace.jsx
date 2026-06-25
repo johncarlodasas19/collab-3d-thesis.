@@ -141,6 +141,7 @@ export default function Workspace() {
 
     const token = localStorage.getItem('token');
     if (!token) {
+      localStorage.setItem('redirectAfterLogin', location.pathname);
       navigate('/login', { state: { from: location.pathname } });
       return;
     }

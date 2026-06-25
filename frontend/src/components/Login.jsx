@@ -41,7 +41,12 @@ export default function Login() {
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
 
-      if (location.state?.from) {
+      const redirectUrl = localStorage.getItem('redirectAfterLogin');
+      
+      if (redirectUrl) {
+        localStorage.removeItem('redirectAfterLogin');
+        navigate(redirectUrl);
+      } else if (location.state?.from) {
         navigate(location.state.from);
       } else if (user.role === 'admin') {
         navigate('/admin-dashboard');
