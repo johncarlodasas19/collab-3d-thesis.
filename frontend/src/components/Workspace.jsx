@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Box, Circle, Move, RotateCw, Scaling, ArrowLeft, Image as ImageIcon, Video, Save, Trash2, UserPlus, Users, MessageSquare, Triangle, Database, CircleDashed, ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, Undo, Edit2, PlaySquare, Settings, MousePointer2, Hand, Type, Square, Cone, BoxSelect, Plus, FileUp, Flag, CheckCircle, Smile, Paperclip, X, ShieldAlert, AlertTriangle } from 'lucide-react';
+import { Box, Circle, Move, RotateCw, Scaling, ArrowLeft, Image as ImageIcon, Video, Save, Trash2, UserPlus, Users, MessageSquare, Triangle, Database, CircleDashed, ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, Undo, Edit2, PlaySquare, Settings, MousePointer2, Hand, Type, Square, Cone, BoxSelect, Plus, FileUp, Flag, CheckCircle, Smile, Paperclip, X, ShieldAlert, AlertTriangle, Download, FolderOpen } from 'lucide-react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import ThreeCanvas from './ThreeCanvas';
@@ -514,6 +514,50 @@ export default function Workspace() {
     setVideoUrlInput('');
   };
 
+  const designFileInputRef = useRef(null);
+
+  const handleExportDesign = () => {
+    const dataStr = JSON.stringify(objects, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${projectName.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'design'}.collab3d`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showToast('Design downloaded successfully!', 'success');
+  };
+
+  const handleImportDesign = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const importedObjects = JSON.parse(event.target.result);
+        if (Array.isArray(importedObjects)) {
+          setObjects(importedObjects);
+          if (socket) {
+            const userStr = localStorage.getItem('user');
+            const userObj = userStr ? JSON.parse(userStr) : { username: 'Someone' };
+            socket.emit('workspace-state-sync', { roomId: projectId, objects: importedObjects, username: userObj.username });
+          }
+          showToast('You opened a workspace design from a file!', 'upload', { username: 'You', color: '#10b981' });
+        } else {
+          showToast('Invalid file format. Must be an array of objects.', 'error');
+        }
+      } catch (err) {
+        console.error('Failed to parse file:', err);
+        showToast('Failed to read the .collab3d file.', 'error');
+      }
+      if (designFileInputRef.current) designFileInputRef.current.value = '';
+    };
+    reader.readAsText(file);
+  };
+
   const handleSaveProject = () => {
     showToast('Project saved successfully!', 'success');
     
@@ -784,6 +828,28 @@ export default function Workspace() {
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: '500' }}
           >
             <UserPlus size={16} /> Share
+          </button>
+          
+          <input 
+            type="file" 
+            ref={designFileInputRef} 
+            onChange={handleImportDesign} 
+            accept=".collab3d,.json" 
+            style={{ display: 'none' }} 
+          />
+          <button 
+            onClick={() => designFileInputRef.current?.click()}
+            title="Open a .collab3d design file"
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: '500' }}
+          >
+            <FolderOpen size={16} /> Open
+          </button>
+          <button 
+            onClick={handleExportDesign}
+            title="Download design as a .collab3d file"
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: '500' }}
+          >
+            <Download size={16} /> Download
           </button>
           <button 
             onClick={handleSaveProject}
