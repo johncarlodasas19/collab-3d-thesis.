@@ -1084,29 +1084,39 @@ export default function Workspace() {
 
           {isShapeSelected && (
             <div className="properties-panel" style={{
-              position: 'absolute', top: '1rem', left: '1rem',
-              background: 'rgba(25, 27, 40, 0.9)', backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.5rem',
-              padding: '1rem', width: '220px', zIndex: 20, color: 'white',
-              boxShadow: '0 10px 25px -5px rgba(0,0,0,0.5)'
+              position: 'absolute', top: '1.5rem', left: '1.5rem',
+              background: 'rgba(15, 23, 42, 0.95)', backdropFilter: 'blur(16px)',
+              border: '1px solid rgba(99, 102, 241, 0.3)', borderRadius: '1rem',
+              padding: '1.5rem', width: '280px', zIndex: 20, color: 'white',
+              boxShadow: '0 25px 50px -12px rgba(0,0,0,0.7), 0 0 20px rgba(99, 102, 241, 0.15)'
             }}>
-              <h3 style={{ fontSize: '0.9rem', marginBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>Properties</h3>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '1.25rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Settings size={18} color="#6366f1" /> Properties
+              </h3>
               
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.25rem' }}>Color</label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <input 
-                    type="color" 
-                    value={selectedObj.color || '#ffffff'} 
-                    onChange={(e) => handlePropertyChange('color', e.target.value)}
-                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', height: '30px', width: '30px', padding: 0, flexShrink: 0 }}
-                    title="Choose from Color Picker"
-                  />
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ display: 'block', fontSize: '0.9rem', color: '#cbd5e1', marginBottom: '0.5rem', fontWeight: '500' }}>Shape Color</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <div style={{ 
+                    width: '40px', height: '40px', borderRadius: '0.5rem', overflow: 'hidden', 
+                    border: '2px solid rgba(255,255,255,0.2)', cursor: 'pointer', position: 'relative',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3)'
+                  }}>
+                    <input 
+                      type="color" 
+                      value={selectedObj.color || '#ffffff'} 
+                      onChange={(e) => handlePropertyChange('color', e.target.value)}
+                      style={{ position: 'absolute', top: '-10px', left: '-10px', width: '60px', height: '60px', cursor: 'pointer', border: 'none', padding: 0 }}
+                      title="Choose from Color Picker"
+                    />
+                  </div>
                   <input 
                     type="text" 
                     value={selectedObj.color || '#ffffff'} 
                     onChange={(e) => handlePropertyChange('color', e.target.value)}
-                    style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.8rem', fontFamily: 'monospace', flex: 1, textTransform: 'uppercase' }}
+                    style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.15)', color: 'white', padding: '0.6rem 0.75rem', borderRadius: '0.5rem', fontSize: '0.95rem', fontFamily: 'monospace', flex: 1, textTransform: 'uppercase', outline: 'none' }}
+                    onFocus={(e) => e.target.style.borderColor = '#6366f1'}
+                    onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.15)'}
                     placeholder="#FFFFFF"
                     title="Type HEX Color Code"
                   />
@@ -1114,21 +1124,21 @@ export default function Workspace() {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.5rem' }}>Dimensions (Scale)</label>
+                <label style={{ display: 'block', fontSize: '0.9rem', color: '#cbd5e1', marginBottom: '0.75rem', fontWeight: '500' }}>Scale Dimensions</label>
                 
-                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
-                  <span style={{ width: '20px', fontSize: '0.75rem', color: '#ef4444', fontWeight: 'bold' }}>X</span>
-                  <input type="number" step="0.1" value={selectedObj.scale[0]} onChange={(e) => handleDimensionChange(0, e.target.value)} style={{ flex: 1, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.8rem' }} />
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.75rem', background: 'rgba(0,0,0,0.3)', padding: '0.25rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(239, 68, 68, 0.2)', borderRadius: '0.375rem', color: '#ef4444', fontWeight: 'bold', fontSize: '0.9rem', marginRight: '0.5rem' }}>X</div>
+                  <input type="number" step="0.1" value={selectedObj.scale[0]} onChange={(e) => handleDimensionChange(0, e.target.value)} style={{ flex: 1, background: 'transparent', border: 'none', color: 'white', padding: '0.25rem', fontSize: '1rem', outline: 'none' }} />
                 </div>
                 
-                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
-                  <span style={{ width: '20px', fontSize: '0.75rem', color: '#22c55e', fontWeight: 'bold' }}>Y</span>
-                  <input type="number" step="0.1" value={selectedObj.scale[1]} onChange={(e) => handleDimensionChange(1, e.target.value)} style={{ flex: 1, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.8rem' }} />
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.75rem', background: 'rgba(0,0,0,0.3)', padding: '0.25rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(34, 197, 94, 0.2)', borderRadius: '0.375rem', color: '#22c55e', fontWeight: 'bold', fontSize: '0.9rem', marginRight: '0.5rem' }}>Y</div>
+                  <input type="number" step="0.1" value={selectedObj.scale[1]} onChange={(e) => handleDimensionChange(1, e.target.value)} style={{ flex: 1, background: 'transparent', border: 'none', color: 'white', padding: '0.25rem', fontSize: '1rem', outline: 'none' }} />
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                  <span style={{ width: '20px', fontSize: '0.75rem', color: '#3b82f6', fontWeight: 'bold' }}>Z</span>
-                  <input type="number" step="0.1" value={selectedObj.scale[2]} onChange={(e) => handleDimensionChange(2, e.target.value)} style={{ flex: 1, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.8rem' }} />
+                <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.3)', padding: '0.25rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(59, 130, 246, 0.2)', borderRadius: '0.375rem', color: '#3b82f6', fontWeight: 'bold', fontSize: '0.9rem', marginRight: '0.5rem' }}>Z</div>
+                  <input type="number" step="0.1" value={selectedObj.scale[2]} onChange={(e) => handleDimensionChange(2, e.target.value)} style={{ flex: 1, background: 'transparent', border: 'none', color: 'white', padding: '0.25rem', fontSize: '1rem', outline: 'none' }} />
                 </div>
               </div>
             </div>
