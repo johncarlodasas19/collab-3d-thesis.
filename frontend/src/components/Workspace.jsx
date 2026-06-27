@@ -1169,11 +1169,12 @@ export default function Workspace() {
           zIndex: isMobile ? 40 : 10,
           backgroundColor: isMobile ? 'rgba(25, 27, 40, 0.95)' : 'rgba(25, 27, 40, 0.9)'
         }}>
-          <h3 style={{ marginBottom: '1.5rem', color: 'white', fontSize: '1rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem', flexShrink: 0 }}>
-            Media Gallery
-          </h3>
-          
-          <div style={{ flex: 1, overflowY: 'auto', paddingRight: '0.5rem', marginBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, paddingBottom: '1rem' }}>
+            <h3 style={{ marginBottom: '1.5rem', color: 'white', fontSize: '1rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem', flexShrink: 0 }}>
+              Media Gallery
+            </h3>
+            
+            <div style={{ flex: 1, overflowY: 'auto', paddingRight: '0.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {objects.filter(o => o.type === 'image' || o.type === 'video').map(obj => (
               <div key={obj.id} className="media-item">
               <button 
@@ -1224,8 +1225,9 @@ export default function Workspace() {
               </div>
             )}
           </div>
+          </div>
 
-          <div className="workspace-chat-container" style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', flex: 1, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem', position: 'relative', overflow: 'hidden' }}>
+          <div className="workspace-chat-container" style={{ flex: 1, display: 'flex', flexDirection: 'column', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem', position: 'relative', overflow: 'hidden', minHeight: 0 }}>
             <h3 style={{ marginBottom: '0.5rem', color: 'white', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
               <MessageSquare size={16} /> Real-Time Chat
             </h3>
