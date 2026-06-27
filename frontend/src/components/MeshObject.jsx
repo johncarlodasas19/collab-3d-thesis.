@@ -70,6 +70,36 @@ export default function MeshObject({ id, type, position, rotation, scale, color,
             <meshStandardMaterial color={color} emissive={isSelected ? '#4f46e5' : 'black'} emissiveIntensity={isSelected ? 0.5 : 0} />
           </mesh>
         )}
+        {type === 'plane' && (
+          <mesh>
+            <planeGeometry args={[2, 2]} />
+            <meshStandardMaterial color={color} emissive={isSelected ? '#4f46e5' : 'black'} emissiveIntensity={isSelected ? 0.5 : 0} side={2} />
+          </mesh>
+        )}
+        {type === 'tetrahedron' && (
+          <mesh>
+            <tetrahedronGeometry args={[0.8]} />
+            <meshStandardMaterial color={color} emissive={isSelected ? '#4f46e5' : 'black'} emissiveIntensity={isSelected ? 0.5 : 0} />
+          </mesh>
+        )}
+        {type === 'dodecahedron' && (
+          <mesh>
+            <dodecahedronGeometry args={[0.7]} />
+            <meshStandardMaterial color={color} emissive={isSelected ? '#4f46e5' : 'black'} emissiveIntensity={isSelected ? 0.5 : 0} />
+          </mesh>
+        )}
+        {type === 'icosahedron' && (
+          <mesh>
+            <icosahedronGeometry args={[0.7]} />
+            <meshStandardMaterial color={color} emissive={isSelected ? '#4f46e5' : 'black'} emissiveIntensity={isSelected ? 0.5 : 0} />
+          </mesh>
+        )}
+        {type === 'torusKnot' && (
+          <mesh>
+            <torusKnotGeometry args={[0.4, 0.15, 64, 16]} />
+            <meshStandardMaterial color={color} emissive={isSelected ? '#4f46e5' : 'black'} emissiveIntensity={isSelected ? 0.5 : 0} />
+          </mesh>
+        )}
       </group>
       
       {isSelected && isReady && (

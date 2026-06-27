@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Box, Circle, Move, RotateCw, Scaling, ArrowLeft, Image as ImageIcon, Video, Save, Trash2, UserPlus, Users, MessageSquare, Triangle, Database, CircleDashed, ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, Undo, Edit2, PlaySquare, Settings, MousePointer2, Hand, Type, Square, Cone, BoxSelect, Plus, FileUp, Flag, CheckCircle, Smile, Paperclip, X, ShieldAlert, AlertTriangle, Download, FolderOpen, Camera, Eraser, Copy } from 'lucide-react';
+import { Box, Circle, Move, RotateCw, Scaling, ArrowLeft, Image as ImageIcon, Video, Save, Trash2, UserPlus, Users, MessageSquare, Triangle, Database, CircleDashed, ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, Undo, Edit2, PlaySquare, Settings, MousePointer2, Hand, Type, Square, Cone, BoxSelect, Plus, FileUp, Flag, CheckCircle, Smile, Paperclip, X, ShieldAlert, AlertTriangle, Download, FolderOpen, Camera, Eraser, Copy, Mountain, Hexagon, Gem, Infinity } from 'lucide-react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import ThreeCanvas from './ThreeCanvas';
@@ -919,6 +919,21 @@ export default function Workspace() {
             </button>
             <button className="tool-btn" onClick={() => handleAddObject('torus')} title="Add Torus">
               <CircleDashed size={24} />
+            </button>
+            <button className="tool-btn" onClick={() => handleAddObject('plane')} title="Add Plane (Floor)">
+              <Square size={24} />
+            </button>
+            <button className="tool-btn" onClick={() => handleAddObject('tetrahedron')} title="Add Pyramid">
+              <Mountain size={24} />
+            </button>
+            <button className="tool-btn" onClick={() => handleAddObject('dodecahedron')} title="Add Dodecahedron (12-sided)">
+              <Hexagon size={24} />
+            </button>
+            <button className="tool-btn" onClick={() => handleAddObject('icosahedron')} title="Add Icosahedron (20-sided)">
+              <Gem size={24} />
+            </button>
+            <button className="tool-btn" onClick={() => handleAddObject('torusKnot')} title="Add Torus Knot">
+              <Infinity size={24} />
             </button>
           </div>
 
