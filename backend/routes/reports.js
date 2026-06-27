@@ -30,6 +30,11 @@ router.post('/', async (req, res) => {
 
     await newReport.save();
 
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('new-report-submitted', newReport);
+    }
+
     await ActivityLog.create({
       userId: req.user.userId,
       username: req.user.username,

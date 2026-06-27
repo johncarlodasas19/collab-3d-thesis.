@@ -100,6 +100,11 @@ export default function AdminDashboard() {
         fetchData(); // Refresh list automatically when another user's role changes
       }
     });
+    newSocket.on('new-report-submitted', (newReport) => {
+      setReports(prev => [newReport, ...prev]);
+      setStats(prev => ({ ...prev, pendingReports: prev.pendingReports + 1 }));
+      setAdminActionSuccessModal({ show: true, message: `A new report was just submitted by ${newReport.reporterName}!` });
+    });
     return () => newSocket.disconnect();
   }, [navigate]);
 
