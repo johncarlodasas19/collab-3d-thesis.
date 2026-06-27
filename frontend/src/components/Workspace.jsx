@@ -1085,7 +1085,7 @@ export default function Workspace() {
           {isShapeSelected && (
             <div className="properties-panel" style={{
               position: 'absolute', top: '1.5rem', 
-              left: isLeftSidebarOpen ? 'calc(85px + 1rem)' : '1rem',
+              left: isLeftSidebarOpen ? '125px' : '40px',
               background: 'rgba(15, 23, 42, 0.95)', backdropFilter: 'blur(16px)',
               border: '1px solid rgba(99, 102, 241, 0.3)', borderRadius: '1rem',
               padding: '1.5rem', width: '280px', zIndex: 20, color: 'white',
