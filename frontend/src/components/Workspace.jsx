@@ -1099,9 +1099,17 @@ export default function Workspace() {
                     type="color" 
                     value={selectedObj.color || '#ffffff'} 
                     onChange={(e) => handlePropertyChange('color', e.target.value)}
-                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', height: '30px', width: '30px', padding: 0 }}
+                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', height: '30px', width: '30px', padding: 0, flexShrink: 0 }}
+                    title="Choose from Color Picker"
                   />
-                  <span style={{ fontSize: '0.8rem', fontFamily: 'monospace' }}>{selectedObj.color}</span>
+                  <input 
+                    type="text" 
+                    value={selectedObj.color || '#ffffff'} 
+                    onChange={(e) => handlePropertyChange('color', e.target.value)}
+                    style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.8rem', fontFamily: 'monospace', flex: 1, textTransform: 'uppercase' }}
+                    placeholder="#FFFFFF"
+                    title="Type HEX Color Code"
+                  />
                 </div>
               </div>
 
