@@ -58,6 +58,7 @@ export default function Workspace() {
   const [deletedProjectModal, setDeletedProjectModal] = useState(false);
   const [videoUrlInput, setVideoUrlInput] = useState('');
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(window.innerWidth >= 768);
+  const draggableNodeRef = useRef(null);
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(window.innerWidth >= 768);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [chatMessages, setChatMessages] = useState([]);
@@ -1084,8 +1085,8 @@ export default function Workspace() {
           />
 
           {isShapeSelected && (
-            <Draggable handle=".drag-handle" defaultPosition={{ x: 0, y: 0 }} bounds="parent">
-              <div className="properties-panel" style={{
+            <Draggable nodeRef={draggableNodeRef} handle=".drag-handle" defaultPosition={{ x: 0, y: 0 }}>
+              <div ref={draggableNodeRef} className="properties-panel" style={{
                 position: 'absolute', top: '1.5rem', 
                 left: '125px',
                 background: 'rgba(15, 23, 42, 0.95)', backdropFilter: 'blur(16px)',
