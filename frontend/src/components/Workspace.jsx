@@ -1085,11 +1085,12 @@ export default function Workspace() {
           {isShapeSelected && (
             <div className="properties-panel" style={{
               position: 'absolute', top: '1.5rem', 
-              left: isLeftSidebarOpen ? 'calc(85px + 1.5rem)' : '3.5rem',
+              left: isLeftSidebarOpen ? 'calc(85px + 1rem)' : '1rem',
               background: 'rgba(15, 23, 42, 0.95)', backdropFilter: 'blur(16px)',
               border: '1px solid rgba(99, 102, 241, 0.3)', borderRadius: '1rem',
               padding: '1.5rem', width: '280px', zIndex: 20, color: 'white',
-              boxShadow: '0 25px 50px -12px rgba(0,0,0,0.7), 0 0 20px rgba(99, 102, 241, 0.15)'
+              boxShadow: '0 25px 50px -12px rgba(0,0,0,0.7), 0 0 20px rgba(99, 102, 241, 0.15)',
+              transition: 'left 0.3s ease'
             }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '1.25rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Settings size={18} color="#6366f1" /> Properties
