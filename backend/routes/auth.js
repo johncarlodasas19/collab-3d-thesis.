@@ -256,6 +256,15 @@ router.delete('/me', authMiddleware, async (req, res) => {
     if (!deletedUser) {
       return res.status(404).json({ message: 'User not found' });
     }
+    
+    // Delete all projects owned by this user
+    await Project.deleteMany({ owner: userId });
+    
+    // Remove this user from collaborators arrays in other people's projects
+    await Project.updateMany(
+      { collaborators: userId },
+      { $pull: { collaborators: userId } }
+    );
     const io = req.app.get('io');
     if (io) {
       io.emit('user-status-changed', { userId: userId, status: 'self-deleted' });

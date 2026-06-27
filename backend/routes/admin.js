@@ -102,6 +102,15 @@ router.delete('/users/:id', async (req, res) => {
     const user = await User.findByIdAndDelete(req.params.id);
     if (!user) return res.status(404).json({ message: 'User not found' });
     
+    // Delete all projects owned by this user
+    await Project.deleteMany({ owner: req.params.id });
+    
+    // Remove this user from collaborators arrays in other people's projects
+    await Project.updateMany(
+      { collaborators: req.params.id },
+      { $pull: { collaborators: req.params.id } }
+    );
+    
     // Create activity log
     await ActivityLog.create({
       userId: req.user.userId,
