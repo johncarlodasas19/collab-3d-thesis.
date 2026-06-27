@@ -446,8 +446,8 @@ export default function Dashboard() {
           <div className="brand" style={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.4rem', fontWeight: 'bold', color: 'white' }}>
             <Box size={24} color="#6366f1" /> Collab 3D
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#818cf8', fontSize: '0.8rem', letterSpacing: '1px', fontWeight: 'bold', marginLeft: '0.2rem' }}>
-            <UserIcon color="#6366f1" size={14} /> User Console
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#818cf8', fontSize: '0.9rem', letterSpacing: '1px', fontWeight: 'bold', marginLeft: '0.2rem' }}>
+            <UserIcon color="#6366f1" size={18} strokeWidth={2.5} style={{ marginTop: '-1px' }} /> User Console
           </div>
         </div>
         <nav>

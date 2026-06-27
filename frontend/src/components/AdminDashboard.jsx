@@ -438,8 +438,8 @@ export default function AdminDashboard() {
           <div className="brand" style={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.4rem', fontWeight: 'bold', color: 'white' }}>
             <Box size={24} color="#ef4444" /> Collab 3D
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#fca5a5', fontSize: '0.8rem', letterSpacing: '1px', fontWeight: 'bold', marginLeft: '0.2rem' }}>
-            <Shield color="#ef4444" size={14} /> Admin Console
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#fca5a5', fontSize: '0.9rem', letterSpacing: '1px', fontWeight: 'bold', marginLeft: '0.2rem' }}>
+            <Shield color="#ef4444" size={18} strokeWidth={2.5} style={{ marginTop: '-1px' }} /> Admin Console
           </div>
         </div>
         <nav>
@@ -1225,8 +1225,8 @@ export default function AdminDashboard() {
               <p style={{ color: '#94a3b8', fontSize: '0.95rem', lineHeight: '1.6' }}>
                 The uploaded evidence for this old report has expired and was automatically cleared by the server to save storage space. 
                 <br/><br/>
-                <span style={{ color: '#34d399', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
-                  <CheckCircle size={16}/> All new reports will now have permanent evidence previews.
+                <span style={{ color: '#34d399', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem', marginTop: '0.5rem' }}>
+                  <CheckCircle size={22} strokeWidth={2.5} style={{ flexShrink: 0 }} /> <span>All new reports will now have permanent evidence previews.</span>
                 </span>
               </p>
             </div>
