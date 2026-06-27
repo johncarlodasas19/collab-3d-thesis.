@@ -1322,11 +1322,12 @@ export default function Workspace() {
                     style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999 }} 
                     onClick={() => setShowEmojiPicker(false)} 
                   />
-                  <div style={{ position: 'absolute', bottom: '100%', right: 0, marginBottom: '0.5rem', zIndex: 1000, boxShadow: '0 10px 15px -3px rgba(0,0,0,0.5)', width: '100%', maxWidth: '320px' }}>
+                  <div style={{ position: 'absolute', bottom: '100%', right: 0, marginBottom: '0.5rem', zIndex: 1000, boxShadow: '0 10px 15px -3px rgba(0,0,0,0.5)', width: '100%', maxWidth: '320px', maxHeight: '50vh', display: 'flex' }}>
                     <EmojiPicker 
                       onEmojiClick={(emoji) => { setNewMessage(prev => prev + emoji.emoji); setShowEmojiPicker(false); }} 
                       theme="dark" 
                       width="100%"
+                      height="40vh"
                     />
                   </div>
                 </>
