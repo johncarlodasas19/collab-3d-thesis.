@@ -71,7 +71,6 @@ export default function Dashboard() {
         if (Array.isArray(importedObjects)) {
           let newName = file.name;
           newName = newName.replace(/\.collab3d/gi, '').replace(/\.json/gi, '');
-          newName = newName.replace(/\(\d+\)/g, '');
           newName = newName.replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
           
           if (!newName) newName = 'Imported Design';
