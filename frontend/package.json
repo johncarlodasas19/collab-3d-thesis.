@@ -19,6 +19,7 @@
     "react": "^19.2.6",
     "react-avatar-editor": "^15.1.0",
     "react-dom": "^19.2.6",
+    "react-draggable": "^4.7.0",
     "react-player": "^3.4.0",
     "react-router-dom": "^7.18.0",
     "socket.io-client": "^4.8.3",
