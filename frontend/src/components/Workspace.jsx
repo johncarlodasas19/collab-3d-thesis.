@@ -1020,7 +1020,7 @@ export default function Workspace() {
           style={{
             position: 'fixed',
             left: isLeftSidebarOpen ? '85px' : '0px',
-            top: '50%',
+            top: 'calc(50% + 32px)',
             transform: 'translateY(-50%)',
             width: '32px',
             height: '70px',
@@ -1052,7 +1052,7 @@ export default function Workspace() {
           style={{
             position: 'fixed',
             right: isRightSidebarOpen ? '320px' : '0px',
-            top: '50%',
+            top: 'calc(50% + 32px)',
             transform: 'translateY(-50%)',
             width: '32px',
             height: '70px',
@@ -1226,7 +1226,7 @@ export default function Workspace() {
             )}
           </div>
 
-          <div className="workspace-chat-container" style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', flex: 1, minHeight: '250px', maxHeight: '50vh', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem', position: 'relative' }}>
+          <div className="workspace-chat-container" style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', flex: 1, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem', position: 'relative', overflow: 'hidden' }}>
             <h3 style={{ marginBottom: '0.5rem', color: 'white', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
               <MessageSquare size={16} /> Real-Time Chat
             </h3>
