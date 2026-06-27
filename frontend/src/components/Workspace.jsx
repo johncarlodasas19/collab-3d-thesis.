@@ -1227,7 +1227,7 @@ export default function Workspace() {
           </div>
           </div>
 
-          <div className="workspace-chat-container" style={{ flex: 1, display: 'flex', flexDirection: 'column', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem', position: 'relative', overflow: 'hidden', minHeight: 0 }}>
+          <div className="workspace-chat-container" style={{ flex: 1, display: 'flex', flexDirection: 'column', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem', position: 'relative', overflow: 'visible', minHeight: 0 }}>
             <h3 style={{ marginBottom: '0.5rem', color: 'white', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
               <MessageSquare size={16} /> Real-Time Chat
             </h3>
