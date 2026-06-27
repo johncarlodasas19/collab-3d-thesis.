@@ -49,7 +49,7 @@ export function VideoPlane({ url, isSelected, color }) {
   );
 }
 
-export default function MediaObject({ id, type, url, position, rotation, scale, color, onSelect, selectedId, transformMode, socket, roomId }) {
+export default function MediaObject({ id, type, url, position, rotation, scale, color, onSelect, selectedId, transformMode, socket, roomId, readOnly }) {
   const groupRef = useRef();
   const [isReady, setIsReady] = useState(false);
   const isSelected = selectedId === id;
@@ -65,6 +65,7 @@ export default function MediaObject({ id, type, url, position, rotation, scale, 
 
   const handleClick = (e) => {
     e.stopPropagation();
+    if (readOnly) return;
     onSelect(id);
   };
 
@@ -91,7 +92,7 @@ export default function MediaObject({ id, type, url, position, rotation, scale, 
         {type === 'video' && <VideoPlane url={url} isSelected={isSelected} color={color} />}
       </group>
       
-      {isSelected && isReady && (
+      {!readOnly && isSelected && isReady && (
         <TransformControls 
           object={groupRef.current} 
           mode={transformMode}

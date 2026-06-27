@@ -47,6 +47,9 @@ export default function Workspace() {
   const [selectedId, setSelectedId] = useState(null);
   const [transformMode, setTransformMode] = useState('translate');
   const [socket, setSocket] = useState(null);
+  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const isAdmin = currentUser.role === 'admin';
+
   const [projectName, setProjectName] = useState('Untitled Project');
   const [saving, setSaving] = useState(false);
   const [activeUsers, setActiveUsers] = useState([]);
@@ -57,7 +60,7 @@ export default function Workspace() {
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [deletedProjectModal, setDeletedProjectModal] = useState(false);
   const [videoUrlInput, setVideoUrlInput] = useState('');
-  const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(window.innerWidth >= 768);
+  const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(isAdmin ? false : window.innerWidth >= 768);
   const draggableNodeRef = useRef(null);
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(window.innerWidth >= 768);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -72,7 +75,6 @@ export default function Workspace() {
   const location = useLocation();
   const fileInputRef = useRef(null);
   const chatAttachmentRef = useRef(null);
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const fromReports = new URLSearchParams(location.search).get('from') === 'reports';
 
   const handleGoBack = () => {
@@ -802,17 +804,23 @@ export default function Workspace() {
           <button className="icon-btn" onClick={handleGoBack} title={currentUser.role === 'admin' ? "Back to Admin Console" : "Back to Dashboard"}>
             <ArrowLeft size={20} />
           </button>
-          <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.15)', borderRadius: '0.5rem', padding: '0.25rem 0.5rem', border: '1px solid rgba(255,255,255,0.05)', transition: 'all 0.2s' }} onMouseOver={e => e.currentTarget.style.border = '1px solid rgba(255,255,255,0.2)'} onMouseOut={e => { if (document.activeElement !== e.currentTarget.querySelector('input')) e.currentTarget.style.border = '1px solid rgba(255,255,255,0.05)'; }} onFocus={e => e.currentTarget.style.border = '1px solid #6366f1'} onBlur={e => e.currentTarget.style.border = '1px solid rgba(255,255,255,0.05)'}>
-            <input 
-              value={projectName}
-              onChange={(e) => setProjectName(e.target.value)}
-              onBlur={handleRenameProject}
-              onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
-              style={{ background: 'transparent', border: 'none', color: 'white', fontSize: '1.2rem', fontWeight: 'bold', outline: 'none', padding: '0', width: '250px', cursor: 'text' }}
-              title="Click to rename project"
-            />
-            <Edit2 size={16} color="#94a3b8" style={{ marginLeft: '0.5rem', cursor: 'pointer' }} title="Rename Project" onClick={(e) => e.currentTarget.previousSibling.focus()} />
-          </div>
+          {isAdmin ? (
+            <div style={{ color: 'white', fontSize: '1.2rem', fontWeight: 'bold', padding: '0.25rem 0.5rem' }}>
+              {projectName}
+            </div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(0,0,0,0.15)', borderRadius: '0.5rem', padding: '0.25rem 0.5rem', border: '1px solid rgba(255,255,255,0.05)', transition: 'all 0.2s' }} onMouseOver={e => e.currentTarget.style.border = '1px solid rgba(255,255,255,0.2)'} onMouseOut={e => { if (document.activeElement !== e.currentTarget.querySelector('input')) e.currentTarget.style.border = '1px solid rgba(255,255,255,0.05)'; }} onFocus={e => e.currentTarget.style.border = '1px solid #6366f1'} onBlur={e => e.currentTarget.style.border = '1px solid rgba(255,255,255,0.05)'}>
+              <input 
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
+                onBlur={handleRenameProject}
+                onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
+                style={{ background: 'transparent', border: 'none', color: 'white', fontSize: '1.2rem', fontWeight: 'bold', outline: 'none', padding: '0', width: '250px', cursor: 'text' }}
+                title="Click to rename project"
+              />
+              <Edit2 size={16} color="#94a3b8" style={{ marginLeft: '0.5rem', cursor: 'pointer' }} title="Rename Project" onClick={(e) => e.currentTarget.previousSibling.focus()} />
+            </div>
+          )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <div style={{ display: 'flex' }}>
@@ -847,50 +855,55 @@ export default function Workspace() {
               </div>
             ))}
           </div>
-          <button 
-            onClick={handleInvite}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: '500' }}
-          >
-            <UserPlus size={16} /> Share
-          </button>
-          
-          <button 
-            onClick={handleScreenshot}
-            title="Take a picture of your design"
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: '500' }}
-          >
-            <Camera size={16} /> Screenshot
-          </button>
-          
-          <button 
-            onClick={handleExportDesign}
-            title="Download design as a .collab3d file"
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: '500' }}
-          >
-            <Download size={16} /> Download
-          </button>
-          <button 
-            onClick={handleSaveProject}
-            disabled={saving}
-            style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '500' }}
-          >
-            <Save size={16} /> {saving ? 'Saving...' : 'Save Project'}
-          </button>
-          <button 
-            onClick={() => setShowReportModal(true)}
-            title="Report Inappropriate Content"
-            style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '0.5rem', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            onMouseOver={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'}
-            onMouseOut={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
-          >
-            <AlertCircle size={16} />
-          </button>
+          {!isAdmin && (
+            <>
+              <button 
+                onClick={handleInvite}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: '500' }}
+              >
+                <UserPlus size={16} /> Share
+              </button>
+              
+              <button 
+                onClick={handleScreenshot}
+                title="Take a picture of your design"
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: '500' }}
+              >
+                <Camera size={16} /> Screenshot
+              </button>
+              
+              <button 
+                onClick={handleExportDesign}
+                title="Download design as a .collab3d file"
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: '500' }}
+              >
+                <Download size={16} /> Download
+              </button>
+              <button 
+                onClick={handleSaveProject}
+                disabled={saving}
+                style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '500' }}
+              >
+                <Save size={16} /> {saving ? 'Saving...' : 'Save Project'}
+              </button>
+              <button 
+                onClick={() => setShowReportModal(true)}
+                title="Report Inappropriate Content"
+                style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '0.5rem', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                onMouseOver={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'}
+                onMouseOut={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
+              >
+                <AlertCircle size={16} />
+              </button>
+            </>
+          )}
         </div>
       </header>
 
       <div className="workspace-main" style={{ position: 'relative' }}>
-        <aside className="workspace-toolbar" style={{ 
-          width: isLeftSidebarOpen ? '85px' : '0px', 
+        {!isAdmin && (
+          <aside className="workspace-toolbar" style={{ 
+            width: isLeftSidebarOpen ? '85px' : '0px', 
           minWidth: isLeftSidebarOpen ? '85px' : '0px',
           padding: isLeftSidebarOpen ? '1.5rem 0' : '0', 
           opacity: isLeftSidebarOpen ? 1 : 0,
@@ -1008,10 +1021,12 @@ export default function Workspace() {
               <Trash2 size={24} />
             </button>
           </div>
-        </aside>
+          </aside>
+        )}
 
         {/* Left Sidebar Toggle Button */}
-        <button 
+        {!isAdmin && (
+          <button 
           onClick={(e) => {
             e.stopPropagation();
             setIsLeftSidebarOpen(!isLeftSidebarOpen);
@@ -1040,7 +1055,8 @@ export default function Workspace() {
           }}
         >
           {isLeftSidebarOpen ? <ChevronLeft size={24} /> : <ChevronRight size={24} />}
-        </button>
+          </button>
+        )}
 
         {/* Right Sidebar Toggle Button */}
         <button 
@@ -1082,9 +1098,10 @@ export default function Workspace() {
             transformMode={transformMode}
             socket={socket}
             roomId={projectId}
+            readOnly={isAdmin}
           />
 
-          {isShapeSelected && (
+          {!isAdmin && isShapeSelected && (
             <Draggable nodeRef={draggableNodeRef} handle=".drag-handle" defaultPosition={{ x: 0, y: 0 }}>
               <div ref={draggableNodeRef} className="properties-panel" style={{
                 position: 'absolute', top: '1.5rem', 
@@ -1177,25 +1194,27 @@ export default function Workspace() {
             <div style={{ flex: 1, overflowY: 'auto', paddingRight: '0.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {objects.filter(o => o.type === 'image' || o.type === 'video').map(obj => (
               <div key={obj.id} className="media-item">
-              <button 
-                className="media-item-delete"
-                title="Delete Media"
-                onClick={() => {
-                  const userStr = localStorage.getItem('user');
-                  const userObj = userStr ? JSON.parse(userStr) : { username: 'Someone' };
-                  setObjects(prev => prev.filter(o => o.id !== obj.id));
-                  if (socket) socket.emit('object-deleted', { roomId: projectId, id: obj.id, deletedBy: userObj.username, deletedObjType: obj.type });
-                  
-                  const typeName = obj.type === 'image' ? 'photo' : obj.type === 'video' ? 'video' : obj.type || 'object';
-                  const isMedia = typeName === 'photo' || typeName === 'video';
-                  const message = isMedia 
-                    ? `You deleted a ${typeName} from the media gallery.`
-                    : `You deleted a ${typeName} shape.`;
-                  showToast(message, 'delete', { username: 'You', color: '#ef4444' });
-                }}
-              >
-                <Trash2 size={14} />
-              </button>
+              {!isAdmin && (
+                <button 
+                  className="media-item-delete"
+                  title="Delete Media"
+                  onClick={() => {
+                    const userStr = localStorage.getItem('user');
+                    const userObj = userStr ? JSON.parse(userStr) : { username: 'Someone' };
+                    setObjects(prev => prev.filter(o => o.id !== obj.id));
+                    if (socket) socket.emit('object-deleted', { roomId: projectId, id: obj.id, deletedBy: userObj.username, deletedObjType: obj.type });
+                    
+                    const typeName = obj.type === 'image' ? 'photo' : obj.type === 'video' ? 'video' : obj.type || 'object';
+                    const isMedia = typeName === 'photo' || typeName === 'video';
+                    const message = isMedia 
+                      ? `You deleted a ${typeName} from the media gallery.`
+                      : `You deleted a ${typeName} shape.`;
+                    showToast(message, 'delete', { username: 'You', color: '#ef4444' });
+                  }}
+                >
+                  <Trash2 size={14} />
+                </button>
+              )}
               {obj.type === 'image' && <img src={getMediaUrl(obj.url)} alt="Uploaded" />}
               {obj.type === 'video' && (
                 <div style={{ width: '100%', borderRadius: '0.5rem', overflow: 'hidden', background: '#000', aspectRatio: '16/9', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 4px 6px rgba(0,0,0,0.3)' }}>

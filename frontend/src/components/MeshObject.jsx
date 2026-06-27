@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { TransformControls } from '@react-three/drei';
 
-export default function MeshObject({ id, type, position, rotation, scale, color, onSelect, selectedId, transformMode, socket, roomId }) {
+export default function MeshObject({ id, type, position, rotation, scale, color, onSelect, selectedId, transformMode, socket, roomId, readOnly }) {
   const groupRef = useRef();
   const [isReady, setIsReady] = useState(false);
   const isSelected = selectedId === id;
@@ -18,6 +18,7 @@ export default function MeshObject({ id, type, position, rotation, scale, color,
 
   const handleClick = (e) => {
     e.stopPropagation();
+    if (readOnly) return;
     onSelect(id);
   };
 
@@ -102,7 +103,7 @@ export default function MeshObject({ id, type, position, rotation, scale, color,
         )}
       </group>
       
-      {isSelected && isReady && (
+      {!readOnly && isSelected && isReady && (
         <TransformControls 
           object={groupRef.current} 
           mode={transformMode}

@@ -4,12 +4,12 @@ import { OrbitControls, Grid, Environment } from '@react-three/drei';
 import MeshObject from './MeshObject';
 import MediaObject from './MediaObject';
 
-export default function ThreeCanvas({ objects, selectedId, setSelectedId, transformMode, socket, roomId }) {
+export default function ThreeCanvas({ objects, selectedId, setSelectedId, transformMode, socket, roomId, readOnly }) {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <Canvas 
         camera={{ position: [5, 5, 5], fov: 50 }}
-        onPointerMissed={() => setSelectedId(null)}
+        onPointerMissed={() => { if (!readOnly) setSelectedId(null); }}
         gl={{ preserveDrawingBuffer: true }}
       >
         <color attach="background" args={['#1e1e24']} />
@@ -33,6 +33,7 @@ export default function ThreeCanvas({ objects, selectedId, setSelectedId, transf
               transformMode={transformMode}
               socket={socket}
               roomId={roomId}
+              readOnly={readOnly}
             />
           );
         })}
