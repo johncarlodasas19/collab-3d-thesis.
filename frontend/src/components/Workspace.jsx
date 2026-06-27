@@ -1087,7 +1087,7 @@ export default function Workspace() {
           {isShapeSelected && (
             <Draggable nodeRef={draggableNodeRef} handle=".drag-handle" defaultPosition={{ x: 0, y: 0 }}>
               <div ref={draggableNodeRef} className="properties-panel" style={{
-                position: 'absolute', top: '5rem', 
+                position: 'absolute', top: 'calc(50% - 120px)', 
                 left: isLeftSidebarOpen ? '135px' : '48px',
                 background: 'rgba(15, 23, 42, 0.95)', backdropFilter: 'blur(16px)',
                 border: '1px solid rgba(99, 102, 241, 0.3)', borderRadius: '1rem',
