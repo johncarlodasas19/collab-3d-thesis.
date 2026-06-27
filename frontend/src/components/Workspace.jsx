@@ -1088,7 +1088,7 @@ export default function Workspace() {
             <Draggable nodeRef={draggableNodeRef} handle=".drag-handle" defaultPosition={{ x: 0, y: 0 }}>
               <div ref={draggableNodeRef} className="properties-panel" style={{
                 position: 'absolute', top: '1.5rem', 
-                left: isLeftSidebarOpen ? '135px' : '48px',
+                left: isLeftSidebarOpen ? '50px' : '48px',
                 background: 'rgba(15, 23, 42, 0.95)', backdropFilter: 'blur(16px)',
                 border: '1px solid rgba(99, 102, 241, 0.3)', borderRadius: '1rem',
                 padding: '1.5rem', width: '280px', zIndex: 20, color: 'white',
