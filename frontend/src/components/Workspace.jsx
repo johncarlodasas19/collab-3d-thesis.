@@ -1328,6 +1328,8 @@ export default function Workspace() {
                       theme="dark" 
                       width="100%"
                       height="40vh"
+                      searchDisabled={true}
+                      previewConfig={{ showPreview: false }}
                     />
                   </div>
                 </>
