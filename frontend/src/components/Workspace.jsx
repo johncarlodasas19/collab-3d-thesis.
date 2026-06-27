@@ -1084,7 +1084,7 @@ export default function Workspace() {
 
           {isShapeSelected && (
             <div className="properties-panel" style={{
-              position: 'absolute', top: '1.5rem', left: '1.5rem',
+              position: 'absolute', top: '1.5rem', left: '5.5rem',
               background: 'rgba(15, 23, 42, 0.95)', backdropFilter: 'blur(16px)',
               border: '1px solid rgba(99, 102, 241, 0.3)', borderRadius: '1rem',
               padding: '1.5rem', width: '280px', zIndex: 20, color: 'white',
@@ -1098,28 +1098,31 @@ export default function Workspace() {
                 <label style={{ display: 'block', fontSize: '0.9rem', color: '#cbd5e1', marginBottom: '0.5rem', fontWeight: '500' }}>Shape Color</label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                   <div style={{ 
-                    width: '40px', height: '40px', borderRadius: '0.5rem', overflow: 'hidden', 
-                    border: '2px solid rgba(255,255,255,0.2)', cursor: 'pointer', position: 'relative',
+                    width: '42px', height: '42px', borderRadius: '50%', overflow: 'hidden', 
+                    border: '3px solid rgba(255,255,255,0.2)', cursor: 'pointer', position: 'relative',
                     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3)'
-                  }}>
+                  }} title="Click here to pick a color">
                     <input 
                       type="color" 
                       value={selectedObj.color || '#ffffff'} 
                       onChange={(e) => handlePropertyChange('color', e.target.value)}
-                      style={{ position: 'absolute', top: '-10px', left: '-10px', width: '60px', height: '60px', cursor: 'pointer', border: 'none', padding: 0 }}
-                      title="Choose from Color Picker"
+                      style={{ position: 'absolute', top: '-10px', left: '-10px', width: '64px', height: '64px', cursor: 'pointer', border: 'none', padding: 0 }}
+                      title="Click here to pick a color"
                     />
                   </div>
-                  <input 
-                    type="text" 
-                    value={selectedObj.color || '#ffffff'} 
-                    onChange={(e) => handlePropertyChange('color', e.target.value)}
-                    style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.15)', color: 'white', padding: '0.6rem 0.75rem', borderRadius: '0.5rem', fontSize: '0.95rem', fontFamily: 'monospace', flex: 1, textTransform: 'uppercase', outline: 'none' }}
-                    onFocus={(e) => e.target.style.borderColor = '#6366f1'}
-                    onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.15)'}
-                    placeholder="#FFFFFF"
-                    title="Type HEX Color Code"
-                  />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '0.65rem', color: '#94a3b8', marginBottom: '0.2rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>HEX Code</div>
+                    <input 
+                      type="text" 
+                      value={selectedObj.color || '#ffffff'} 
+                      onChange={(e) => handlePropertyChange('color', e.target.value)}
+                      style={{ width: '100%', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.15)', color: 'white', padding: '0.6rem 0.75rem', borderRadius: '0.5rem', fontSize: '0.95rem', fontFamily: 'monospace', textTransform: 'uppercase', outline: 'none', transition: 'border-color 0.2s' }}
+                      onFocus={(e) => e.target.style.borderColor = '#6366f1'}
+                      onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.15)'}
+                      placeholder="#FFFFFF"
+                      title="Type HEX Color Code"
+                    />
+                  </div>
                 </div>
               </div>
 
