@@ -110,9 +110,23 @@ export default function Dashboard() {
   const handleDuplicateProject = async (project, e) => {
     e.stopPropagation();
     try {
+      let baseName = project.name;
+      const copyMatch = project.name.match(/^(.*?)\s*\(\s*Copy(?:\s+\d+)?\s*\)$/i);
+      if (copyMatch) {
+        baseName = copyMatch[1];
+      }
+
+      let newName = `${baseName} (Copy)`;
+      let copyNumber = 1;
+
+      while (projects.some(p => p.name === newName)) {
+        copyNumber++;
+        newName = `${baseName} (Copy ${copyNumber})`;
+      }
+
       const token = localStorage.getItem('token');
       const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects`, { 
-        name: `${project.name} (Copy)`,
+        name: newName,
         data: project.data || { objects: [] }
       }, {
         headers: { Authorization: `Bearer ${token}` }
