@@ -38,7 +38,7 @@ export default function AdminDashboard() {
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, projectId: null });
   const [evidenceModal, setEvidenceModal] = useState({ isOpen: false, url: null, error: false });
   const [bulkDeleteModal, setBulkDeleteModal] = useState({ isOpen: false, type: null, title: '', message: '' });
-  const [suspensionModal, setSuspensionModal] = useState({ isOpen: false, userId: null, hours: 24 });
+  const [suspensionModal, setSuspensionModal] = useState({ isOpen: false, userId: null, hours: 24, minutes: 0 });
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -146,7 +146,7 @@ export default function AdminDashboard() {
 
   const handleUpdateStatus = async (userId, status) => {
     if (status === 'suspended') {
-      setSuspensionModal({ isOpen: true, userId, hours: 24 });
+      setSuspensionModal({ isOpen: true, userId, hours: 24, minutes: 0 });
       return;
     }
     executeStatusUpdate(userId, status);
@@ -169,8 +169,9 @@ export default function AdminDashboard() {
 
   const confirmSuspension = () => {
     if (!suspensionModal.userId) return;
-    executeStatusUpdate(suspensionModal.userId, 'suspended', suspensionModal.hours);
-    setSuspensionModal({ isOpen: false, userId: null, hours: 24 });
+    const totalHours = suspensionModal.hours + (suspensionModal.minutes / 60);
+    executeStatusUpdate(suspensionModal.userId, 'suspended', totalHours);
+    setSuspensionModal({ isOpen: false, userId: null, hours: 24, minutes: 0 });
   };
 
   const handleDeleteUserClick = (userId, username) => {
@@ -1401,19 +1402,34 @@ export default function AdminDashboard() {
             </div>
             <h3 style={{ marginBottom: '1rem', fontSize: '1.4rem', color: 'white', fontWeight: 'bold' }}>Suspend Account</h3>
             <p style={{ color: '#94a3b8', marginBottom: '1.5rem', lineHeight: '1.6', fontSize: '1rem' }}>
-              How long should this user be suspended? (Hours)
+              How long should this user be suspended?
             </p>
-            <input 
-              type="number" 
-              step="0.1"
-              min="0.1"
-              value={suspensionModal.hours} 
-              onChange={(e) => setSuspensionModal({ ...suspensionModal, hours: parseFloat(e.target.value) || 0 })}
-              style={{ width: '100%', padding: '1rem', marginBottom: '2rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(15, 23, 42, 0.8)', color: 'white', fontSize: '1.2rem', textAlign: 'center', outline: 'none' }}
-            />
+            <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Hours</label>
+                <input 
+                  type="number" 
+                  min="0"
+                  value={suspensionModal.hours} 
+                  onChange={(e) => setSuspensionModal({ ...suspensionModal, hours: parseInt(e.target.value) || 0 })}
+                  style={{ width: '100%', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(15, 23, 42, 0.8)', color: 'white', fontSize: '1.2rem', textAlign: 'center', outline: 'none' }}
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Minutes</label>
+                <input 
+                  type="number" 
+                  min="0"
+                  max="59"
+                  value={suspensionModal.minutes} 
+                  onChange={(e) => setSuspensionModal({ ...suspensionModal, minutes: parseInt(e.target.value) || 0 })}
+                  style={{ width: '100%', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(15, 23, 42, 0.8)', color: 'white', fontSize: '1.2rem', textAlign: 'center', outline: 'none' }}
+                />
+              </div>
+            </div>
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
               <button 
-                onClick={() => setSuspensionModal({ isOpen: false, userId: null, hours: 24 })}
+                onClick={() => setSuspensionModal({ isOpen: false, userId: null, hours: 24, minutes: 0 })}
                 style={{ background: 'rgba(255,255,255,0.05)', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.1)', padding: '0.85rem 1.5rem', borderRadius: '0.75rem', fontWeight: 'bold', cursor: 'pointer', flex: 1, transition: 'all 0.2s' }}
                 onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'white'; }}
                 onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#94a3b8'; }}
@@ -1422,10 +1438,10 @@ export default function AdminDashboard() {
               </button>
               <button 
                 onClick={confirmSuspension}
-                disabled={suspensionModal.hours <= 0}
-                style={{ background: 'linear-gradient(135deg, #eab308 0%, #ca8a04 100%)', color: 'white', border: 'none', padding: '0.85rem 1.5rem', borderRadius: '0.75rem', fontWeight: 'bold', cursor: 'pointer', flex: 1, transition: 'all 0.3s ease', boxShadow: '0 4px 15px rgba(234, 179, 8, 0.4)', opacity: suspensionModal.hours <= 0 ? 0.5 : 1 }}
-                onMouseEnter={(e) => { if (suspensionModal.hours > 0) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(234, 179, 8, 0.6)'; } }}
-                onMouseLeave={(e) => { if (suspensionModal.hours > 0) { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(234, 179, 8, 0.4)'; } }}
+                disabled={suspensionModal.hours <= 0 && suspensionModal.minutes <= 0}
+                style={{ background: 'linear-gradient(135deg, #eab308 0%, #ca8a04 100%)', color: 'white', border: 'none', padding: '0.85rem 1.5rem', borderRadius: '0.75rem', fontWeight: 'bold', cursor: 'pointer', flex: 1, transition: 'all 0.3s ease', boxShadow: '0 4px 15px rgba(234, 179, 8, 0.4)', opacity: (suspensionModal.hours <= 0 && suspensionModal.minutes <= 0) ? 0.5 : 1 }}
+                onMouseEnter={(e) => { if (suspensionModal.hours > 0 || suspensionModal.minutes > 0) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(234, 179, 8, 0.6)'; } }}
+                onMouseLeave={(e) => { if (suspensionModal.hours > 0 || suspensionModal.minutes > 0) { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(234, 179, 8, 0.4)'; } }}
               >
                 Suspend
               </button>
