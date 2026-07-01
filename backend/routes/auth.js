@@ -53,7 +53,7 @@ router.post('/login', async (req, res) => {
         user.suspensionEnd = null;
         await user.save();
       } else {
-        const timeStr = user.suspensionEnd ? new Date(user.suspensionEnd).toLocaleString() : 'an indefinite time';
+        const timeStr = user.suspensionEnd ? new Date(user.suspensionEnd).toLocaleString('en-US', { timeZone: 'Asia/Manila', dateStyle: 'medium', timeStyle: 'short' }) : 'an indefinite time';
         return res.status(403).json({ message: `Your account is temporarily suspended until ${timeStr}.` });
       }
     }
@@ -100,7 +100,7 @@ router.post('/google', async (req, res) => {
           user.suspensionEnd = null;
           await user.save();
         } else {
-          const timeStr = user.suspensionEnd ? new Date(user.suspensionEnd).toLocaleString() : 'an indefinite time';
+          const timeStr = user.suspensionEnd ? new Date(user.suspensionEnd).toLocaleString('en-US', { timeZone: 'Asia/Manila', dateStyle: 'medium', timeStyle: 'short' }) : 'an indefinite time';
           return res.status(403).json({ message: `Your account is temporarily suspended until ${timeStr}.` });
         }
       }
