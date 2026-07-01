@@ -1419,7 +1419,11 @@ export default function AdminDashboard() {
                   type="number" 
                   min="0"
                   value={suspensionModal.hours} 
-                  onChange={(e) => setSuspensionModal({ ...suspensionModal, hours: parseInt(e.target.value) || 0 })}
+                  onChange={(e) => {
+                    let val = parseInt(e.target.value);
+                    if (isNaN(val) || val < 0) val = 0;
+                    setSuspensionModal({ ...suspensionModal, hours: val });
+                  }}
                   style={{ width: '100%', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(15, 23, 42, 0.8)', color: 'white', fontSize: '1.2rem', textAlign: 'center', outline: 'none' }}
                 />
               </div>
@@ -1430,7 +1434,12 @@ export default function AdminDashboard() {
                   min="0"
                   max="59"
                   value={suspensionModal.minutes} 
-                  onChange={(e) => setSuspensionModal({ ...suspensionModal, minutes: parseInt(e.target.value) || 0 })}
+                  onChange={(e) => {
+                    let val = parseInt(e.target.value);
+                    if (isNaN(val) || val < 0) val = 0;
+                    if (val > 59) val = 59;
+                    setSuspensionModal({ ...suspensionModal, minutes: val });
+                  }}
                   style={{ width: '100%', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(15, 23, 42, 0.8)', color: 'white', fontSize: '1.2rem', textAlign: 'center', outline: 'none' }}
                 />
               </div>
