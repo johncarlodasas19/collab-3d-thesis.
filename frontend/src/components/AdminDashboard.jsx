@@ -152,13 +152,13 @@ export default function AdminDashboard() {
     executeStatusUpdate(userId, status);
   };
 
-  const executeStatusUpdate = async (userId, status, hours = null) => {
+  const executeStatusUpdate = async (userId, status, hours = null, customMessage = null) => {
     try {
       const token = localStorage.getItem('token');
       await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/users/${userId}/status`, { status, suspensionHours: hours }, { headers: { Authorization: `Bearer ${token}` } });
       fetchData();
       if (status === 'suspended') {
-        setAdminActionSuccessModal({ show: true, message: `User account suspended for ${hours} hours.` });
+        setAdminActionSuccessModal({ show: true, message: customMessage || `User account suspended for ${hours} hours.` });
       } else {
         setAdminActionSuccessModal({ show: true, message: `User status successfully updated to ${status}.` });
       }
@@ -169,8 +169,16 @@ export default function AdminDashboard() {
 
   const confirmSuspension = () => {
     if (!suspensionModal.userId) return;
-    const totalHours = suspensionModal.hours + (suspensionModal.minutes / 60);
-    executeStatusUpdate(suspensionModal.userId, 'suspended', totalHours);
+    const { hours, minutes } = suspensionModal;
+    const totalHours = hours + (minutes / 60);
+    
+    let timeParts = [];
+    if (hours > 0) timeParts.push(`${hours} hour${hours > 1 ? 's' : ''}`);
+    if (minutes > 0) timeParts.push(`${minutes} minute${minutes > 1 ? 's' : ''}`);
+    const timeString = timeParts.join(' and ');
+    const customMessage = `User account suspended for ${timeString}.`;
+
+    executeStatusUpdate(suspensionModal.userId, 'suspended', totalHours, customMessage);
     setSuspensionModal({ isOpen: false, userId: null, hours: 24, minutes: 0 });
   };
 
