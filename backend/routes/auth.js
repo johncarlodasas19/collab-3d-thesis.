@@ -48,7 +48,14 @@ router.post('/login', async (req, res) => {
       return res.status(403).json({ message: 'Your account has been permanently banned.' });
     }
     if (user.status === 'suspended') {
-      return res.status(403).json({ message: 'Your account is temporarily suspended. Please contact support.' });
+      if (user.suspensionEnd && Date.now() > user.suspensionEnd) {
+        user.status = 'active';
+        user.suspensionEnd = null;
+        await user.save();
+      } else {
+        const timeStr = user.suspensionEnd ? new Date(user.suspensionEnd).toLocaleString() : 'an indefinite time';
+        return res.status(403).json({ message: `Your account is temporarily suspended until ${timeStr}.` });
+      }
     }
 
     const isMatch = await user.comparePassword(password);
@@ -88,7 +95,14 @@ router.post('/google', async (req, res) => {
         return res.status(403).json({ message: 'Your account has been banned by an administrator.' });
       }
       if (user.status === 'suspended') {
-        return res.status(403).json({ message: 'Your account is temporarily suspended. Please contact support.' });
+        if (user.suspensionEnd && Date.now() > user.suspensionEnd) {
+          user.status = 'active';
+          user.suspensionEnd = null;
+          await user.save();
+        } else {
+          const timeStr = user.suspensionEnd ? new Date(user.suspensionEnd).toLocaleString() : 'an indefinite time';
+          return res.status(403).json({ message: `Your account is temporarily suspended until ${timeStr}.` });
+        }
       }
 
       // User exists, log them in

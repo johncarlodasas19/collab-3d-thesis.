@@ -76,7 +76,7 @@ router.put('/users/:id/role', async (req, res) => {
 
 router.put('/users/:id/status', async (req, res) => {
   try {
-    const { status } = req.body;
+    const { status, suspensionHours } = req.body;
     if (!['active', 'suspended', 'banned'].includes(status)) return res.status(400).json({ message: 'Invalid status' });
 
     // Prevent admin from banning themselves
@@ -84,7 +84,14 @@ router.put('/users/:id/status', async (req, res) => {
       return res.status(400).json({ message: 'You cannot suspend or ban yourself.' });
     }
 
-    const user = await User.findByIdAndUpdate(req.params.id, { status }, { new: true }).select('-password');
+    let updateData = { status };
+    if (status === 'suspended' && suspensionHours) {
+      updateData.suspensionEnd = new Date(Date.now() + suspensionHours * 3600000);
+    } else if (status === 'active' || status === 'banned') {
+      updateData.suspensionEnd = null;
+    }
+
+    const user = await User.findByIdAndUpdate(req.params.id, updateData, { new: true }).select('-password');
     
     // Emit real-time status change to force kick users
     if (req.app.get('io') && (status === 'banned' || status === 'suspended')) {

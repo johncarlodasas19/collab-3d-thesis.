@@ -38,6 +38,7 @@ export default function AdminDashboard() {
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, projectId: null });
   const [evidenceModal, setEvidenceModal] = useState({ isOpen: false, url: null, error: false });
   const [bulkDeleteModal, setBulkDeleteModal] = useState({ isOpen: false, type: null, title: '', message: '' });
+  const [suspensionModal, setSuspensionModal] = useState({ isOpen: false, userId: null, hours: 24 });
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -144,13 +145,32 @@ export default function AdminDashboard() {
   };
 
   const handleUpdateStatus = async (userId, status) => {
+    if (status === 'suspended') {
+      setSuspensionModal({ isOpen: true, userId, hours: 24 });
+      return;
+    }
+    executeStatusUpdate(userId, status);
+  };
+
+  const executeStatusUpdate = async (userId, status, hours = null) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/users/${userId}/status`, { status }, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/users/${userId}/status`, { status, suspensionHours: hours }, { headers: { Authorization: `Bearer ${token}` } });
       fetchData();
+      if (status === 'suspended') {
+        setAdminActionSuccessModal({ show: true, message: `User account suspended for ${hours} hours.` });
+      } else {
+        setAdminActionSuccessModal({ show: true, message: `User status successfully updated to ${status}.` });
+      }
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to update status');
     }
+  };
+
+  const confirmSuspension = () => {
+    if (!suspensionModal.userId) return;
+    executeStatusUpdate(suspensionModal.userId, 'suspended', suspensionModal.hours);
+    setSuspensionModal({ isOpen: false, userId: null, hours: 24 });
   };
 
   const handleDeleteUserClick = (userId, username) => {
@@ -1367,6 +1387,47 @@ export default function AdminDashboard() {
                 onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(239, 68, 68, 0.4)'; }}
               >
                 Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {suspensionModal.isOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999 }}>
+          <div style={{ background: 'linear-gradient(145deg, #1e293b 0%, #0f172a 100%)', padding: '3rem', borderRadius: '1.5rem', maxWidth: '400px', width: '90%', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(234, 179, 8, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', border: '1px solid rgba(234, 179, 8, 0.2)' }}>
+              <AlertTriangle size={40} color="#eab308" />
+            </div>
+            <h3 style={{ marginBottom: '1rem', fontSize: '1.4rem', color: 'white', fontWeight: 'bold' }}>Suspend Account</h3>
+            <p style={{ color: '#94a3b8', marginBottom: '1.5rem', lineHeight: '1.6', fontSize: '1rem' }}>
+              How long should this user be suspended? (Hours)
+            </p>
+            <input 
+              type="number" 
+              step="0.1"
+              min="0.1"
+              value={suspensionModal.hours} 
+              onChange={(e) => setSuspensionModal({ ...suspensionModal, hours: parseFloat(e.target.value) || 0 })}
+              style={{ width: '100%', padding: '1rem', marginBottom: '2rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(15, 23, 42, 0.8)', color: 'white', fontSize: '1.2rem', textAlign: 'center', outline: 'none' }}
+            />
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+              <button 
+                onClick={() => setSuspensionModal({ isOpen: false, userId: null, hours: 24 })}
+                style={{ background: 'rgba(255,255,255,0.05)', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.1)', padding: '0.85rem 1.5rem', borderRadius: '0.75rem', fontWeight: 'bold', cursor: 'pointer', flex: 1, transition: 'all 0.2s' }}
+                onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'white'; }}
+                onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#94a3b8'; }}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmSuspension}
+                disabled={suspensionModal.hours <= 0}
+                style={{ background: 'linear-gradient(135deg, #eab308 0%, #ca8a04 100%)', color: 'white', border: 'none', padding: '0.85rem 1.5rem', borderRadius: '0.75rem', fontWeight: 'bold', cursor: 'pointer', flex: 1, transition: 'all 0.3s ease', boxShadow: '0 4px 15px rgba(234, 179, 8, 0.4)', opacity: suspensionModal.hours <= 0 ? 0.5 : 1 }}
+                onMouseEnter={(e) => { if (suspensionModal.hours > 0) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(234, 179, 8, 0.6)'; } }}
+                onMouseLeave={(e) => { if (suspensionModal.hours > 0) { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(234, 179, 8, 0.4)'; } }}
+              >
+                Suspend
               </button>
             </div>
           </div>

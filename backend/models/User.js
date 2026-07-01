@@ -14,6 +14,7 @@ const userSchema = new mongoose.Schema({
   avatarUrl: { type: String, default: '' },
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
   status: { type: String, enum: ['active', 'suspended', 'banned'], default: 'active' },
+  suspensionEnd: { type: Date, default: null },
   createdAt: { type: Date, default: Date.now }
 });
 
