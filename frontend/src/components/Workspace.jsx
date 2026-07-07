@@ -581,6 +581,15 @@ export default function Workspace() {
     }
   };
 
+  const handleTransformEnd = (id, position, rotation, scale) => {
+    setObjects((prev) => prev.map((obj) => {
+      if (obj.id === id) {
+        return { ...obj, position, rotation, scale };
+      }
+      return obj;
+    }));
+  };
+
   const handleSaveProject = () => {
     showToast('Project saved successfully!', 'success');
     
@@ -1099,6 +1108,7 @@ export default function Workspace() {
             socket={socket}
             roomId={projectId}
             readOnly={isAdmin}
+            onTransformEnd={handleTransformEnd}
           />
 
           {!isAdmin && isShapeSelected && (

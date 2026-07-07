@@ -4,7 +4,7 @@ import { OrbitControls, Grid, Environment } from '@react-three/drei';
 import MeshObject from './MeshObject';
 import MediaObject from './MediaObject';
 
-export default function ThreeCanvas({ objects, selectedId, setSelectedId, transformMode, socket, roomId, readOnly }) {
+export default function ThreeCanvas({ objects, selectedId, setSelectedId, transformMode, socket, roomId, readOnly, onTransformEnd }) {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <Canvas 
@@ -22,7 +22,19 @@ export default function ThreeCanvas({ objects, selectedId, setSelectedId, transf
 
         {objects.map((obj) => {
           if (obj.type === 'image' || obj.type === 'video') {
-            return null;
+            return (
+              <MediaObject 
+                key={obj.id}
+                {...obj}
+                selectedId={selectedId}
+                onSelect={setSelectedId}
+                transformMode={transformMode}
+                socket={socket}
+                roomId={roomId}
+                readOnly={readOnly}
+                onTransformEnd={onTransformEnd}
+              />
+            );
           }
           return (
             <MeshObject 
@@ -34,6 +46,7 @@ export default function ThreeCanvas({ objects, selectedId, setSelectedId, transf
               socket={socket}
               roomId={roomId}
               readOnly={readOnly}
+              onTransformEnd={onTransformEnd}
             />
           );
         })}

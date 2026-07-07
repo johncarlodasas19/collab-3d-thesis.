@@ -49,7 +49,7 @@ export function VideoPlane({ url, isSelected, color }) {
   );
 }
 
-export default function MediaObject({ id, type, url, position, rotation, scale, color, onSelect, selectedId, transformMode, socket, roomId, readOnly }) {
+export default function MediaObject({ id, type, url, position, rotation, scale, color, onSelect, selectedId, transformMode, socket, roomId, readOnly, onTransformEnd }) {
   const groupRef = useRef();
   const [isReady, setIsReady] = useState(false);
   const isSelected = selectedId === id;
@@ -85,6 +85,16 @@ export default function MediaObject({ id, type, url, position, rotation, scale, 
     });
   };
 
+  const handleMouseUp = () => {
+    if (!groupRef.current || !onTransformEnd) return;
+    const { position, rotation, scale } = groupRef.current;
+    onTransformEnd(id, 
+      [position.x, position.y, position.z], 
+      [rotation.x, rotation.y, rotation.z], 
+      [scale.x, scale.y, scale.z]
+    );
+  };
+
   return (
     <>
       <group ref={groupRef} position={position} rotation={rotation} scale={scale} onClick={handleClick}>
@@ -97,6 +107,7 @@ export default function MediaObject({ id, type, url, position, rotation, scale, 
           object={groupRef.current} 
           mode={transformMode}
           onChange={handleTransformChange}
+          onMouseUp={handleMouseUp}
         />
       )}
     </>
