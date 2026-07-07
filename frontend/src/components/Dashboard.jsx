@@ -75,6 +75,19 @@ export default function Dashboard() {
           
           if (!newName) newName = 'Imported Design';
           
+          const isDuplicate = projects.some(p => p.name.trim().toLowerCase() === newName.toLowerCase());
+          if (isDuplicate) {
+            setModalConfig({
+              isOpen: true,
+              type: 'error',
+              title: 'Import Failed',
+              message: `A project with the name "${newName}" already exists. Please rename your existing project or the file before importing.`,
+              onConfirm: () => setModalConfig({ ...modalConfig, isOpen: false })
+            });
+            if (importFileInputRef.current) importFileInputRef.current.value = '';
+            return;
+          }
+          
           const token = localStorage.getItem('token');
           const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects`, { 
             name: newName,
@@ -266,6 +279,19 @@ export default function Dashboard() {
 
   const confirmCreateProject = async () => {
     if (!newProjectName.trim()) return;
+
+    const isDuplicate = projects.some(p => p.name.trim().toLowerCase() === newProjectName.trim().toLowerCase());
+    if (isDuplicate) {
+      setModalConfig({
+        isOpen: true,
+        type: 'error',
+        title: 'Project Name Exists',
+        message: 'A project with this name already exists. Please choose a different name.',
+        onConfirm: () => setModalConfig({ ...modalConfig, isOpen: false })
+      });
+      return;
+    }
+
     try {
       const token = localStorage.getItem('token');
       const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects`, { 
