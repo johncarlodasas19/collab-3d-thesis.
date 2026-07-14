@@ -720,8 +720,13 @@ export default function Workspace() {
     if (now - lastEmitTime.current < 5) return; // Throttle to 200fps for absolute ZERO delay
     lastEmitTime.current = now;
 
-    const x = e.clientX / window.innerWidth;
-    const y = e.clientY / window.innerHeight;
+    const viewport = document.querySelector('.workspace-viewport');
+    if (!viewport) return;
+    const rect = viewport.getBoundingClientRect();
+    
+    // Calculate cursor position relative to the 3D viewport, not the entire window
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
     
     const userStr = localStorage.getItem('user');
     const user = userStr ? JSON.parse(userStr) : { username: 'Guest' };
@@ -1111,6 +1116,46 @@ export default function Workspace() {
             onTransformEnd={handleTransformEnd}
           />
 
+          {/* Render Remote Cursors strictly inside the 3D viewport */}
+          {Object.entries(cursors).map(([socketId, cursor]) => {
+            const activeUser = activeUsers.find(u => u.socketId === socketId);
+            const color = activeUser?.color || '#ec4899';
+            return (
+              <div
+                key={socketId}
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  top: 0,
+                  transform: `translate(${cursor.x * 100}cqw, ${cursor.y * 100}cqh)`,
+                  pointerEvents: 'none',
+                  zIndex: 1000,
+                  transition: 'transform 0.05s linear',
+                  willChange: 'transform'
+                }}
+              >
+                <svg width="24" height="36" viewBox="0 0 24 36" fill="none" stroke="white" strokeWidth="2" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.4))' }}>
+                  <path d="M5.65376 21.1597L2.39999 3.01347L20.899 15.654L13.1491 16.6341L17.5028 25.1065L14.3541 26.7208L10.0261 18.2721L5.65376 21.1597Z" fill={color}/>
+                </svg>
+                <div style={{
+                  background: color,
+                  color: 'white',
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                  fontSize: '11px',
+                  fontWeight: '600',
+                  position: 'absolute',
+                  top: '24px',
+                  left: '12px',
+                  whiteSpace: 'nowrap',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                }}>
+                  {activeUser?.username || 'Collaborator'}
+                </div>
+              </div>
+            );
+          })}
+
           {!isAdmin && isShapeSelected && (
             <Draggable nodeRef={draggableNodeRef} handle=".drag-handle" defaultPosition={{ x: 0, y: 0 }}>
               <div ref={draggableNodeRef} className="properties-panel" style={{
@@ -1400,6 +1445,8 @@ export default function Workspace() {
         {Object.entries(cursors).map(([socketId, cursor]) => {
           const activeUser = activeUsers.find(u => u.socketId === socketId);
           const color = activeUser?.color || '#ec4899';
+          const viewport = document.querySelector('.workspace-viewport');
+          const rect = viewport?.getBoundingClientRect() || { left: 0, top: 0 };
           return (
             <div
               key={socketId}
@@ -1407,7 +1454,7 @@ export default function Workspace() {
                 position: 'absolute',
                 left: 0,
                 top: 0,
-                transform: `translate(${cursor.x * window.innerWidth}px, ${cursor.y * window.innerHeight}px)`,
+                transform: `translate(${rect.left + cursor.x * rect.width}px, ${rect.top + cursor.y * rect.height}px)`,
                 pointerEvents: 'none',
                 zIndex: 1000,
                 transition: 'transform 0.01s linear',
