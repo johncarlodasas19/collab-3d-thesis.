@@ -3,6 +3,7 @@ import { TransformControls } from '@react-three/drei';
 
 export default function MeshObject({ id, type, position, rotation, scale, color, onSelect, selectedId, transformMode, socket, roomId, readOnly, onTransformEnd }) {
   const groupRef = useRef();
+  const lastEmitTime = useRef(0);
   const [isReady, setIsReady] = useState(false);
   const isSelected = selectedId === id;
 
@@ -25,6 +26,10 @@ export default function MeshObject({ id, type, position, rotation, scale, color,
   const handleTransformChange = () => {
     if (!socket || !groupRef.current) return;
     
+    const now = Date.now();
+    if (now - lastEmitTime.current < 50) return; // Throttle to 50ms (20fps) to prevent lag
+    lastEmitTime.current = now;
+
     const { position, rotation, scale } = groupRef.current;
     
     socket.emit('object-transformed', {
