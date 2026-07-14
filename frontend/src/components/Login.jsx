@@ -38,7 +38,7 @@ export default function Login() {
         return;
       }
       if (accountType === 'user' && user.role === 'admin') {
-        setError('This tab is for user accounts only.');
+        setError('This account does not have user privileges.');
         setLoading(false);
         return;
       }
