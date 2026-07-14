@@ -37,9 +37,8 @@ export default function Login() {
         setLoading(false);
         return;
       }
-      
       if (accountType === 'user' && user.role === 'admin') {
-        setError('This is an administrator account. Please log in using the Admin tab.');
+        setError('This tab is for user accounts only.');
         setLoading(false);
         return;
       }
