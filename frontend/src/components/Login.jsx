@@ -37,6 +37,12 @@ export default function Login() {
         setLoading(false);
         return;
       }
+      
+      if (accountType === 'user' && user.role === 'admin') {
+        setError('This is an administrator account. Please log in using the Admin tab.');
+        setLoading(false);
+        return;
+      }
 
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
