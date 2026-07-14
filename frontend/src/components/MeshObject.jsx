@@ -84,7 +84,7 @@ export default function MeshObject({ id, type, position, rotation, scale, color,
         {type === 'plane' && (
           <mesh>
             <planeGeometry args={[2, 2]} />
-            <meshStandardMaterial color={color} emissive={isSelected ? '#4f46e5' : 'black'} emissiveIntensity={isSelected ? 0.5 : 0} side={2} />
+            <meshStandardMaterial color={color} emissive={isSelected ? '#4f46e5' : 'black'} emissiveIntensity={isSelected ? 0.1 : 0} side={2} />
           </mesh>
         )}
         {type === 'tetrahedron' && (

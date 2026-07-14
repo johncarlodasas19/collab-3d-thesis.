@@ -6,7 +6,7 @@ export function ImagePlane({ url, isSelected, color }) {
   const texture = useTexture(url);
   return (
     <group>
-      <mesh position={[0, 0, 0]}>
+      <mesh position={[0, 0, 0.01]}>
         <planeGeometry args={[2, 2]} />
         <meshBasicMaterial map={texture} side={THREE.DoubleSide} />
       </mesh>
@@ -37,7 +37,7 @@ export function VideoPlane({ url, isSelected, color }) {
 
   return (
     <group>
-      <mesh position={[0, 0, 0]}>
+      <mesh position={[0, 0, 0.01]}>
         <planeGeometry args={[2, 2]} />
         <meshBasicMaterial map={videoTexture} side={THREE.DoubleSide} />
       </mesh>
