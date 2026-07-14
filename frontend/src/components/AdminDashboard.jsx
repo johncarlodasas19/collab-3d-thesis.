@@ -104,14 +104,10 @@ export default function AdminDashboard() {
     });
     newSocket.on('user-role-changed', (data) => {
       if (data.userId === currentUser.id) {
-        localStorage.setItem('token', data.newToken);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        alert(`Your role has been changed to ${data.role.toUpperCase()} by an administrator.`);
-        if (data.role === 'user') {
-          navigate('/dashboard');
-        } else {
-          window.location.reload();
-        }
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        alert(`Your role has been updated to ${data.role.toUpperCase()} by an administrator. Please log in again to apply the changes.`);
+        navigate('/login');
       } else {
         fetchData(); // Refresh list automatically when another user's role changes
       }
@@ -153,6 +149,7 @@ export default function AdminDashboard() {
     try {
       const token = localStorage.getItem('token');
       await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/users/${userId}/role`, { role }, { headers: { Authorization: `Bearer ${token}` } });
+      setAdminActionSuccessModal({ show: true, message: `User role has been successfully updated to ${role.toUpperCase()}.` });
       fetchData();
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to update role');
