@@ -22,19 +22,7 @@ export default function ThreeCanvas({ objects, selectedId, setSelectedId, transf
 
         {objects.map((obj) => {
           if (obj.type === 'image' || obj.type === 'video') {
-            return (
-              <MediaObject 
-                key={obj.id}
-                {...obj}
-                selectedId={selectedId}
-                onSelect={setSelectedId}
-                transformMode={transformMode}
-                socket={socket}
-                roomId={roomId}
-                readOnly={readOnly}
-                onTransformEnd={onTransformEnd}
-              />
-            );
+            return null;
           }
           return (
             <MeshObject 
