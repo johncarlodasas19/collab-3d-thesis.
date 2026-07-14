@@ -430,8 +430,8 @@ export default function AdminDashboard() {
     return (
       <div style={{ position: 'fixed', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#0f172a', zIndex: 99999 }}>
         <div style={{ width: '50px', height: '50px', border: '4px solid rgba(255,255,255,0.1)', borderTop: '4px solid #ef4444', borderRadius: '50%', animation: 'spin 0.3s linear infinite', marginBottom: '1.5rem' }}></div>
-        <h2 style={{ fontSize: '1.2rem', fontWeight: '600', color: '#f8fafc', margin: 0, position: 'relative' }}>
-          Loading<span style={{ position: 'absolute' }}>...</span>
+        <h2 style={{ fontSize: '1.2rem', fontWeight: '700', color: '#f8fafc', margin: 0, letterSpacing: '0.3em', paddingLeft: '0.3em' }}>
+          LOADING
         </h2>
       </div>
     );
