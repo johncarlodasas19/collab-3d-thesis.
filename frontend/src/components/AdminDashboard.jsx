@@ -428,9 +428,9 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0f172a', color: 'white', gap: '1.5rem' }}>
-        <div className="spinner" style={{ width: '50px', height: '50px', border: '4px solid rgba(255,255,255,0.1)', borderTop: '4px solid #ef4444', borderRadius: '50%', animation: 'spin 0.3s linear infinite' }}></div>
-        <h2 style={{ fontSize: '1.2rem', fontWeight: '600', margin: 0, color: '#f8fafc', textAlign: 'center' }}>Loading...</h2>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', width: '100vw', background: '#0f172a', color: 'white', gap: '1.5rem', margin: 0, padding: 0, position: 'fixed', top: 0, left: 0, zIndex: 99999 }}>
+        <div className="spinner" style={{ width: '50px', height: '50px', border: '4px solid rgba(255,255,255,0.1)', borderTop: '4px solid #ef4444', borderRadius: '50%', animation: 'spin 0.3s linear infinite', margin: 0, padding: 0 }}></div>
+        <h2 style={{ fontSize: '1.2rem', fontWeight: '600', margin: 0, padding: 0, color: '#f8fafc', textAlign: 'center', width: '100%', display: 'flex', justifyContent: 'center' }}>Loading...</h2>
       </div>
     );
   }
