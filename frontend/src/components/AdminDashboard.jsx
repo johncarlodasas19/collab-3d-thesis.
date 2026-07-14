@@ -20,6 +20,7 @@ export default function AdminDashboard() {
   const [reportFilter, setReportFilter] = useState('all');
   const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
   const [adminActionModal, setAdminActionModal] = useState({ show: false, status: '' });
+  const [deletedProjectIds, setDeletedProjectIds] = useState([]);
   const [adminActionSuccessModal, setAdminActionSuccessModal] = useState({ show: false, message: '' });
   const [checkWorkspaceWarningModal, setCheckWorkspaceWarningModal] = useState({ show: false, message: '' });
   
@@ -123,8 +124,8 @@ export default function AdminDashboard() {
     return () => newSocket.disconnect();
   }, [navigate]);
 
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchData = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     try {
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
@@ -296,8 +297,11 @@ export default function AdminDashboard() {
     try {
       const token = localStorage.getItem('token');
       await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/projects/${deleteModal.projectId}/force`, { headers: { Authorization: `Bearer ${token}` } });
+      const deletedId = deleteModal.projectId;
       setDeleteModal({ isOpen: false, projectId: null });
-      fetchData(); // Refresh the list
+      setDeletedProjectIds(prev => [...prev, deletedId]);
+      fetchData(false); // Refresh without full screen loading
+      setAdminActionSuccessModal({ show: true, message: 'Project successfully deleted.' });
     } catch (err) {
       console.error('Failed to force delete project');
       alert('Error Force Deleting: ' + (err.response?.data?.message || err.message));
@@ -880,12 +884,13 @@ export default function AdminDashboard() {
                               <Eye size={16} /> Check Workspace
                             </button>
                             <button 
-                              onClick={() => handleForceDeleteProject(report.reportedProjectId)} 
-                              style={{ flex: 1, whiteSpace: 'nowrap', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#f87171', padding: '0.6rem 0.5rem', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '500', transition: 'all 0.2s' }}
-                              onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'; e.currentTarget.style.color = '#ef4444'; }}
-                              onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.color = '#f87171'; }}
+                              onClick={() => !deletedProjectIds.includes(report.reportedProjectId) && handleForceDeleteProject(report.reportedProjectId)} 
+                              style={{ flex: 1, whiteSpace: 'nowrap', background: deletedProjectIds.includes(report.reportedProjectId) ? 'rgba(255,255,255,0.05)' : 'rgba(239, 68, 68, 0.1)', border: '1px solid', borderColor: deletedProjectIds.includes(report.reportedProjectId) ? 'rgba(255,255,255,0.1)' : 'rgba(239, 68, 68, 0.3)', color: deletedProjectIds.includes(report.reportedProjectId) ? '#64748b' : '#f87171', padding: '0.6rem 0.5rem', borderRadius: '0.5rem', cursor: deletedProjectIds.includes(report.reportedProjectId) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '500', transition: 'all 0.2s', opacity: deletedProjectIds.includes(report.reportedProjectId) ? 0.5 : 1 }}
+                              onMouseOver={(e) => { if (!deletedProjectIds.includes(report.reportedProjectId)) { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'; e.currentTarget.style.color = '#ef4444'; } }}
+                              onMouseOut={(e) => { if (!deletedProjectIds.includes(report.reportedProjectId)) { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.color = '#f87171'; } }}
+                              title={deletedProjectIds.includes(report.reportedProjectId) ? "Already deleted" : ""}
                             >
-                              <Trash2 size={16} /> Delete Project
+                              <Trash2 size={16} /> {deletedProjectIds.includes(report.reportedProjectId) ? 'Deleted' : 'Delete Project'}
                             </button>
                           </div>
                         )}
