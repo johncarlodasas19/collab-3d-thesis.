@@ -142,8 +142,18 @@ router.delete('/users/:id', async (req, res) => {
 // ---------------------------
 router.get('/reports', async (req, res) => {
   try {
-    const reports = await Report.find().sort({ createdAt: -1 });
-    res.json(reports);
+    const reports = await Report.find().sort({ createdAt: -1 }).lean();
+    
+    const projectIds = [...new Set(reports.map(r => r.reportedProjectId).filter(Boolean))];
+    const existingProjects = await Project.find({ _id: { $in: projectIds } }).select('_id').lean();
+    const existingProjectIds = new Set(existingProjects.map(p => p._id.toString()));
+
+    const enrichedReports = reports.map(r => ({
+      ...r,
+      isProjectDeleted: r.reportedProjectId ? !existingProjectIds.has(r.reportedProjectId.toString()) : true
+    }));
+
+    res.json(enrichedReports);
   } catch (err) {
     res.status(500).json({ message: 'Error fetching reports', error: err.message });
   }

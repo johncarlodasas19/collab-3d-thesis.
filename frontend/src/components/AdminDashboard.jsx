@@ -884,13 +884,13 @@ export default function AdminDashboard() {
                               <Eye size={16} /> Check Workspace
                             </button>
                             <button 
-                              onClick={() => !deletedProjectIds.includes(report.reportedProjectId) && handleForceDeleteProject(report.reportedProjectId)} 
-                              style={{ flex: 1, whiteSpace: 'nowrap', background: deletedProjectIds.includes(report.reportedProjectId) ? 'rgba(255,255,255,0.05)' : 'rgba(239, 68, 68, 0.1)', border: '1px solid', borderColor: deletedProjectIds.includes(report.reportedProjectId) ? 'rgba(255,255,255,0.1)' : 'rgba(239, 68, 68, 0.3)', color: deletedProjectIds.includes(report.reportedProjectId) ? '#64748b' : '#f87171', padding: '0.6rem 0.5rem', borderRadius: '0.5rem', cursor: deletedProjectIds.includes(report.reportedProjectId) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '500', transition: 'all 0.2s', opacity: deletedProjectIds.includes(report.reportedProjectId) ? 0.5 : 1 }}
-                              onMouseOver={(e) => { if (!deletedProjectIds.includes(report.reportedProjectId)) { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'; e.currentTarget.style.color = '#ef4444'; } }}
-                              onMouseOut={(e) => { if (!deletedProjectIds.includes(report.reportedProjectId)) { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.color = '#f87171'; } }}
-                              title={deletedProjectIds.includes(report.reportedProjectId) ? "Already deleted" : ""}
+                              onClick={() => !(report.isProjectDeleted || deletedProjectIds.includes(report.reportedProjectId)) && handleForceDeleteProject(report.reportedProjectId)} 
+                              style={{ flex: 1, whiteSpace: 'nowrap', background: (report.isProjectDeleted || deletedProjectIds.includes(report.reportedProjectId)) ? 'rgba(255,255,255,0.05)' : 'rgba(239, 68, 68, 0.1)', border: '1px solid', borderColor: (report.isProjectDeleted || deletedProjectIds.includes(report.reportedProjectId)) ? 'rgba(255,255,255,0.1)' : 'rgba(239, 68, 68, 0.3)', color: (report.isProjectDeleted || deletedProjectIds.includes(report.reportedProjectId)) ? '#64748b' : '#f87171', padding: '0.6rem 0.5rem', borderRadius: '0.5rem', cursor: (report.isProjectDeleted || deletedProjectIds.includes(report.reportedProjectId)) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: '500', transition: 'all 0.2s', opacity: (report.isProjectDeleted || deletedProjectIds.includes(report.reportedProjectId)) ? 0.5 : 1 }}
+                              onMouseOver={(e) => { if (!(report.isProjectDeleted || deletedProjectIds.includes(report.reportedProjectId))) { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'; e.currentTarget.style.color = '#ef4444'; } }}
+                              onMouseOut={(e) => { if (!(report.isProjectDeleted || deletedProjectIds.includes(report.reportedProjectId))) { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.color = '#f87171'; } }}
+                              title={(report.isProjectDeleted || deletedProjectIds.includes(report.reportedProjectId)) ? "Already deleted" : ""}
                             >
-                              <Trash2 size={16} /> {deletedProjectIds.includes(report.reportedProjectId) ? 'Deleted' : 'Delete Project'}
+                              <Trash2 size={16} /> {(report.isProjectDeleted || deletedProjectIds.includes(report.reportedProjectId)) ? 'Deleted' : 'Delete Project'}
                             </button>
                           </div>
                         )}
