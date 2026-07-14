@@ -720,13 +720,9 @@ export default function Workspace() {
     if (now - lastEmitTime.current < 5) return; // Throttle to 200fps for absolute ZERO delay
     lastEmitTime.current = now;
 
-    const viewport = document.querySelector('.workspace-viewport');
-    if (!viewport) return;
-    const rect = viewport.getBoundingClientRect();
-    
-    // Calculate cursor position relative to the 3D viewport, not the entire window
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
+    // Calculate cursor position relative to the entire window so it tracks everywhere (Chat, Toolbar, etc)
+    const x = e.clientX / window.innerWidth;
+    const y = e.clientY / window.innerHeight;
     
     const userStr = localStorage.getItem('user');
     const user = userStr ? JSON.parse(userStr) : { username: 'Guest' };
@@ -1104,7 +1100,7 @@ export default function Workspace() {
           {isRightSidebarOpen ? <ChevronRight size={24} /> : <ChevronLeft size={24} />}
         </button>
 
-        <div className="workspace-viewport" style={{ minWidth: 0, overflow: 'hidden' }}>
+        <div className="workspace-viewport" style={{ minWidth: 0, overflow: 'hidden', flex: 1 }}>
           <ThreeCanvas 
             objects={objects} 
             selectedId={selectedId} 
@@ -1115,46 +1111,6 @@ export default function Workspace() {
             readOnly={isAdmin}
             onTransformEnd={handleTransformEnd}
           />
-
-          {/* Render Remote Cursors strictly inside the 3D viewport */}
-          {Object.entries(cursors).map(([socketId, cursor]) => {
-            const activeUser = activeUsers.find(u => u.socketId === socketId);
-            const color = activeUser?.color || '#ec4899';
-            return (
-              <div
-                key={socketId}
-                style={{
-                  position: 'absolute',
-                  left: 0,
-                  top: 0,
-                  transform: `translate(${cursor.x * 100}cqw, ${cursor.y * 100}cqh)`,
-                  pointerEvents: 'none',
-                  zIndex: 1000,
-                  transition: 'transform 0.05s linear',
-                  willChange: 'transform'
-                }}
-              >
-                <svg width="24" height="36" viewBox="0 0 24 36" fill="none" stroke="white" strokeWidth="2" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.4))' }}>
-                  <path d="M5.65376 21.1597L2.39999 3.01347L20.899 15.654L13.1491 16.6341L17.5028 25.1065L14.3541 26.7208L10.0261 18.2721L5.65376 21.1597Z" fill={color}/>
-                </svg>
-                <div style={{
-                  background: color,
-                  color: 'white',
-                  padding: '2px 6px',
-                  borderRadius: '4px',
-                  fontSize: '11px',
-                  fontWeight: '600',
-                  position: 'absolute',
-                  top: '24px',
-                  left: '12px',
-                  whiteSpace: 'nowrap',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                }}>
-                  {activeUser?.username || 'Collaborator'}
-                </div>
-              </div>
-            );
-          })}
 
           {!isAdmin && isShapeSelected && (
             <Draggable nodeRef={draggableNodeRef} handle=".drag-handle" defaultPosition={{ x: 0, y: 0 }}>
@@ -1625,6 +1581,47 @@ export default function Workspace() {
           }
         `}</style>
       </div>
+      
+      {/* Render Remote Cursors Globally (Over Everything) */}
+      {Object.entries(cursors).map(([socketId, cursor]) => {
+        const activeUser = activeUsers.find(u => u.socketId === socketId);
+        const color = activeUser?.color || '#ec4899';
+        return (
+          <div
+            key={socketId}
+            style={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              transform: `translate(${cursor.x * window.innerWidth}px, ${cursor.y * window.innerHeight}px)`,
+              pointerEvents: 'none',
+              zIndex: 9999, // Ensure it's above everything including chat and panels
+              transition: 'transform 0.05s linear',
+              willChange: 'transform'
+            }}
+          >
+            <svg width="24" height="36" viewBox="0 0 24 36" fill="none" stroke="white" strokeWidth="2" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.4))' }}>
+              <path d="M5.65376 21.1597L2.39999 3.01347L20.899 15.654L13.1491 16.6341L17.5028 25.1065L14.3541 26.7208L10.0261 18.2721L5.65376 21.1597Z" fill={color}/>
+            </svg>
+            <div style={{
+              background: color,
+              color: 'white',
+              padding: '3px 8px',
+              borderRadius: '6px',
+              fontSize: '12px',
+              fontWeight: '700',
+              position: 'absolute',
+              top: '24px',
+              left: '12px',
+              whiteSpace: 'nowrap',
+              boxShadow: '0 4px 6px rgba(0,0,0,0.3)',
+              border: '1px solid rgba(255,255,255,0.2)'
+            }}>
+              {activeUser?.username || 'Collaborator'}
+            </div>
+          </div>
+        );
+      })}
     </div>
     </>
   );
