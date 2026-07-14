@@ -154,8 +154,8 @@ export default function ReportModal({ isOpen, onClose, projectId, projectName })
                   {uploading ? 'Uploading...' : <><Upload size={16} /> Select Image Proof</>}
                 </button>
               ) : (
-                <div style={{ position: 'relative', borderRadius: '0.5rem', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', height: '120px' }}>
-                  <img src={getMediaUrl(proofUrl)} alt="Attached Proof" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <div style={{ position: 'relative', borderRadius: '0.5rem', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', height: '120px', background: 'rgba(0,0,0,0.3)' }}>
+                  <img src={getMediaUrl(proofUrl)} alt="Attached Proof" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                   <button 
                     type="button" 
                     onClick={() => setProofUrl(null)}
