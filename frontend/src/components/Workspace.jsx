@@ -94,6 +94,7 @@ export default function Workspace() {
   const [gifs, setGifs] = useState([]);
   const [gifSearch, setGifSearch] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const viewportRef = useRef(null);
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [hoveredMessageId, setHoveredMessageId] = useState(null);
   const chatEndRef = useRef(null);
@@ -720,9 +721,11 @@ export default function Workspace() {
     if (now - lastEmitTime.current < 5) return; // Throttle to 200fps for absolute ZERO delay
     lastEmitTime.current = now;
 
-    // Calculate cursor position relative to the entire window so it tracks everywhere (Chat, Toolbar, etc)
-    const x = e.clientX / window.innerWidth;
-    const y = e.clientY / window.innerHeight;
+    const rect = viewportRef.current ? viewportRef.current.getBoundingClientRect() : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
+    
+    // 100% accurate to the 3D scene by basing it on the viewport!
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
     
     const userStr = localStorage.getItem('user');
     const user = userStr ? JSON.parse(userStr) : { username: 'Guest' };
@@ -1100,7 +1103,7 @@ export default function Workspace() {
           {isRightSidebarOpen ? <ChevronRight size={24} /> : <ChevronLeft size={24} />}
         </button>
 
-        <div className="workspace-viewport" style={{ minWidth: 0, overflow: 'hidden', flex: 1 }}>
+        <div className="workspace-viewport" ref={viewportRef} style={{ minWidth: 0, overflow: 'hidden', flex: 1 }}>
           <ThreeCanvas 
             objects={objects} 
             selectedId={selectedId} 
@@ -1586,6 +1589,12 @@ export default function Workspace() {
       {Object.entries(cursors).map(([socketId, cursor]) => {
         const activeUser = activeUsers.find(u => u.socketId === socketId);
         const color = activeUser?.color || '#ec4899';
+        
+        // Translate back from viewport percentage to absolute screen pixels
+        const rect = viewportRef.current ? viewportRef.current.getBoundingClientRect() : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
+        const absoluteX = rect.left + (cursor.x * rect.width);
+        const absoluteY = rect.top + (cursor.y * rect.height);
+
         return (
           <div
             key={socketId}
@@ -1593,7 +1602,7 @@ export default function Workspace() {
               position: 'absolute',
               left: 0,
               top: 0,
-              transform: `translate(${cursor.x * window.innerWidth}px, ${cursor.y * window.innerHeight}px)`,
+              transform: `translate(${absoluteX}px, ${absoluteY}px)`,
               pointerEvents: 'none',
               zIndex: 9999, // Ensure it's above everything including chat and panels
               transition: 'transform 0.05s linear',
