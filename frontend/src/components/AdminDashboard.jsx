@@ -68,6 +68,20 @@ export default function AdminDashboard() {
   const [showDeleteUserModal, setShowDeleteUserModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
   const [isDeletingUser, setIsDeletingUser] = useState(false);
+  const chartRef = useRef(null);
+
+  const formatPHTime = (dateString) => {
+    return new Date(dateString).toLocaleString('en-US', { 
+      timeZone: 'Asia/Manila', 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric', 
+      hour: 'numeric', 
+      minute: '2-digit', 
+      hour12: true 
+    }) + ' (PHT)';
+  };
+
   const editorRef = React.useRef(null);
 
   useEffect(() => {
@@ -386,7 +400,7 @@ export default function AdminDashboard() {
   const downloadCSV = () => {
     const headers = ['Date', 'User', 'Action', 'Details'];
     const rows = activityLogs.map(log => [
-      new Date(log.createdAt).toLocaleString().replace(/,/g, ''),
+      formatPHTime(log.createdAt).replace(/,/g, ''),
       log.username,
       log.action,
       `"${log.details || ''}"` // Wrap in quotes to prevent comma issues
@@ -835,7 +849,7 @@ export default function AdminDashboard() {
                             <span style={{ color: 'white', fontWeight: 'bold' }}>Project: {report.reportedProjectName || report.reportedProjectId}</span>
                             <span style={{ background: report.status === 'pending' ? '#ef4444' : (report.status === 'resolved' ? '#22c55e' : '#64748b'), color: 'white', fontSize: '0.75rem', padding: '0.1rem 0.5rem', borderRadius: '1rem', fontWeight: 'bold' }}>{report.status.toUpperCase()}</span>
                           </div>
-                          <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Reported by: <strong>{report.reporterName}</strong> on {new Date(report.createdAt).toLocaleString()}</div>
+                          <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Reported by: <strong>{report.reporterName}</strong> on {formatPHTime(report.createdAt)}</div>
                         </div>
                         {report.status === 'pending' && (
                           <div style={{ display: 'flex', gap: '0.5rem', alignSelf: 'stretch', flexWrap: 'nowrap' }}>
@@ -983,7 +997,7 @@ export default function AdminDashboard() {
                             </div>
                             <div style={{ color: '#94a3b8', fontSize: '0.9rem', marginTop: '0.25rem' }}>{log.details}</div>
                             <div style={{ color: '#64748b', fontSize: '0.8rem', marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                              <Clock size={12} /> {new Date(log.createdAt).toLocaleString()}
+                              <Clock size={12} /> {formatPHTime(log.createdAt)}
                             </div>
                           </div>
                         </div>

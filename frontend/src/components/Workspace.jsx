@@ -1323,7 +1323,7 @@ export default function Workspace() {
                               )}
                             </div>
                           )}
-                          {new Date(msg.timestamp).toLocaleString([], { weekday: 'short', year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          {new Date(msg.timestamp).toLocaleString('en-US', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }) + ' (PHT)'}
                         </div>
                       )}
                     </div>

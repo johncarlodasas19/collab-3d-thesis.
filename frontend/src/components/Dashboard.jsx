@@ -58,7 +58,20 @@ export default function Dashboard() {
   const avatarInputRef = useRef(null);
   const editorRef = useRef(null);
   const importFileInputRef = useRef(null);
+  const fileInputRef = useRef(null);
   const navigate = useNavigate();
+
+  const formatPHTime = (dateString) => {
+    return new Date(dateString).toLocaleString('en-US', { 
+      timeZone: 'Asia/Manila', 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric', 
+      hour: 'numeric', 
+      minute: '2-digit', 
+      hour12: true 
+    }) + ' (PHT)';
+  };
 
   const handleImportDesign = (e) => {
     const file = e.target.files[0];
@@ -642,7 +655,7 @@ export default function Dashboard() {
               ) : (
                 <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>{project.name}</h3>
               )}
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '1rem' }}>Last modified: {new Date(project.updatedAt).toLocaleDateString()}</p>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '1rem' }}>Last modified: {formatPHTime(project.updatedAt)}</p>
               
               <div style={{ width: '100%', marginTop: 'auto' }}>
                 <button 
@@ -765,7 +778,7 @@ export default function Dashboard() {
                   </div>
                   <Trash2 size={40} color={selectedTrashIds.includes(project._id) ? '#818cf8' : 'rgba(239, 68, 68, 0.5)'} style={{ marginBottom: '1rem' }} />
                   <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>{project.name}</h3>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '1.5rem' }}>Deleted: {new Date(project.updatedAt).toLocaleDateString()}</p>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '1.5rem' }}>Deleted: {formatPHTime(project.updatedAt)}</p>
                   
                   <div style={{ display: 'flex', gap: '0.5rem', width: '100%', marginTop: 'auto' }}>
                     <button 
