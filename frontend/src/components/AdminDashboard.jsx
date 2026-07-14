@@ -425,11 +425,8 @@ export default function AdminDashboard() {
   if (loading) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0f172a', color: 'white', gap: '1.5rem' }}>
-        <div className="spinner" style={{ width: '50px', height: '50px', border: '4px solid rgba(255,255,255,0.1)', borderTop: '4px solid #ef4444', borderRadius: '50%', animation: 'spin 0.5s linear infinite' }}></div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-          <h2 style={{ fontSize: '1.2rem', fontWeight: '600', margin: 0, color: '#f8fafc' }}>Connecting to Server...</h2>
-          <p style={{ color: '#94a3b8', fontSize: '0.9rem', margin: 0 }}>(This may take 30-50s if the free server is waking up)</p>
-        </div>
+        <div className="spinner" style={{ width: '50px', height: '50px', border: '4px solid rgba(255,255,255,0.1)', borderTop: '4px solid #ef4444', borderRadius: '50%', animation: 'spin 0.3s linear infinite' }}></div>
+        <h2 style={{ fontSize: '1.2rem', fontWeight: '600', margin: 0, color: '#f8fafc', letterSpacing: '2px' }}>Loading...</h2>
       </div>
     );
   }
