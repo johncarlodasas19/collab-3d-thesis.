@@ -1538,7 +1538,7 @@ export default function AdminDashboard() {
             <img 
               src={currentUser.avatarUrl ? getMediaUrl(currentUser.avatarUrl) : getFallbackAvatar(currentUser.username)} 
               alt="Avatar Fullscreen" 
-              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: '8px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }} 
+              style={{ width: '100%', height: '100%', maxWidth: '500px', maxHeight: '500px', objectFit: 'contain', borderRadius: '8px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }} 
               onError={(e) => { e.target.onerror = null; e.target.src = getFallbackAvatar(currentUser.username); }}
             />
           </div>
