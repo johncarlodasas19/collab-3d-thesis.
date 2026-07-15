@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { Box, Menu, Users, AlertTriangle, Activity, LogOut, ShieldAlert, CheckCircle2, XCircle, Trash2, Shield, UserX, BarChart3, Clock, Database, Globe, Eye, EyeOff, Search, Filter, Download, Mail, ShieldCheck, ShieldOff, Settings, Upload, PieChart, CheckCircle, ChevronLeft, ChevronRight, ArrowUpDown } from 'lucide-react';
+import { Box, Menu, Users, AlertTriangle, Activity, LogOut, ShieldAlert, CheckCircle2, XCircle, Trash2, Shield, UserX, BarChart3, Clock, Database, Globe, Eye, EyeOff, Search, Filter, Download, Mail, ShieldCheck, ShieldOff, Settings, Upload, PieChart, CheckCircle, ChevronLeft, ChevronRight, ArrowUpDown, X } from 'lucide-react';
 import AvatarEditor from 'react-avatar-editor';
 import { io } from 'socket.io-client';
 
@@ -17,6 +17,9 @@ export default function AdminDashboard() {
   
   // New features state
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [showFullscreenAvatar, setShowFullscreenAvatar] = useState(false);
   const [reportFilter, setReportFilter] = useState('all');
   const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
   const [adminActionModal, setAdminActionModal] = useState({ show: false, status: '' });
@@ -526,7 +529,7 @@ export default function AdminDashboard() {
           </h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <span style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#fca5a5', padding: '0.25rem 0.75rem', borderRadius: '2rem', fontSize: '0.85rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><ShieldAlert size={14}/> Admin Mode</span>
-            <div className="user-profile" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: '#dc2626', padding: '0.35rem 1rem 0.35rem 0.35rem', borderRadius: '2rem', border: 'none', transition: 'all 0.2s', cursor: 'pointer', boxShadow: '0 4px 15px rgba(220, 38, 38, 0.4)' }} onMouseOver={e => { e.currentTarget.style.background = '#b91c1c'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(220, 38, 38, 0.6)'; }} onMouseOut={e => { e.currentTarget.style.background = '#dc2626'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(220, 38, 38, 0.4)'; }}>
+            <div className="user-profile" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: '#dc2626', padding: '0.35rem 1rem 0.35rem 0.35rem', borderRadius: '2rem', border: 'none', transition: 'all 0.2s', cursor: 'pointer', boxShadow: '0 4px 15px rgba(220, 38, 38, 0.4)' }} onClick={() => setShowFullscreenAvatar(true)} onMouseOver={e => { e.currentTarget.style.background = '#b91c1c'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(220, 38, 38, 0.6)'; }} onMouseOut={e => { e.currentTarget.style.background = '#dc2626'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(220, 38, 38, 0.4)'; }}>
               <div className="avatar" style={{ width: '36px', height: '36px', background: 'rgba(0,0,0,0.15)', overflow: 'hidden', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '600', fontSize: '1rem', color: 'white' }}>
                 {currentUser.avatarUrl ? <img src={getMediaUrl(currentUser.avatarUrl)} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.onerror = null; e.target.src = getFallbackAvatar(currentUser.username); }} /> : currentUser.username?.[0]?.toUpperCase()}
               </div>
@@ -1490,6 +1493,54 @@ export default function AdminDashboard() {
                 Suspend
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fullscreen Avatar Modal */}
+      {showFullscreenAvatar && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.9)',
+          zIndex: 999999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backdropFilter: 'blur(5px)'
+        }}>
+          <button 
+            onClick={() => setShowFullscreenAvatar(false)}
+            style={{
+              position: 'absolute',
+              top: '2rem',
+              right: '2rem',
+              background: 'rgba(255,255,255,0.1)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '50%',
+              width: '40px',
+              height: '40px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              zIndex: 10,
+              transition: 'all 0.2s'
+            }}
+            onMouseOver={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.8)'}
+            onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+          >
+            <X size={24} />
+          </button>
+          
+          <div style={{ width: '90%', height: '90%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <img 
+              src={currentUser.avatarUrl ? getMediaUrl(currentUser.avatarUrl) : getFallbackAvatar(currentUser.username)} 
+              alt="Avatar Fullscreen" 
+              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: '50%', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }} 
+              onError={(e) => { e.target.onerror = null; e.target.src = getFallbackAvatar(currentUser.username); }}
+            />
           </div>
         </div>
       )}
