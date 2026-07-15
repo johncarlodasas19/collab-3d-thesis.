@@ -418,8 +418,8 @@ body {
 
 .media-item-maximize {
   position: absolute;
-  top: -10px;
-  right: 25px;
+  bottom: 10px;
+  right: 10px;
   background: #6366f1;
   color: white;
   border: none;
