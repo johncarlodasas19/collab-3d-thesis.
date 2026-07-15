@@ -1216,7 +1216,7 @@ export default function Dashboard() {
             <img 
               src={user?.avatarUrl?.startsWith('data:') ? user.avatarUrl : (user?.avatarUrl ? getMediaUrl(user.avatarUrl) : getFallbackAvatar(user?.username))} 
               alt="Avatar Fullscreen" 
-              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: '50%', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }} 
+              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: '8px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }} 
               onError={(e) => { e.target.onerror = null; e.target.src = getFallbackAvatar(user?.username); }}
             />
           </div>
