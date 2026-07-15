@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Box, Circle, Move, RotateCw, Scaling, ArrowLeft, Image as ImageIcon, Video, Save, Trash2, UserPlus, Users, MessageSquare, Triangle, Database, CircleDashed, ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, Undo, Edit2, PlaySquare, Settings, MousePointer2, Hand, Type, Square, Cone, BoxSelect, Plus, FileUp, Flag, CheckCircle, Smile, Paperclip, X, ShieldAlert, AlertTriangle, Download, FolderOpen, Camera, Eraser, Copy, Mountain, Hexagon, Gem, Infinity } from 'lucide-react';
+import { Box, Circle, Move, RotateCw, Scaling, ArrowLeft, Image as ImageIcon, Video, Save, Trash2, UserPlus, Users, MessageSquare, Triangle, Database, CircleDashed, ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, Undo, Edit2, PlaySquare, Settings, MousePointer2, Hand, Type, Square, Cone, BoxSelect, Plus, FileUp, Flag, CheckCircle, Smile, Paperclip, X, ShieldAlert, AlertTriangle, Download, FolderOpen, Camera, Eraser, Copy, Mountain, Hexagon, Gem, Infinity, Maximize } from 'lucide-react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import ThreeCanvas from './ThreeCanvas';
@@ -54,6 +54,7 @@ export default function Workspace() {
   const [saving, setSaving] = useState(false);
   const [activeUsers, setActiveUsers] = useState([]);
   const [cursors, setCursors] = useState({});
+  const [maximizedMedia, setMaximizedMedia] = useState(null);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [statusKick, setStatusKick] = useState(null);
@@ -1229,6 +1230,13 @@ export default function Workspace() {
                   <Trash2 size={14} />
                 </button>
               )}
+              <button 
+                className="media-item-maximize"
+                title="View Fullscreen"
+                onClick={() => setMaximizedMedia(obj)}
+              >
+                <Maximize size={14} />
+              </button>
               {obj.type === 'image' && <img src={getMediaUrl(obj.url)} alt="Uploaded" />}
               {obj.type === 'video' && (
                 <div style={{ width: '100%', borderRadius: '0.5rem', overflow: 'hidden', background: '#000', aspectRatio: '16/9', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 4px 6px rgba(0,0,0,0.3)' }}>
@@ -1481,6 +1489,77 @@ export default function Workspace() {
         projectId={projectId}
         projectName={projectName}
       />
+
+      {/* Fullscreen Media Modal */}
+      {maximizedMedia && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.9)',
+          zIndex: 999999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backdropFilter: 'blur(5px)'
+        }}>
+          <button 
+            onClick={() => setMaximizedMedia(null)}
+            style={{
+              position: 'absolute',
+              top: '2rem',
+              right: '2rem',
+              background: 'rgba(255,255,255,0.1)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '50%',
+              width: '40px',
+              height: '40px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              zIndex: 10,
+              transition: 'all 0.2s'
+            }}
+            onMouseOver={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.8)'}
+            onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+          >
+            <X size={24} />
+          </button>
+          
+          <div style={{ width: '90%', height: '90%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {maximizedMedia.type === 'image' && (
+              <img 
+                src={getMediaUrl(maximizedMedia.url)} 
+                alt="Fullscreen Media" 
+                style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: '8px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }} 
+              />
+            )}
+            {maximizedMedia.type === 'video' && (
+              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {getYoutubeId(maximizedMedia.url) ? (
+                  <iframe 
+                    width="100%" 
+                    height="100%" 
+                    style={{ maxWidth: '1200px', maxHeight: '675px', borderRadius: '8px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}
+                    src={`https://www.youtube.com/embed/${getYoutubeId(maximizedMedia.url)}?autoplay=1`} 
+                    frameBorder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowFullScreen
+                  ></iframe>
+                ) : (
+                  <video 
+                    src={getMediaUrl(maximizedMedia.url)} 
+                    controls 
+                    autoPlay 
+                    style={{ maxWidth: '100%', maxHeight: '100%', borderRadius: '8px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }} 
+                  />
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Video URL Modal */}
       {showVideoModal && (
