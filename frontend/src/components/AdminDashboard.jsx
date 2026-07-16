@@ -52,7 +52,6 @@ export default function AdminDashboard() {
   // Custom Modal State
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, projectId: null });
   const [evidenceModal, setEvidenceModal] = useState({ isOpen: false, url: null, error: false });
-  const [bulkDeleteModal, setBulkDeleteModal] = useState({ isOpen: false, type: null, title: '', message: '' });
   const [confirmActionModal, setConfirmActionModal] = useState({ isOpen: false, action: null, title: '', message: '', iconType: 'danger' });
   const [suspensionModal, setSuspensionModal] = useState({ isOpen: false, userId: null, hours: 24, minutes: 0 });
   
@@ -264,48 +263,7 @@ export default function AdminDashboard() {
     setDeleteModal({ isOpen: true, projectId });
   };
 
-  const handleClearOldActivity = () => {
-    setBulkDeleteModal({
-      isOpen: true,
-      type: 'activity',
-      title: 'Clear Old Activity Logs',
-      message: 'Are you sure you want to permanently delete all activity logs older than 30 days? This action cannot be undone.'
-    });
-  };
 
-  const handleClearResolvedReports = () => {
-    setBulkDeleteModal({
-      isOpen: true,
-      type: 'reports',
-      title: 'Clear Resolved Reports',
-      message: 'Are you sure you want to permanently delete all resolved and dismissed reports? This action cannot be undone.'
-    });
-  };
-
-  const confirmBulkDelete = async () => {
-    const { type } = bulkDeleteModal;
-    setBulkDeleteModal({ ...bulkDeleteModal, isOpen: false });
-
-    if (type === 'activity') {
-      try {
-        const token = localStorage.getItem('token');
-        await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/activity/cleanup`, { headers: { Authorization: `Bearer ${token}` } });
-        setAdminActionSuccessModal({ show: true, message: 'Old activity logs cleared successfully.' });
-        fetchData();
-      } catch (err) {
-        alert('Failed to clean up activity logs');
-      }
-    } else if (type === 'reports') {
-      try {
-        const token = localStorage.getItem('token');
-        await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/reports/cleanup`, { headers: { Authorization: `Bearer ${token}` } });
-        setAdminActionSuccessModal({ show: true, message: 'Resolved reports cleared successfully.' });
-        fetchData();
-      } catch (err) {
-        alert('Failed to clean up resolved reports');
-      }
-    }
-  };
 
   const handleCheckWorkspace = async (projectId) => {
     try {
@@ -956,13 +914,6 @@ export default function AdminDashboard() {
                     <button onClick={() => { setReportFilter('resolved'); setReportPage(1); }} style={{ padding: '0.4rem 0.75rem', background: reportFilter === 'resolved' ? '#22c55e' : 'transparent', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '0.85rem' }}>Resolved</button>
                   </div>
 
-                  <button 
-                    onClick={handleClearResolvedReports}
-                    style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', fontWeight: 'bold' }}
-                    title="Delete all resolved and dismissed reports permanently"
-                  >
-                    <Trash2 size={14} /> Clear Resolved
-                  </button>
                 </div>
               </div>
               {paginatedReports.length > 0 && (
@@ -1141,13 +1092,6 @@ export default function AdminDashboard() {
                     <Download size={14} /> Export
                   </button>
 
-                  <button 
-                    onClick={handleClearOldActivity}
-                    style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '0.5rem 1rem', borderRadius: '0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', fontWeight: 'bold' }}
-                    title="Delete activity logs older than 30 days"
-                  >
-                    <Trash2 size={14} /> Clear Old Logs
-                  </button>
                 </div>
               </div>
 
@@ -1742,37 +1686,6 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {bulkDeleteModal.isOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999 }}>
-          <div className="premium-modal" style={{ background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%)', padding: '3.5rem 3rem', borderRadius: '1.5rem', maxWidth: '420px', width: '90%', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255,255,255,0.1)', border: '1px solid rgba(255, 255, 255, 0.15)' }}>
-            <div className="premium-icon-danger" style={{ width: '88px', height: '88px', borderRadius: '50%', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(185, 28, 28, 0.4) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
-              <Trash2 size={44} color="#f87171" />
-            </div>
-            <h3 style={{ marginBottom: '1.2rem', fontSize: '1.75rem', color: 'white', fontWeight: '800', letterSpacing: '-0.5px' }}>{bulkDeleteModal.title}</h3>
-            <p style={{ color: '#94a3b8', marginBottom: '2rem', lineHeight: '1.6', fontSize: '1rem' }}>
-              {bulkDeleteModal.message}
-            </p>
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-              <button 
-                onClick={() => setBulkDeleteModal({ ...bulkDeleteModal, isOpen: false })}
-                style={{ background: 'rgba(255,255,255,0.05)', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.1)', padding: '0.85rem 1.5rem', borderRadius: '0.75rem', fontWeight: 'bold', cursor: 'pointer', flex: 1, transition: 'all 0.2s' }}
-                onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'white'; }}
-                onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#94a3b8'; }}
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={confirmBulkDelete}
-                style={{ background: 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)', color: 'white', border: 'none', padding: '0.85rem 1.5rem', borderRadius: '0.75rem', fontWeight: 'bold', cursor: 'pointer', flex: 1, transition: 'all 0.3s ease', boxShadow: '0 4px 15px rgba(239, 68, 68, 0.4)' }}
-                onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(239, 68, 68, 0.6)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(239, 68, 68, 0.4)'; }}
-              >
-                Yes, Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {confirmActionModal.isOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999 }}>
