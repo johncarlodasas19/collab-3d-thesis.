@@ -1165,7 +1165,6 @@ export default function AdminDashboard() {
                     <Trash2 size={14} /> Clear Old Logs
                   </button>
                 </div>
-                </div>
               </div>
 
               {paginatedActivity.length > 0 && (
