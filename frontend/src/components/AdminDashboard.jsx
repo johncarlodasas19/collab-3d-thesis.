@@ -397,8 +397,8 @@ export default function AdminDashboard() {
       'Date', 
       'Time',
       'Admin', 
-      'Target User',
-      'Target Email',
+      'Username',
+      'Email',
       'Project Name',
       'Project ID',
       'Action'
@@ -1440,7 +1440,7 @@ export default function AdminDashboard() {
                             <div style={{ flex: 1 }}>
                               <div style={{ color: 'white', fontWeight: 'bold', marginBottom: '0.25rem' }}>Project: {report.reportedProjectName || '-'} (ID: {report.reportedProjectId?._id || report.reportedProjectId})</div>
                               <div style={{ color: '#94a3b8', fontSize: '0.9rem' }}>
-                                Target User: {report.reportedProjectId?.owner?.username || '-'} ({report.reportedProjectId?.owner?.email || '-'})
+                                Username: {report.reportedProjectId?.owner?.username || '-'} ({report.reportedProjectId?.owner?.email || '-'})
                               </div>
                             </div>
                             <div style={{ color: '#64748b', fontSize: '0.85rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
