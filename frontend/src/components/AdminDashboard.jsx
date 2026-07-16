@@ -675,8 +675,8 @@ export default function AdminDashboard() {
                 {currentUser.avatarUrl ? <img src={getMediaUrl(currentUser.avatarUrl)} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.onerror = null; e.target.src = getFallbackAvatar(currentUser.username); }} /> : currentUser.username?.[0]?.toUpperCase()}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', gap: '3px', paddingTop: '2px', paddingBottom: '2px', whiteSpace: 'nowrap' }}>
-                <span style={{ color: 'white', fontSize: '0.85rem', lineHeight: '1', display: 'block' }}><strong>Username:</strong> {currentUser.username}</span>
-                <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.85rem', lineHeight: '1', display: 'block' }}><strong>Email:</strong> {currentUser.email}</span>
+                <span style={{ color: 'white', fontSize: '0.9rem', lineHeight: '1', display: 'block' }}><strong>Username:</strong> {currentUser.username}</span>
+                <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.9rem', lineHeight: '1', display: 'block' }}><strong>Email:</strong> {currentUser.email}</span>
               </div>
             </div>
           </div>
