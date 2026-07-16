@@ -405,10 +405,10 @@ export default function AdminDashboard() {
     ];
     
     const rows = activityLogs.map(log => {
-      let targetUsername = '-';
-      let targetEmail = '-';
-      let targetProjectName = '-';
-      let targetProjectId = '-';
+      let targetUsername = 'N/A';
+      let targetEmail = 'N/A';
+      let targetProjectName = 'N/A';
+      let targetProjectId = 'N/A';
       let details = log.details || '';
       
       const userMatch = details.match(/(?:Deleted user|Suspended user|Un-suspended user|Unbanned user): (.+?) \((.+?@.+?)\)/i) || details.match(/user: (.+?) \((.+?@.+?)\)/i);
@@ -440,12 +440,12 @@ export default function AdminDashboard() {
       return [
         `"${datePart}"`,
         `"${timePart}"`,
-        `"${log.username || '-'}"`,
+        `"${log.username || 'N/A'}"`,
         `"${targetUsername}"`,
         `"${targetEmail}"`,
         `"${targetProjectName}"`,
         `"${targetProjectId}"`,
-        `"${log.action || '-'}"`
+        `"${log.action || 'N/A'}"`
       ];
     });
     
