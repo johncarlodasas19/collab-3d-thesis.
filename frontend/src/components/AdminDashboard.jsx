@@ -421,7 +421,12 @@ export default function AdminDashboard() {
       if (projectMatch) {
         targetProjectName = projectMatch[1];
         targetProjectId = projectMatch[2];
-      } 
+      } else {
+        const reportedMatch = details.match(/Reported Project: (.+)/);
+        if (reportedMatch) {
+          targetProjectName = reportedMatch[1];
+        }
+      }
       
       if (details.includes('Project ID: ')) {
         const idMatch = details.match(/Project ID: ([a-f0-9]{24})/);
