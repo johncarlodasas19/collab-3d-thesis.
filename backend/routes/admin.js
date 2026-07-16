@@ -281,7 +281,13 @@ router.put('/activity/trash', async (req, res) => {
 // Get Trashed Items
 router.get('/trash', async (req, res) => {
   try {
-    const trashReports = await Report.find({ isDeleted: true }).sort({ createdAt: -1 });
+    const trashReports = await Report.find({ isDeleted: true })
+      .populate('reporterId', 'username email')
+      .populate({
+        path: 'reportedProjectId',
+        populate: { path: 'owner', select: 'username email' }
+      })
+      .sort({ createdAt: -1 });
     const trashLogs = await ActivityLog.find({ isDeleted: true }).sort({ createdAt: -1 });
     res.json({ reports: trashReports, logs: trashLogs });
   } catch (err) {

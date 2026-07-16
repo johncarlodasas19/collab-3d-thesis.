@@ -396,22 +396,19 @@ export default function AdminDashboard() {
     const headers = [
       'Date', 
       'Time',
-      'Admin Username', 
-      'Action', 
-      'Target Username',
+      'Admin', 
+      'Target User',
       'Target Email',
-      'Target Project Name',
-      'Target Project ID',
-      'Target Report ID',
-      'Full Details'
+      'Project Name',
+      'Project ID',
+      'Action'
     ];
     
     const rows = activityLogs.map(log => {
-      let targetUsername = 'N/A';
-      let targetEmail = 'N/A';
-      let targetProjectName = 'N/A';
-      let targetProjectId = 'N/A';
-      let targetReportId = 'N/A';
+      let targetUsername = '-';
+      let targetEmail = '-';
+      let targetProjectName = '-';
+      let targetProjectId = '-';
       let details = log.details || '';
       
       const userMatch = details.match(/(?:Deleted user|Suspended user|Un-suspended user|Unbanned user): (.+?) \((.+?@.+?)\)/i) || details.match(/user: (.+?) \((.+?@.+?)\)/i);
@@ -431,11 +428,6 @@ export default function AdminDashboard() {
         if (idMatch) targetProjectId = idMatch[1];
       }
       
-      if (details.includes('Report ID: ')) {
-        const idMatch = details.match(/Report ID: ([a-f0-9]{24})/);
-        if (idMatch) targetReportId = idMatch[1];
-      }
-      
       const dateObj = new Date(log.createdAt);
       const datePart = dateObj.toLocaleDateString('en-US', { timeZone: 'Asia/Manila', year: 'numeric', month: 'short', day: '2-digit' });
       const timePart = dateObj.toLocaleTimeString('en-US', { timeZone: 'Asia/Manila', hour: '2-digit', minute: '2-digit', hour12: true }) + ' (PHT)';
@@ -443,14 +435,12 @@ export default function AdminDashboard() {
       return [
         `"${datePart}"`,
         `"${timePart}"`,
-        `"${log.username}"`,
-        `"${log.action}"`,
+        `"${log.username || '-'}"`,
         `"${targetUsername}"`,
         `"${targetEmail}"`,
         `"${targetProjectName}"`,
         `"${targetProjectId}"`,
-        `"${targetReportId}"`,
-        `"${details.replace(/"/g, '""')}"`
+        `"${log.action || '-'}"`
       ];
     });
     
@@ -1431,10 +1421,15 @@ export default function AdminDashboard() {
                               {selectedTrashReports.includes(report._id) && <Check size={14} color="white" />}
                             </div>
                             <div style={{ flex: 1 }}>
-                              <div style={{ color: 'white', fontWeight: 'bold', marginBottom: '0.25rem' }}>Project ID: {report.reportedProjectId}</div>
-                              <div style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Reason: {report.reason}</div>
+                              <div style={{ color: 'white', fontWeight: 'bold', marginBottom: '0.25rem' }}>Project: {report.reportedProjectName || '-'} (ID: {report.reportedProjectId?._id || report.reportedProjectId})</div>
+                              <div style={{ color: '#94a3b8', fontSize: '0.9rem' }}>
+                                Target User: {report.reportedProjectId?.owner?.username || '-'} ({report.reportedProjectId?.owner?.email || '-'})
+                              </div>
                             </div>
-                            <div style={{ color: '#64748b', fontSize: '0.85rem' }}>Deleted Report</div>
+                            <div style={{ color: '#64748b', fontSize: '0.85rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                              <span>Deleted Report</span>
+                              <span style={{ fontSize: '0.75rem', marginTop: '0.2rem' }}>{new Date(report.createdAt).toLocaleDateString()}</span>
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -1509,11 +1504,19 @@ export default function AdminDashboard() {
                             <div style={{ width: '20px', height: '20px', borderRadius: '4px', border: `2px solid ${selectedTrashLogs.includes(log._id) ? '#ef4444' : 'rgba(255,255,255,0.3)'}`, background: selectedTrashLogs.includes(log._id) ? '#ef4444' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                               {selectedTrashLogs.includes(log._id) && <Check size={14} color="white" />}
                             </div>
-                            <div style={{ flex: 1 }}>
-                              <div style={{ color: 'white', fontWeight: 'bold', marginBottom: '0.25rem' }}>{log.username} - {log.action}</div>
-                              <div style={{ color: '#94a3b8', fontSize: '0.9rem' }}>{log.details}</div>
+                            <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <Clock size={20} color="#94a3b8" />
                             </div>
-                            <div style={{ color: '#64748b', fontSize: '0.85rem' }}>{formatPHTime(log.createdAt)}</div>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ color: 'white', fontWeight: 'bold', marginBottom: '0.25rem' }}>{log.action}</div>
+                              <div style={{ color: '#94a3b8', fontSize: '0.9rem' }}>
+                                Admin: {log.username} | {(log.details?.includes('Report ID: ') ? `Report ID: ${log.details.split('Report ID: ')[1].substring(0, 24)}` : 'Log')}
+                              </div>
+                            </div>
+                            <div style={{ color: '#64748b', fontSize: '0.85rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                              <span>{new Date(log.createdAt).toLocaleDateString()}</span>
+                              <span style={{ fontSize: '0.75rem', marginTop: '0.2rem' }}>{new Date(log.createdAt).toLocaleTimeString()}</span>
+                            </div>
                           </div>
                         </div>
                       ))}
