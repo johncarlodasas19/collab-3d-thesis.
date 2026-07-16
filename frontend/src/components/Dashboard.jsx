@@ -543,9 +543,9 @@ export default function Dashboard() {
                   onError={(e) => { e.target.onerror = null; e.target.src = getFallbackAvatar(user?.username); }}
                 />
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', marginTop: '-1px' }}>
-                <span style={{ color: 'white', fontWeight: 'bold', fontSize: '0.9rem', lineHeight: 'normal', letterSpacing: '0.3px' }}>{user.username}</span>
-                <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.75rem', lineHeight: 'normal' }}>{user.email}</span>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', gap: '3px', paddingTop: '2px', paddingBottom: '2px' }}>
+                <span style={{ color: 'white', fontWeight: 'bold', fontSize: '0.95rem', lineHeight: '1', display: 'block' }}>{user.username}</span>
+                <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.8rem', lineHeight: '1', display: 'block' }}>{user.email}</span>
               </div>
             </div>
           </div>
