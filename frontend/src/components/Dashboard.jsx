@@ -544,8 +544,8 @@ export default function Dashboard() {
                 />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', gap: '3px', paddingTop: '2px', paddingBottom: '2px', whiteSpace: 'nowrap' }}>
-                <span style={{ color: 'white', fontWeight: 'bold', fontSize: '0.95rem', lineHeight: '1', display: 'block' }}>Username: {user.username}</span>
-                <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.8rem', lineHeight: '1', display: 'block' }}>Email: {user.email}</span>
+                <span style={{ color: 'white', fontSize: '0.85rem', lineHeight: '1', display: 'block' }}><strong>Username:</strong> {user.username}</span>
+                <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.85rem', lineHeight: '1', display: 'block' }}><strong>Email:</strong> {user.email}</span>
               </div>
             </div>
           </div>
