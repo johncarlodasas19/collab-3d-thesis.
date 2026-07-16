@@ -475,10 +475,13 @@ export default function AdminDashboard() {
   let filteredReports = reports.filter(r => {
     const matchesFilter = reportFilter === 'all' || r.status === reportFilter;
     const searchLower = reportSearchQuery.toLowerCase();
+    
+    const projectIdStr = typeof r.reportedProjectId === 'object' && r.reportedProjectId ? (r.reportedProjectId._id?.toString() || r.reportedProjectId.toString()) : String(r.reportedProjectId || '');
+    
     const matchesSearch = (r.reportedProjectName || '').toLowerCase().includes(searchLower) ||
                           (r.reporterName || '').toLowerCase().includes(searchLower) ||
                           (r.reason || '').toLowerCase().includes(searchLower) ||
-                          (r.reportedProjectId || '').toLowerCase().includes(searchLower);
+                          projectIdStr.toLowerCase().includes(searchLower);
     return matchesFilter && matchesSearch;
   });
 
@@ -511,8 +514,17 @@ export default function AdminDashboard() {
   // Filter Trash Items
   const filteredTrashReports = trashReports.filter(report => {
     const searchLower = trashReportSearchQuery.toLowerCase();
-    return (report.reportedProjectId || '').toLowerCase().includes(searchLower) ||
-           (report.reason || '').toLowerCase().includes(searchLower);
+    
+    const projectIdStr = typeof report.reportedProjectId === 'object' && report.reportedProjectId ? (report.reportedProjectId._id?.toString() || report.reportedProjectId.toString()) : String(report.reportedProjectId || '');
+    const projectNameStr = report.reportedProjectName || '';
+    const ownerNameStr = report.reportedProjectId?.owner?.username || '';
+    const ownerEmailStr = report.reportedProjectId?.owner?.email || '';
+    
+    return projectIdStr.toLowerCase().includes(searchLower) ||
+           (report.reason || '').toLowerCase().includes(searchLower) ||
+           projectNameStr.toLowerCase().includes(searchLower) ||
+           ownerNameStr.toLowerCase().includes(searchLower) ||
+           ownerEmailStr.toLowerCase().includes(searchLower);
   });
 
   const filteredTrashLogs = trashLogs.filter(log => {
