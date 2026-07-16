@@ -1591,12 +1591,12 @@ export default function AdminDashboard() {
 
       {/* Custom Force Delete Modal */}
       {deleteModal.isOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(4px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
-          <div className="modal-content fade-in" style={{ background: '#1e202f', padding: '2rem', borderRadius: '1rem', width: '90%', maxWidth: '400px', border: '1px solid rgba(239, 68, 68, 0.3)', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
-            <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.1)', display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '0 auto 1.5rem auto' }}>
-              <Trash2 size={32} color="#ef4444" />
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999 }}>
+          <div className="premium-modal" style={{ background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%)', padding: '3.5rem 3rem', borderRadius: '1.5rem', maxWidth: '420px', width: '90%', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255,255,255,0.1)', border: '1px solid rgba(255, 255, 255, 0.15)' }}>
+            <div className="premium-icon-danger" style={{ width: '88px', height: '88px', borderRadius: '50%', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(185, 28, 28, 0.4) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+              <Trash2 size={44} color="#f87171" />
             </div>
-            <h3 style={{ color: 'white', marginTop: 0, marginBottom: '1rem', fontSize: '1.25rem' }}>Delete Project</h3>
+            <h3 style={{ marginBottom: '1.2rem', fontSize: '1.75rem', color: 'white', fontWeight: '800', letterSpacing: '-0.5px' }}>Delete Project</h3>
             <p style={{ color: '#94a3b8', marginBottom: '1.5rem', lineHeight: '1.5' }}>
               Are you sure you want to completely delete this project from the platform? This action cannot be undone.
             </p>
@@ -1737,12 +1737,12 @@ export default function AdminDashboard() {
       )}
 
       {adminActionSuccessModal.show && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999 }}>
-          <div style={{ background: 'linear-gradient(145deg, #1e293b 0%, #0f172a 100%)', padding: '3rem', borderRadius: '1.5rem', maxWidth: '400px', width: '90%', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
-            <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(34, 197, 94, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', border: '1px solid rgba(34, 197, 94, 0.2)' }}>
-              <CheckCircle size={40} color="#22c55e" />
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999 }}>
+          <div className="premium-modal" style={{ background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%)', padding: '3.5rem 3rem', borderRadius: '1.5rem', maxWidth: '420px', width: '90%', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255,255,255,0.1)', border: '1px solid rgba(255, 255, 255, 0.15)' }}>
+            <div className="premium-icon-success" style={{ width: '88px', height: '88px', borderRadius: '50%', background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(22, 163, 74, 0.4) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', border: '1px solid rgba(34, 197, 94, 0.3)' }}>
+              <CheckCircle size={44} color="#4ade80" />
             </div>
-            <h3 style={{ marginBottom: '1rem', fontSize: '1.4rem', color: 'white', fontWeight: 'bold' }}>Success</h3>
+            <h3 style={{ marginBottom: '1.2rem', fontSize: '1.75rem', color: 'white', fontWeight: '800', letterSpacing: '-0.5px' }}>Success</h3>
             <p style={{ color: '#94a3b8', marginBottom: '2rem', lineHeight: '1.6', fontSize: '1rem' }}>
               {adminActionSuccessModal.message}
             </p>
@@ -1759,12 +1759,12 @@ export default function AdminDashboard() {
       )}
 
       {bulkDeleteModal.isOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999 }}>
-          <div style={{ background: 'linear-gradient(145deg, #1e293b 0%, #0f172a 100%)', padding: '3rem', borderRadius: '1.5rem', maxWidth: '400px', width: '90%', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
-            <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
-              <Trash2 size={40} color="#ef4444" />
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999 }}>
+          <div className="premium-modal" style={{ background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%)', padding: '3.5rem 3rem', borderRadius: '1.5rem', maxWidth: '420px', width: '90%', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255,255,255,0.1)', border: '1px solid rgba(255, 255, 255, 0.15)' }}>
+            <div className="premium-icon-danger" style={{ width: '88px', height: '88px', borderRadius: '50%', background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(185, 28, 28, 0.4) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+              <Trash2 size={44} color="#f87171" />
             </div>
-            <h3 style={{ marginBottom: '1rem', fontSize: '1.4rem', color: 'white', fontWeight: 'bold' }}>{bulkDeleteModal.title}</h3>
+            <h3 style={{ marginBottom: '1.2rem', fontSize: '1.75rem', color: 'white', fontWeight: '800', letterSpacing: '-0.5px' }}>{bulkDeleteModal.title}</h3>
             <p style={{ color: '#94a3b8', marginBottom: '2rem', lineHeight: '1.6', fontSize: '1rem' }}>
               {bulkDeleteModal.message}
             </p>
