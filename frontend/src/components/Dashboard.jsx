@@ -534,8 +534,8 @@ export default function Dashboard() {
           </h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <span style={{ background: 'rgba(99, 102, 241, 0.2)', color: '#818cf8', padding: '0.25rem 0.75rem', borderRadius: '2rem', fontSize: '0.85rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><UserIcon size={14}/> User Mode</span>
-            <div className="user-profile" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: '#6d28d9', padding: '0.35rem 1rem 0.35rem 0.35rem', borderRadius: '2rem', border: 'none', transition: 'all 0.2s', cursor: 'pointer', boxShadow: '0 4px 15px rgba(109, 40, 217, 0.4)' }} onClick={() => setShowFullscreenAvatar(true)} onMouseOver={e => { e.currentTarget.style.background = '#5b21b6'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(109, 40, 217, 0.6)'; }} onMouseOut={e => { e.currentTarget.style.background = '#6d28d9'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(109, 40, 217, 0.4)'; }}>
-              <div className="avatar" style={{ width: '36px', height: '36px', borderRadius: '50%', overflow: 'hidden', background: 'rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: '600', fontSize: '1rem' }}>
+            <div className="user-profile" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: '#6d28d9', padding: '0.4rem 1.25rem 0.4rem 0.4rem', borderRadius: '2rem', border: 'none', transition: 'all 0.2s', cursor: 'pointer', boxShadow: '0 4px 15px rgba(109, 40, 217, 0.4)' }} onClick={() => setShowFullscreenAvatar(true)} onMouseOver={e => { e.currentTarget.style.background = '#5b21b6'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(109, 40, 217, 0.6)'; }} onMouseOut={e => { e.currentTarget.style.background = '#6d28d9'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(109, 40, 217, 0.4)'; }}>
+              <div className="avatar" style={{ width: '36px', height: '36px', borderRadius: '50%', overflow: 'hidden', background: 'rgba(0,0,0,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: '600', fontSize: '1rem', flexShrink: 0 }}>
                 <img 
                   src={user?.avatarUrl?.startsWith('data:') ? user.avatarUrl : (user?.avatarUrl ? getMediaUrl(user.avatarUrl) : getFallbackAvatar(user?.username))} 
                   alt="User Avatar" 
@@ -543,9 +543,9 @@ export default function Dashboard() {
                   onError={(e) => { e.target.onerror = null; e.target.src = getFallbackAvatar(user?.username); }}
                 />
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', paddingRight: '0.25rem' }}>
-                <span style={{ color: 'white', fontWeight: '700', fontSize: '0.95rem', lineHeight: '1.2' }}>{user.username}</span>
-                <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.75rem', lineHeight: '1.2' }}>{user.email}</span>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', marginTop: '-1px' }}>
+                <span style={{ color: 'white', fontWeight: 'bold', fontSize: '0.9rem', lineHeight: 'normal', letterSpacing: '0.3px' }}>{user.username}</span>
+                <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.75rem', lineHeight: 'normal' }}>{user.email}</span>
               </div>
             </div>
           </div>

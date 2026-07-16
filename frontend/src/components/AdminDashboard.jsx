@@ -670,13 +670,13 @@ export default function AdminDashboard() {
           </h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <span style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#fca5a5', padding: '0.25rem 0.75rem', borderRadius: '2rem', fontSize: '0.85rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><ShieldAlert size={14}/> Admin Mode</span>
-            <div className="user-profile" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: '#dc2626', padding: '0.35rem 1rem 0.35rem 0.35rem', borderRadius: '2rem', border: 'none', transition: 'all 0.2s', cursor: 'pointer', boxShadow: '0 4px 15px rgba(220, 38, 38, 0.4)' }} onClick={() => setShowFullscreenAvatar(true)} onMouseOver={e => { e.currentTarget.style.background = '#b91c1c'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(220, 38, 38, 0.6)'; }} onMouseOut={e => { e.currentTarget.style.background = '#dc2626'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(220, 38, 38, 0.4)'; }}>
-              <div className="avatar" style={{ width: '36px', height: '36px', background: 'rgba(0,0,0,0.15)', overflow: 'hidden', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '600', fontSize: '1rem', color: 'white' }}>
+            <div className="user-profile" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: '#dc2626', padding: '0.4rem 1.25rem 0.4rem 0.4rem', borderRadius: '2rem', border: 'none', transition: 'all 0.2s', cursor: 'pointer', boxShadow: '0 4px 15px rgba(220, 38, 38, 0.4)' }} onClick={() => setShowFullscreenAvatar(true)} onMouseOver={e => { e.currentTarget.style.background = '#b91c1c'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(220, 38, 38, 0.6)'; }} onMouseOut={e => { e.currentTarget.style.background = '#dc2626'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(220, 38, 38, 0.4)'; }}>
+              <div className="avatar" style={{ width: '36px', height: '36px', background: 'rgba(0,0,0,0.15)', overflow: 'hidden', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '600', fontSize: '1rem', color: 'white', flexShrink: 0 }}>
                 {currentUser.avatarUrl ? <img src={getMediaUrl(currentUser.avatarUrl)} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.onerror = null; e.target.src = getFallbackAvatar(currentUser.username); }} /> : currentUser.username?.[0]?.toUpperCase()}
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', paddingRight: '0.25rem' }}>
-                <span style={{ color: 'white', fontWeight: '700', fontSize: '0.95rem', lineHeight: '1.2' }}>{currentUser.username}</span>
-                <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.75rem', lineHeight: '1.2' }}>{currentUser.email}</span>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', marginTop: '-1px' }}>
+                <span style={{ color: 'white', fontWeight: 'bold', fontSize: '0.9rem', lineHeight: 'normal', letterSpacing: '0.3px' }}>{currentUser.username}</span>
+                <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.75rem', lineHeight: 'normal' }}>{currentUser.email}</span>
               </div>
             </div>
           </div>
