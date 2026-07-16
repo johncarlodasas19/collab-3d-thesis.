@@ -37,6 +37,8 @@ export default function AdminDashboard() {
   const [selectedTrashReports, setSelectedTrashReports] = useState([]);
   const [selectedTrashLogs, setSelectedTrashLogs] = useState([]);
   const [trashSubTab, setTrashSubTab] = useState('reports'); // 'reports' or 'logs'
+  const [trashReportSearchQuery, setTrashReportSearchQuery] = useState('');
+  const [trashLogSearchQuery, setTrashLogSearchQuery] = useState('');
   
   // Pagination & Sort State
   const [reportSearchQuery, setReportSearchQuery] = useState('');
@@ -480,6 +482,20 @@ export default function AdminDashboard() {
   const totalActivityPages = Math.ceil(filteredActivity.length / activityPerPage) || 1;
   const paginatedActivity = filteredActivity.slice((activityPage - 1) * activityPerPage, activityPage * activityPerPage);
 
+  // Filter Trash Items
+  const filteredTrashReports = trashReports.filter(report => {
+    const searchLower = trashReportSearchQuery.toLowerCase();
+    return (report.reportedProjectId || '').toLowerCase().includes(searchLower) ||
+           (report.reason || '').toLowerCase().includes(searchLower);
+  });
+
+  const filteredTrashLogs = trashLogs.filter(log => {
+    const searchLower = trashLogSearchQuery.toLowerCase();
+    return (log.username || '').toLowerCase().includes(searchLower) ||
+           (log.action || '').toLowerCase().includes(searchLower) ||
+           (log.details || '').toLowerCase().includes(searchLower);
+  });
+
   // Bulk Actions
   const handleConfirmAction = async () => {
     const { action } = confirmActionModal;
@@ -501,11 +517,13 @@ export default function AdminDashboard() {
         await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/reports/restore`, { reportIds: selectedTrashReports }, { headers: { Authorization: `Bearer ${token}` } });
         setSelectedTrashReports([]);
         fetchTrash();
+        fetchData();
         setAdminActionSuccessModal({ show: true, message: `Restored ${selectedTrashReports.length} reports.` });
       } else if (action === 'restore_logs') {
         await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/activity/restore`, { logIds: selectedTrashLogs }, { headers: { Authorization: `Bearer ${token}` } });
         setSelectedTrashLogs([]);
         fetchTrash();
+        fetchData();
         setAdminActionSuccessModal({ show: true, message: `Restored ${selectedTrashLogs.length} logs.` });
       } else if (action === 'permanent_delete_reports') {
         await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/reports/permanent`, { headers: { Authorization: `Bearer ${token}` }, data: { reportIds: selectedTrashReports } });
@@ -1346,11 +1364,24 @@ export default function AdminDashboard() {
                     </div>
                   )}
 
-                  {trashReports.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>No deleted reports in trash.</div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.5rem' }}>
+                    <div style={{ position: 'relative', width: '250px' }}>
+                      <Search size={16} color="#94a3b8" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)' }} />
+                      <input 
+                        type="text" 
+                        placeholder="Search trashed reports..." 
+                        value={trashReportSearchQuery}
+                        onChange={(e) => setTrashReportSearchQuery(e.target.value)}
+                        style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.5rem 0.5rem 0.5rem 2.25rem', borderRadius: '0.5rem', fontSize: '0.85rem', outline: 'none' }}
+                      />
+                    </div>
+                  </div>
+
+                  {filteredTrashReports.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>No deleted reports found.</div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                      {trashReports.map(report => (
+                      {filteredTrashReports.map(report => (
                         <div key={report._id} style={{ display: 'flex', gap: '1rem', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '0.5rem', border: `1px solid ${selectedTrashReports.includes(report._id) ? '#ef4444' : 'rgba(255,255,255,0.05)'}`, cursor: 'pointer', transition: 'all 0.2s' }} onClick={(e) => {
                           if (e.target.tagName.toLowerCase() === 'button') return;
                           if (selectedTrashReports.includes(report._id)) {
@@ -1412,11 +1443,24 @@ export default function AdminDashboard() {
                     </div>
                   )}
 
-                  {trashLogs.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>No deleted activity logs in trash.</div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.5rem' }}>
+                    <div style={{ position: 'relative', width: '250px' }}>
+                      <Search size={16} color="#94a3b8" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)' }} />
+                      <input 
+                        type="text" 
+                        placeholder="Search trashed logs..." 
+                        value={trashLogSearchQuery}
+                        onChange={(e) => setTrashLogSearchQuery(e.target.value)}
+                        style={{ width: '100%', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.5rem 0.5rem 0.5rem 2.25rem', borderRadius: '0.5rem', fontSize: '0.85rem', outline: 'none' }}
+                      />
+                    </div>
+                  </div>
+
+                  {filteredTrashLogs.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>No deleted activity logs found.</div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                      {trashLogs.map(log => (
+                      {filteredTrashLogs.map(log => (
                         <div key={log._id} style={{ display: 'flex', gap: '1rem', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '0.5rem', border: `1px solid ${selectedTrashLogs.includes(log._id) ? '#ef4444' : 'rgba(255,255,255,0.05)'}`, cursor: 'pointer', transition: 'all 0.2s' }} onClick={(e) => {
                           if (e.target.tagName.toLowerCase() === 'button') return;
                           if (selectedTrashLogs.includes(log._id)) {
