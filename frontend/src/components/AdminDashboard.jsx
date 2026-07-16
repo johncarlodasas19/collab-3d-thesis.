@@ -53,6 +53,7 @@ export default function AdminDashboard() {
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, projectId: null });
   const [evidenceModal, setEvidenceModal] = useState({ isOpen: false, url: null, error: false });
   const [bulkDeleteModal, setBulkDeleteModal] = useState({ isOpen: false, type: null, title: '', message: '' });
+  const [confirmActionModal, setConfirmActionModal] = useState({ isOpen: false, action: null, title: '', message: '', iconType: 'danger' });
   const [suspensionModal, setSuspensionModal] = useState({ isOpen: false, userId: null, hours: 24, minutes: 0 });
   
   const navigate = useNavigate();
@@ -522,94 +523,77 @@ export default function AdminDashboard() {
   const paginatedActivity = filteredActivity.slice((activityPage - 1) * activityPerPage, activityPage * activityPerPage);
 
   // Bulk Actions
-  const handleTrashReports = async () => {
+  const handleConfirmAction = async () => {
+    const { action } = confirmActionModal;
+    setConfirmActionModal({ ...confirmActionModal, isOpen: false });
+
+    try {
+      const token = localStorage.getItem('token');
+      if (action === 'trash_reports') {
+        await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/reports/trash`, { reportIds: selectedReports }, { headers: { Authorization: `Bearer ${token}` } });
+        setSelectedReports([]);
+        fetchData();
+        setAdminActionSuccessModal({ show: true, message: `Moved ${selectedReports.length} reports to trash.` });
+      } else if (action === 'trash_logs') {
+        await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/activity/trash`, { logIds: selectedLogs }, { headers: { Authorization: `Bearer ${token}` } });
+        setSelectedLogs([]);
+        fetchData();
+        setAdminActionSuccessModal({ show: true, message: `Moved ${selectedLogs.length} logs to trash.` });
+      } else if (action === 'restore_reports') {
+        await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/reports/restore`, { reportIds: selectedTrashReports }, { headers: { Authorization: `Bearer ${token}` } });
+        setSelectedTrashReports([]);
+        fetchTrash();
+        setAdminActionSuccessModal({ show: true, message: `Restored ${selectedTrashReports.length} reports.` });
+      } else if (action === 'restore_logs') {
+        await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/activity/restore`, { logIds: selectedTrashLogs }, { headers: { Authorization: `Bearer ${token}` } });
+        setSelectedTrashLogs([]);
+        fetchTrash();
+        setAdminActionSuccessModal({ show: true, message: `Restored ${selectedTrashLogs.length} logs.` });
+      } else if (action === 'permanent_delete_reports') {
+        await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/reports/permanent`, { headers: { Authorization: `Bearer ${token}` }, data: { reportIds: selectedTrashReports } });
+        setSelectedTrashReports([]);
+        fetchTrash();
+        setAdminActionSuccessModal({ show: true, message: `Permanently deleted ${selectedTrashReports.length} reports.` });
+      } else if (action === 'permanent_delete_logs') {
+        await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/activity/permanent`, { headers: { Authorization: `Bearer ${token}` }, data: { logIds: selectedTrashLogs } });
+        setSelectedTrashLogs([]);
+        fetchTrash();
+        setAdminActionSuccessModal({ show: true, message: `Permanently deleted ${selectedTrashLogs.length} logs.` });
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Action failed. Please try again.');
+    }
+  };
+
+  const handleTrashReports = () => {
     if (selectedReports.length === 0) return;
-    if (!window.confirm(`Are you sure you want to move ${selectedReports.length} reports to trash?`)) return;
-    try {
-      const token = localStorage.getItem('token');
-      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/reports/trash`, { reportIds: selectedReports }, { headers: { Authorization: `Bearer ${token}` } });
-      setSelectedReports([]);
-      fetchData();
-      setAdminActionSuccessModal({ show: true, message: `Moved ${selectedReports.length} reports to trash.` });
-    } catch (err) {
-      console.error(err);
-      alert('Failed to trash reports');
-    }
+    setConfirmActionModal({ isOpen: true, action: 'trash_reports', title: 'Move to Trash', message: `Are you sure you want to move ${selectedReports.length} reports to trash?`, iconType: 'danger' });
   };
 
-  const handleTrashLogs = async () => {
+  const handleTrashLogs = () => {
     if (selectedLogs.length === 0) return;
-    if (!window.confirm(`Are you sure you want to move ${selectedLogs.length} logs to trash?`)) return;
-    try {
-      const token = localStorage.getItem('token');
-      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/activity/trash`, { logIds: selectedLogs }, { headers: { Authorization: `Bearer ${token}` } });
-      setSelectedLogs([]);
-      fetchData();
-      setAdminActionSuccessModal({ show: true, message: `Moved ${selectedLogs.length} logs to trash.` });
-    } catch (err) {
-      console.error(err);
-      alert('Failed to trash logs');
-    }
+    setConfirmActionModal({ isOpen: true, action: 'trash_logs', title: 'Move to Trash', message: `Are you sure you want to move ${selectedLogs.length} logs to trash?`, iconType: 'danger' });
   };
 
-  const handleRestoreReports = async () => {
+  const handleRestoreReports = () => {
     if (selectedTrashReports.length === 0) return;
-    if (!window.confirm(`Are you sure you want to restore ${selectedTrashReports.length} reports?`)) return;
-    try {
-      const token = localStorage.getItem('token');
-      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/reports/restore`, { reportIds: selectedTrashReports }, { headers: { Authorization: `Bearer ${token}` } });
-      setSelectedTrashReports([]);
-      fetchTrash();
-      setAdminActionSuccessModal({ show: true, message: `Restored ${selectedTrashReports.length} reports.` });
-    } catch (err) {
-      console.error(err);
-      alert('Failed to restore reports');
-    }
+    setConfirmActionModal({ isOpen: true, action: 'restore_reports', title: 'Restore Reports', message: `Are you sure you want to restore ${selectedTrashReports.length} reports?`, iconType: 'success' });
   };
 
-  const handleRestoreLogs = async () => {
+  const handleRestoreLogs = () => {
     if (selectedTrashLogs.length === 0) return;
-    if (!window.confirm(`Are you sure you want to restore ${selectedTrashLogs.length} logs?`)) return;
-    try {
-      const token = localStorage.getItem('token');
-      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/activity/restore`, { logIds: selectedTrashLogs }, { headers: { Authorization: `Bearer ${token}` } });
-      setSelectedTrashLogs([]);
-      fetchTrash();
-      setAdminActionSuccessModal({ show: true, message: `Restored ${selectedTrashLogs.length} logs.` });
-    } catch (err) {
-      console.error(err);
-      alert('Failed to restore logs');
-    }
+    setConfirmActionModal({ isOpen: true, action: 'restore_logs', title: 'Restore Logs', message: `Are you sure you want to restore ${selectedTrashLogs.length} logs?`, iconType: 'success' });
   };
 
-  const handlePermanentDeleteReports = async () => {
+  const handlePermanentDeleteReports = () => {
     if (selectedTrashReports.length === 0) return;
-    if (!window.confirm(`Are you sure you want to PERMANENTLY delete ${selectedTrashReports.length} reports? This cannot be undone.`)) return;
-    try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/reports/permanent`, { headers: { Authorization: `Bearer ${token}` }, data: { reportIds: selectedTrashReports } });
-      setSelectedTrashReports([]);
-      fetchTrash();
-      setAdminActionSuccessModal({ show: true, message: `Permanently deleted ${selectedTrashReports.length} reports.` });
-    } catch (err) {
-      console.error(err);
-      alert('Failed to delete reports');
-    }
+    setConfirmActionModal({ isOpen: true, action: 'permanent_delete_reports', title: 'Permanently Delete', message: `Are you sure you want to permanently delete ${selectedTrashReports.length} reports? This cannot be undone.`, iconType: 'danger' });
   };
 
-  const handlePermanentDeleteLogs = async () => {
+  const handlePermanentDeleteLogs = () => {
     if (selectedTrashLogs.length === 0) return;
-    if (!window.confirm(`Are you sure you want to PERMANENTLY delete ${selectedTrashLogs.length} logs? This cannot be undone.`)) return;
-    try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/activity/permanent`, { headers: { Authorization: `Bearer ${token}` }, data: { logIds: selectedTrashLogs } });
-      setSelectedTrashLogs([]);
-      fetchTrash();
-      setAdminActionSuccessModal({ show: true, message: `Permanently deleted ${selectedTrashLogs.length} logs.` });
-    } catch (err) {
-      console.error(err);
-      alert('Failed to delete logs');
-    }
+    setConfirmActionModal({ isOpen: true, action: 'permanent_delete_logs', title: 'Permanently Delete', message: `Are you sure you want to permanently delete ${selectedTrashLogs.length} logs? This cannot be undone.`, iconType: 'danger' });
   };
 
   return (
@@ -1784,6 +1768,38 @@ export default function AdminDashboard() {
                 onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(239, 68, 68, 0.4)'; }}
               >
                 Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirmActionModal.isOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999 }}>
+          <div className="premium-modal" style={{ background: 'linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%)', padding: '3.5rem 3rem', borderRadius: '1.5rem', maxWidth: '420px', width: '90%', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255,255,255,0.1)', border: '1px solid rgba(255, 255, 255, 0.15)' }}>
+            <div className={confirmActionModal.iconType === 'success' ? 'premium-icon-success' : 'premium-icon-danger'} style={{ width: '88px', height: '88px', borderRadius: '50%', background: confirmActionModal.iconType === 'success' ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(22, 163, 74, 0.4) 100%)' : 'linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(185, 28, 28, 0.4) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', border: `1px solid ${confirmActionModal.iconType === 'success' ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)'}` }}>
+              {confirmActionModal.iconType === 'success' ? <CheckCircle size={44} color="#4ade80" /> : <Trash2 size={44} color="#f87171" />}
+            </div>
+            <h3 style={{ marginBottom: '1.2rem', fontSize: '1.75rem', color: 'white', fontWeight: '800', letterSpacing: '-0.5px' }}>{confirmActionModal.title}</h3>
+            <p style={{ color: '#94a3b8', marginBottom: '2rem', lineHeight: '1.6', fontSize: '1rem' }}>
+              {confirmActionModal.message}
+            </p>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+              <button 
+                onClick={() => setConfirmActionModal({ ...confirmActionModal, isOpen: false })}
+                style={{ background: 'rgba(255,255,255,0.05)', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.1)', padding: '0.85rem 1.5rem', borderRadius: '0.75rem', fontWeight: 'bold', cursor: 'pointer', flex: 1, transition: 'all 0.2s' }}
+                onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'white'; }}
+                onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#94a3b8'; }}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleConfirmAction} 
+                style={{ background: confirmActionModal.iconType === 'success' ? 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)' : 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)', color: 'white', border: 'none', padding: '0.85rem 1.5rem', borderRadius: '0.75rem', fontWeight: 'bold', cursor: 'pointer', flex: 1, transition: 'all 0.3s ease', boxShadow: confirmActionModal.iconType === 'success' ? '0 4px 15px rgba(34, 197, 94, 0.4)' : '0 4px 15px rgba(239, 68, 68, 0.4)' }}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = confirmActionModal.iconType === 'success' ? '0 6px 20px rgba(34, 197, 94, 0.6)' : '0 6px 20px rgba(239, 68, 68, 0.6)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = confirmActionModal.iconType === 'success' ? '0 4px 15px rgba(34, 197, 94, 0.4)' : '0 4px 15px rgba(239, 68, 68, 0.4)'; }}
+              >
+                Confirm
               </button>
             </div>
           </div>
