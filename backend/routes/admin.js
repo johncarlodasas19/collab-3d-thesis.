@@ -142,7 +142,7 @@ router.delete('/users/:id', async (req, res) => {
 // ---------------------------
 router.get('/reports', async (req, res) => {
   try {
-    const reports = await Report.find().sort({ createdAt: -1 }).lean();
+    const reports = await Report.find({ isDeleted: { $ne: true } }).sort({ createdAt: -1 }).lean();
     
     const projectIds = [...new Set(reports.map(r => r.reportedProjectId).filter(Boolean))];
     const existingProjects = await Project.find({ _id: { $in: projectIds } }).select('_id').lean();
@@ -182,13 +182,15 @@ router.put('/reports/:id/resolve', async (req, res) => {
 // Admin can force delete a project
 router.delete('/projects/:id/force', async (req, res) => {
   try {
-    const project = await Project.findByIdAndDelete(req.params.id);
+    const project = await Project.findById(req.params.id);
+    const projectName = project ? project.name : 'Unknown Project';
+    await Project.findByIdAndDelete(req.params.id);
     
     await ActivityLog.create({
       userId: req.user.userId,
       username: req.user.username,
       action: 'Force Deleted Project',
-      details: `Project ID: ${req.params.id}`
+      details: `Project Name: ${projectName} (ID: ${req.params.id})`
     });
 
     const io = req.app.get('io');
@@ -207,7 +209,7 @@ router.delete('/projects/:id/force', async (req, res) => {
 // ---------------------------
 router.get('/activity', async (req, res) => {
   try {
-    const logs = await ActivityLog.find().sort({ createdAt: -1 }).limit(2000);
+    const logs = await ActivityLog.find({ isDeleted: { $ne: true } }).sort({ createdAt: -1 }).limit(2000);
     res.json(logs);
   } catch (err) {
     res.status(500).json({ message: 'Error fetching activity logs', error: err.message });
@@ -247,6 +249,87 @@ router.delete('/activity/cleanup', async (req, res) => {
     res.json({ message: 'Old activity logs cleared.' });
   } catch (err) {
     res.status(500).json({ message: 'Error cleaning activity logs', error: err.message });
+  }
+});
+
+// ---------------------------
+// Trash Management
+// ---------------------------
+
+// Move Reports to Trash
+router.put('/reports/trash', async (req, res) => {
+  try {
+    const { reportIds } = req.body;
+    await Report.updateMany({ _id: { $in: reportIds } }, { $set: { isDeleted: true } });
+    res.json({ message: 'Reports moved to trash.' });
+  } catch (err) {
+    res.status(500).json({ message: 'Error moving reports to trash', error: err.message });
+  }
+});
+
+// Move Activity Logs to Trash
+router.put('/activity/trash', async (req, res) => {
+  try {
+    const { logIds } = req.body;
+    await ActivityLog.updateMany({ _id: { $in: logIds } }, { $set: { isDeleted: true } });
+    res.json({ message: 'Logs moved to trash.' });
+  } catch (err) {
+    res.status(500).json({ message: 'Error moving logs to trash', error: err.message });
+  }
+});
+
+// Get Trashed Items
+router.get('/trash', async (req, res) => {
+  try {
+    const trashReports = await Report.find({ isDeleted: true }).sort({ createdAt: -1 });
+    const trashLogs = await ActivityLog.find({ isDeleted: true }).sort({ createdAt: -1 });
+    res.json({ reports: trashReports, logs: trashLogs });
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching trash', error: err.message });
+  }
+});
+
+// Restore Trashed Reports
+router.put('/reports/restore', async (req, res) => {
+  try {
+    const { reportIds } = req.body;
+    await Report.updateMany({ _id: { $in: reportIds } }, { $set: { isDeleted: false } });
+    res.json({ message: 'Reports restored.' });
+  } catch (err) {
+    res.status(500).json({ message: 'Error restoring reports', error: err.message });
+  }
+});
+
+// Restore Trashed Logs
+router.put('/activity/restore', async (req, res) => {
+  try {
+    const { logIds } = req.body;
+    await ActivityLog.updateMany({ _id: { $in: logIds } }, { $set: { isDeleted: false } });
+    res.json({ message: 'Logs restored.' });
+  } catch (err) {
+    res.status(500).json({ message: 'Error restoring logs', error: err.message });
+  }
+});
+
+// Permanently Delete Reports
+router.delete('/reports/permanent', async (req, res) => {
+  try {
+    const { reportIds } = req.body;
+    await Report.deleteMany({ _id: { $in: reportIds } });
+    res.json({ message: 'Reports permanently deleted.' });
+  } catch (err) {
+    res.status(500).json({ message: 'Error deleting reports permanently', error: err.message });
+  }
+});
+
+// Permanently Delete Logs
+router.delete('/activity/permanent', async (req, res) => {
+  try {
+    const { logIds } = req.body;
+    await ActivityLog.deleteMany({ _id: { $in: logIds } });
+    res.json({ message: 'Logs permanently deleted.' });
+  } catch (err) {
+    res.status(500).json({ message: 'Error deleting logs permanently', error: err.message });
   }
 });
 

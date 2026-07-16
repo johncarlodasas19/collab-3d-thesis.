@@ -9,7 +9,8 @@ const reportSchema = new mongoose.Schema({
   status: { type: String, enum: ['pending', 'reviewed', 'resolved', 'dismissed'], default: 'pending' },
   proofUrl: { type: String }, // Manually attached evidence
   createdAt: { type: Date, default: Date.now },
-  resolvedAt: { type: Date }
+  resolvedAt: { type: Date },
+  isDeleted: { type: Boolean, default: false }
 });
 
 module.exports = mongoose.model('Report', reportSchema);

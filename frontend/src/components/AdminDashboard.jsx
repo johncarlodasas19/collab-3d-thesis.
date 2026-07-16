@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { Box, Menu, Users, AlertTriangle, Activity, LogOut, ShieldAlert, CheckCircle2, XCircle, Trash2, Shield, UserX, BarChart3, Clock, Database, Globe, Eye, EyeOff, Search, Filter, Download, Mail, ShieldCheck, ShieldOff, Settings, Upload, PieChart, CheckCircle, ChevronLeft, ChevronRight, ArrowUpDown, X } from 'lucide-react';
+import { Box, Menu, Users, AlertTriangle, Activity, LogOut, ShieldAlert, CheckCircle2, XCircle, Trash2, Shield, UserX, BarChart3, Clock, Database, Globe, Eye, EyeOff, Search, Filter, Download, Mail, ShieldCheck, ShieldOff, Settings, Upload, PieChart, CheckCircle, ChevronLeft, ChevronRight, ArrowUpDown, X, Check } from 'lucide-react';
 import AvatarEditor from 'react-avatar-editor';
 import { io } from 'socket.io-client';
 
@@ -26,6 +26,17 @@ export default function AdminDashboard() {
   const [deletedProjectIds, setDeletedProjectIds] = useState([]);
   const [adminActionSuccessModal, setAdminActionSuccessModal] = useState({ show: false, message: '' });
   const [checkWorkspaceWarningModal, setCheckWorkspaceWarningModal] = useState({ show: false, message: '' });
+  
+  // Bulk Selection State
+  const [selectedReports, setSelectedReports] = useState([]);
+  const [selectedLogs, setSelectedLogs] = useState([]);
+  
+  // Trash State
+  const [trashReports, setTrashReports] = useState([]);
+  const [trashLogs, setTrashLogs] = useState([]);
+  const [selectedTrashReports, setSelectedTrashReports] = useState([]);
+  const [selectedTrashLogs, setSelectedTrashLogs] = useState([]);
+  const [trashSubTab, setTrashSubTab] = useState('reports'); // 'reports' or 'logs'
   
   // Pagination & Sort State
   const [reportSearchQuery, setReportSearchQuery] = useState('');
@@ -127,6 +138,17 @@ export default function AdminDashboard() {
     return () => newSocket.disconnect();
   }, [navigate]);
 
+  const fetchTrash = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/trash`, { headers: { Authorization: `Bearer ${token}` } });
+      setTrashReports(res.data.reports || []);
+      setTrashLogs(res.data.logs || []);
+    } catch (err) {
+      console.error('Failed to fetch trash', err);
+    }
+  };
+
   const fetchData = async (showLoading = true) => {
     if (showLoading) setLoading(true);
     try {
@@ -144,6 +166,10 @@ export default function AdminDashboard() {
       setUsers(usersRes.data);
       setReports(reportsRes.data);
       setActivityLogs(logsRes.data);
+      
+      if (activeTab === 'trash') {
+        fetchTrash();
+      }
     } catch (err) {
       console.error('Failed to fetch admin data', err);
       if (err.response?.status === 403) navigate('/dashboard');
@@ -406,13 +432,30 @@ export default function AdminDashboard() {
   };
 
   const downloadCSV = () => {
-    const headers = ['Date', 'User', 'Action', 'Details'];
-    const rows = activityLogs.map(log => [
-      formatPHTime(log.createdAt).replace(/,/g, ''),
-      log.username,
-      log.action,
-      `"${log.details || ''}"` // Wrap in quotes to prevent comma issues
-    ]);
+    const headers = ['Date', 'User', 'Action', 'Target/Project', 'Details'];
+    const rows = activityLogs.map(log => {
+      let target = 'N/A';
+      let details = log.details || '';
+      
+      const projectMatch = details.match(/Project Name: (.+) \(ID: (.+)\)/);
+      if (projectMatch) {
+        target = projectMatch[1];
+      } else if (details.includes('Project ID:')) {
+        target = details.split('Project ID: ')[1];
+      } else if (details.includes('Report ID:')) {
+        target = details.split('Report ID: ')[1];
+      } else if (details.includes('Deleted user:')) {
+        target = details.split('Deleted user: ')[1];
+      }
+      
+      return [
+        formatPHTime(log.createdAt).replace(/,/g, ''),
+        log.username,
+        log.action,
+        `"${target.replace(/"/g, '""')}"`,
+        `"${details.replace(/"/g, '""')}"`
+      ];
+    });
     
     const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
     const encodedUri = encodeURI(csvContent);
@@ -478,6 +521,97 @@ export default function AdminDashboard() {
   const totalActivityPages = Math.ceil(filteredActivity.length / activityPerPage) || 1;
   const paginatedActivity = filteredActivity.slice((activityPage - 1) * activityPerPage, activityPage * activityPerPage);
 
+  // Bulk Actions
+  const handleTrashReports = async () => {
+    if (selectedReports.length === 0) return;
+    if (!window.confirm(`Are you sure you want to move ${selectedReports.length} reports to trash?`)) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/reports/trash`, { reportIds: selectedReports }, { headers: { Authorization: `Bearer ${token}` } });
+      setSelectedReports([]);
+      fetchData();
+      setAdminActionSuccessModal({ show: true, message: `Moved ${selectedReports.length} reports to trash.` });
+    } catch (err) {
+      console.error(err);
+      alert('Failed to trash reports');
+    }
+  };
+
+  const handleTrashLogs = async () => {
+    if (selectedLogs.length === 0) return;
+    if (!window.confirm(`Are you sure you want to move ${selectedLogs.length} logs to trash?`)) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/activity/trash`, { logIds: selectedLogs }, { headers: { Authorization: `Bearer ${token}` } });
+      setSelectedLogs([]);
+      fetchData();
+      setAdminActionSuccessModal({ show: true, message: `Moved ${selectedLogs.length} logs to trash.` });
+    } catch (err) {
+      console.error(err);
+      alert('Failed to trash logs');
+    }
+  };
+
+  const handleRestoreReports = async () => {
+    if (selectedTrashReports.length === 0) return;
+    if (!window.confirm(`Are you sure you want to restore ${selectedTrashReports.length} reports?`)) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/reports/restore`, { reportIds: selectedTrashReports }, { headers: { Authorization: `Bearer ${token}` } });
+      setSelectedTrashReports([]);
+      fetchTrash();
+      setAdminActionSuccessModal({ show: true, message: `Restored ${selectedTrashReports.length} reports.` });
+    } catch (err) {
+      console.error(err);
+      alert('Failed to restore reports');
+    }
+  };
+
+  const handleRestoreLogs = async () => {
+    if (selectedTrashLogs.length === 0) return;
+    if (!window.confirm(`Are you sure you want to restore ${selectedTrashLogs.length} logs?`)) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/activity/restore`, { logIds: selectedTrashLogs }, { headers: { Authorization: `Bearer ${token}` } });
+      setSelectedTrashLogs([]);
+      fetchTrash();
+      setAdminActionSuccessModal({ show: true, message: `Restored ${selectedTrashLogs.length} logs.` });
+    } catch (err) {
+      console.error(err);
+      alert('Failed to restore logs');
+    }
+  };
+
+  const handlePermanentDeleteReports = async () => {
+    if (selectedTrashReports.length === 0) return;
+    if (!window.confirm(`Are you sure you want to PERMANENTLY delete ${selectedTrashReports.length} reports? This cannot be undone.`)) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/reports/permanent`, { headers: { Authorization: `Bearer ${token}` }, data: { reportIds: selectedTrashReports } });
+      setSelectedTrashReports([]);
+      fetchTrash();
+      setAdminActionSuccessModal({ show: true, message: `Permanently deleted ${selectedTrashReports.length} reports.` });
+    } catch (err) {
+      console.error(err);
+      alert('Failed to delete reports');
+    }
+  };
+
+  const handlePermanentDeleteLogs = async () => {
+    if (selectedTrashLogs.length === 0) return;
+    if (!window.confirm(`Are you sure you want to PERMANENTLY delete ${selectedTrashLogs.length} logs? This cannot be undone.`)) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/activity/permanent`, { headers: { Authorization: `Bearer ${token}` }, data: { logIds: selectedTrashLogs } });
+      setSelectedTrashLogs([]);
+      fetchTrash();
+      setAdminActionSuccessModal({ show: true, message: `Permanently deleted ${selectedTrashLogs.length} logs.` });
+    } catch (err) {
+      console.error(err);
+      alert('Failed to delete logs');
+    }
+  };
+
   return (
     <div className="dashboard-layout" style={{ background: '#0f172a' }}>
       <aside className="sidebar" style={{ 
@@ -511,7 +645,11 @@ export default function AdminDashboard() {
             <Activity size={20} /> System Activity
           </button>
           <button onClick={() => setActiveTab('settings')} className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`} style={{ width: '100%', background: activeTab === 'settings' ? 'rgba(239, 68, 68, 0.1)' : 'transparent', color: activeTab === 'settings' ? '#ef4444' : '#94a3b8', border: 'none', cursor: 'pointer', textAlign: 'left', padding: '1rem', fontSize: '1rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.75rem', borderRadius: '0.5rem', marginBottom: '0.5rem' }}>
-            <Settings size={20} /> Admin Settings
+            <Settings size={20} /> Settings
+          </button>
+          
+          <button onClick={() => { setActiveTab('trash'); fetchTrash(); }} className={`nav-item ${activeTab === 'trash' ? 'active' : ''}`} style={{ width: '100%', background: activeTab === 'trash' ? 'rgba(239, 68, 68, 0.1)' : 'transparent', color: activeTab === 'trash' ? '#ef4444' : '#94a3b8', border: 'none', cursor: 'pointer', textAlign: 'left', padding: '1rem', fontSize: '1rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.75rem', borderRadius: '0.5rem', marginBottom: '0.5rem' }}>
+            <Trash2 size={20} /> Trash
           </button>
         </nav>
         <div style={{ marginTop: 'auto' }}>
@@ -843,6 +981,30 @@ export default function AdminDashboard() {
                   </button>
                 </div>
               </div>
+              {paginatedReports.length > 0 && (
+                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', background: 'rgba(255,255,255,0.05)', padding: '0.75rem', borderRadius: '0.5rem', alignItems: 'center' }}>
+                  <button 
+                    onClick={() => {
+                      if (selectedReports.length === paginatedReports.length) {
+                        setSelectedReports([]);
+                      } else {
+                        setSelectedReports(paginatedReports.map(r => r._id));
+                      }
+                    }}
+                    style={{ background: 'transparent', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '0.4rem 0.75rem', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '0.85rem' }}
+                  >
+                    {selectedReports.length === paginatedReports.length ? 'Deselect All' : 'Select All'}
+                  </button>
+                  {selectedReports.length > 0 && (
+                    <button 
+                      onClick={handleTrashReports}
+                      style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '0.4rem 0.75rem', borderRadius: '0.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}
+                    >
+                      <Trash2 size={14} /> Move {selectedReports.length} to Trash
+                    </button>
+                  )}
+                </div>
+              )}
               
               {paginatedReports.length === 0 ? (
                 <div style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8', background: 'rgba(30, 32, 47, 0.8)', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.05)' }}>
@@ -853,8 +1015,18 @@ export default function AdminDashboard() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(500px, 1fr))', gap: '1.5rem', alignItems: 'start' }}>
                     {paginatedReports.map(report => (
-                    <div key={report._id} style={{ background: 'rgba(30, 32, 47, 0.8)', borderRadius: '1rem', border: '1px solid', borderColor: report.status === 'pending' ? 'rgba(239, 68, 68, 0.4)' : 'rgba(255,255,255,0.05)', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', height: '100%' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+                    <div key={report._id} style={{ position: 'relative', background: 'rgba(30, 32, 47, 0.8)', borderRadius: '1rem', border: '2px solid', borderColor: selectedReports.includes(report._id) ? '#ef4444' : (report.status === 'pending' ? 'rgba(239, 68, 68, 0.4)' : 'rgba(255,255,255,0.05)'), padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', height: '100%', cursor: 'pointer', transition: 'all 0.2s' }} onClick={(e) => {
+                      if (e.target.tagName.toLowerCase() === 'button' || e.target.closest('button') || e.target.tagName.toLowerCase() === 'a') return;
+                      if (selectedReports.includes(report._id)) {
+                        setSelectedReports(prev => prev.filter(id => id !== report._id));
+                      } else {
+                        setSelectedReports(prev => [...prev, report._id]);
+                      }
+                    }}>
+                      <div style={{ position: 'absolute', top: '1rem', right: '1rem', width: '24px', height: '24px', borderRadius: '4px', border: `2px solid ${selectedReports.includes(report._id) ? '#ef4444' : 'rgba(255,255,255,0.3)'}`, background: selectedReports.includes(report._id) ? '#ef4444' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
+                        {selectedReports.includes(report._id) && <Check size={16} color="white" />}
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', paddingRight: '2rem' }}>
                         <div style={{ flex: 1, minWidth: '200px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
                             <span style={{ color: 'white', fontWeight: 'bold' }}>Project: {report.reportedProjectName || report.reportedProjectId}</span>
@@ -993,17 +1165,60 @@ export default function AdminDashboard() {
                     <Trash2 size={14} /> Clear Old Logs
                   </button>
                 </div>
+                </div>
               </div>
+
+              {paginatedActivity.length > 0 && (
+                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', background: 'rgba(255,255,255,0.05)', padding: '0.75rem', borderRadius: '0.5rem', alignItems: 'center' }}>
+                  <button 
+                    onClick={() => {
+                      if (selectedLogs.length === paginatedActivity.length) {
+                        setSelectedLogs([]);
+                      } else {
+                        setSelectedLogs(paginatedActivity.map(l => l._id));
+                      }
+                    }}
+                    style={{ background: 'transparent', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '0.4rem 0.75rem', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '0.85rem' }}
+                  >
+                    {selectedLogs.length === paginatedActivity.length ? 'Deselect All' : 'Select All'}
+                  </button>
+                  {selectedLogs.length > 0 && (
+                    <button 
+                      onClick={handleTrashLogs}
+                      style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '0.4rem 0.75rem', borderRadius: '0.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}
+                    >
+                      <Trash2 size={14} /> Move {selectedLogs.length} to Trash
+                    </button>
+                  )}
+                </div>
+              )}
+
               <div style={{ background: 'rgba(30, 32, 47, 0.8)', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden', padding: '1.5rem' }}>
                 {paginatedActivity.length === 0 ? (
                   <div style={{ color: '#94a3b8', textAlign: 'center', padding: '2rem' }}>No activity logs found.</div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '1.5rem' }}>
-                      {paginatedActivity.map((log, index) => (
-                        <div key={log._id || index} style={{ display: 'flex', gap: '1rem', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
-                          <div style={{ color: '#6366f1', paddingTop: '0.2rem' }}><Globe size={20} /></div>
-                          <div>
+                      {paginatedActivity.map((log) => (
+                        <div 
+                          key={log._id} 
+                          style={{ position: 'relative', background: 'rgba(15, 23, 42, 0.5)', padding: '1.25rem', borderRadius: '0.75rem', border: '2px solid', borderColor: selectedLogs.includes(log._id) ? '#ef4444' : 'rgba(255,255,255,0.05)', display: 'flex', gap: '1rem', alignItems: 'flex-start', cursor: 'pointer', transition: 'all 0.2s' }}
+                          onClick={(e) => {
+                            if (e.target.tagName.toLowerCase() === 'button' || e.target.closest('button')) return;
+                            if (selectedLogs.includes(log._id)) {
+                              setSelectedLogs(prev => prev.filter(id => id !== log._id));
+                            } else {
+                              setSelectedLogs(prev => [...prev, log._id]);
+                            }
+                          }}
+                        >
+                          <div style={{ position: 'absolute', top: '1rem', right: '1rem', width: '20px', height: '20px', borderRadius: '4px', border: `2px solid ${selectedLogs.includes(log._id) ? '#ef4444' : 'rgba(255,255,255,0.3)'}`, background: selectedLogs.includes(log._id) ? '#ef4444' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
+                            {selectedLogs.includes(log._id) && <Check size={14} color="white" />}
+                          </div>
+                          <div style={{ width: '40px', height: '40px', borderRadius: '0.5rem', background: log.action.includes('Delete') || log.action.includes('Dismiss') || log.action.includes('Clear') || log.action.includes('Suspend') ? 'rgba(239, 68, 68, 0.1)' : log.action.includes('Update') || log.action.includes('Resolve') ? 'rgba(34, 197, 94, 0.1)' : 'rgba(99, 102, 241, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <Globe size={20} color="#6366f1" />
+                          </div>
+                          <div style={{ flex: 1, paddingRight: '2rem' }}>
                             <div style={{ color: 'white', fontWeight: '500' }}>
                               <span style={{ color: '#818cf8' }}>{log.username}</span> {log.action}
                             </div>
@@ -1151,6 +1366,154 @@ export default function AdminDashboard() {
                 </div>
 
               </div>
+            </div>
+          )}
+
+          {activeTab === 'trash' && (
+            <div className="fade-in">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', background: 'rgba(30, 32, 47, 0.8)', padding: '1.5rem', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <div>
+                  <h2 style={{ color: 'white', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Trash2 color="#ef4444" /> Trash Bin</h2>
+                  <p style={{ color: '#94a3b8', margin: '0.5rem 0 0 0', fontSize: '0.9rem' }}>Restore deleted records or permanently erase them.</p>
+                </div>
+                
+                <div style={{ display: 'flex', gap: '0.25rem', background: 'rgba(0,0,0,0.2)', padding: '0.25rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  <button onClick={() => { setTrashSubTab('reports'); setSelectedTrashReports([]); setSelectedTrashLogs([]); }} style={{ padding: '0.5rem 1rem', background: trashSubTab === 'reports' ? '#ef4444' : 'transparent', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold' }}>Reports ({trashReports.length})</button>
+                  <button onClick={() => { setTrashSubTab('logs'); setSelectedTrashReports([]); setSelectedTrashLogs([]); }} style={{ padding: '0.5rem 1rem', background: trashSubTab === 'logs' ? '#6366f1' : 'transparent', color: 'white', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold' }}>Activity Logs ({trashLogs.length})</button>
+                </div>
+              </div>
+
+              {trashSubTab === 'reports' && (
+                <div style={{ background: 'rgba(30, 32, 47, 0.8)', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden', padding: '1.5rem' }}>
+                  {trashReports.length > 0 && (
+                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', background: 'rgba(255,255,255,0.05)', padding: '0.75rem', borderRadius: '0.5rem', alignItems: 'center' }}>
+                      <button 
+                        onClick={() => {
+                          if (selectedTrashReports.length === trashReports.length) {
+                            setSelectedTrashReports([]);
+                          } else {
+                            setSelectedTrashReports(trashReports.map(r => r._id));
+                          }
+                        }}
+                        style={{ background: 'transparent', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '0.4rem 0.75rem', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '0.85rem' }}
+                      >
+                        {selectedTrashReports.length === trashReports.length ? 'Deselect All' : 'Select All'}
+                      </button>
+                      
+                      {selectedTrashReports.length > 0 && (
+                        <>
+                          <button 
+                            onClick={handleRestoreReports}
+                            style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', border: '1px solid rgba(34, 197, 94, 0.3)', padding: '0.4rem 0.75rem', borderRadius: '0.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}
+                          >
+                            Restore {selectedTrashReports.length} Reports
+                          </button>
+                          <button 
+                            onClick={handlePermanentDeleteReports}
+                            style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '0.4rem 0.75rem', borderRadius: '0.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}
+                          >
+                            Permanently Delete {selectedTrashReports.length}
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  {trashReports.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>No deleted reports in trash.</div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      {trashReports.map(report => (
+                        <div key={report._id} style={{ display: 'flex', gap: '1rem', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '0.5rem', border: `1px solid ${selectedTrashReports.includes(report._id) ? '#ef4444' : 'rgba(255,255,255,0.05)'}`, cursor: 'pointer', transition: 'all 0.2s' }} onClick={(e) => {
+                          if (e.target.tagName.toLowerCase() === 'button') return;
+                          if (selectedTrashReports.includes(report._id)) {
+                            setSelectedTrashReports(prev => prev.filter(id => id !== report._id));
+                          } else {
+                            setSelectedTrashReports(prev => [...prev, report._id]);
+                          }
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', width: '100%' }}>
+                            <div style={{ width: '20px', height: '20px', borderRadius: '4px', border: `2px solid ${selectedTrashReports.includes(report._id) ? '#ef4444' : 'rgba(255,255,255,0.3)'}`, background: selectedTrashReports.includes(report._id) ? '#ef4444' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              {selectedTrashReports.includes(report._id) && <Check size={14} color="white" />}
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ color: 'white', fontWeight: 'bold', marginBottom: '0.25rem' }}>Project ID: {report.reportedProjectId}</div>
+                              <div style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Reason: {report.reason}</div>
+                            </div>
+                            <div style={{ color: '#64748b', fontSize: '0.85rem' }}>Deleted Report</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {trashSubTab === 'logs' && (
+                <div style={{ background: 'rgba(30, 32, 47, 0.8)', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden', padding: '1.5rem' }}>
+                  {trashLogs.length > 0 && (
+                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', background: 'rgba(255,255,255,0.05)', padding: '0.75rem', borderRadius: '0.5rem', alignItems: 'center' }}>
+                      <button 
+                        onClick={() => {
+                          if (selectedTrashLogs.length === trashLogs.length) {
+                            setSelectedTrashLogs([]);
+                          } else {
+                            setSelectedTrashLogs(trashLogs.map(l => l._id));
+                          }
+                        }}
+                        style={{ background: 'transparent', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '0.4rem 0.75rem', borderRadius: '0.25rem', cursor: 'pointer', fontSize: '0.85rem' }}
+                      >
+                        {selectedTrashLogs.length === trashLogs.length ? 'Deselect All' : 'Select All'}
+                      </button>
+                      
+                      {selectedTrashLogs.length > 0 && (
+                        <>
+                          <button 
+                            onClick={handleRestoreLogs}
+                            style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', border: '1px solid rgba(34, 197, 94, 0.3)', padding: '0.4rem 0.75rem', borderRadius: '0.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}
+                          >
+                            Restore {selectedTrashLogs.length} Logs
+                          </button>
+                          <button 
+                            onClick={handlePermanentDeleteLogs}
+                            style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '0.4rem 0.75rem', borderRadius: '0.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}
+                          >
+                            Permanently Delete {selectedTrashLogs.length}
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  {trashLogs.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>No deleted activity logs in trash.</div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      {trashLogs.map(log => (
+                        <div key={log._id} style={{ display: 'flex', gap: '1rem', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '0.5rem', border: `1px solid ${selectedTrashLogs.includes(log._id) ? '#ef4444' : 'rgba(255,255,255,0.05)'}`, cursor: 'pointer', transition: 'all 0.2s' }} onClick={(e) => {
+                          if (e.target.tagName.toLowerCase() === 'button') return;
+                          if (selectedTrashLogs.includes(log._id)) {
+                            setSelectedTrashLogs(prev => prev.filter(id => id !== log._id));
+                          } else {
+                            setSelectedTrashLogs(prev => [...prev, log._id]);
+                          }
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', width: '100%' }}>
+                            <div style={{ width: '20px', height: '20px', borderRadius: '4px', border: `2px solid ${selectedTrashLogs.includes(log._id) ? '#ef4444' : 'rgba(255,255,255,0.3)'}`, background: selectedTrashLogs.includes(log._id) ? '#ef4444' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              {selectedTrashLogs.includes(log._id) && <Check size={14} color="white" />}
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ color: 'white', fontWeight: 'bold', marginBottom: '0.25rem' }}>{log.username} - {log.action}</div>
+                              <div style={{ color: '#94a3b8', fontSize: '0.9rem' }}>{log.details}</div>
+                            </div>
+                            <div style={{ color: '#64748b', fontSize: '0.85rem' }}>{formatPHTime(log.createdAt)}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
