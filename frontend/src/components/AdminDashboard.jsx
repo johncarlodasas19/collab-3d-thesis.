@@ -674,9 +674,9 @@ export default function AdminDashboard() {
               <div className="avatar" style={{ width: '36px', height: '36px', background: 'rgba(0,0,0,0.15)', overflow: 'hidden', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '600', fontSize: '1rem', color: 'white', flexShrink: 0 }}>
                 {currentUser.avatarUrl ? <img src={getMediaUrl(currentUser.avatarUrl)} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.onerror = null; e.target.src = getFallbackAvatar(currentUser.username); }} /> : currentUser.username?.[0]?.toUpperCase()}
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', gap: '3px', paddingTop: '2px', paddingBottom: '2px' }}>
-                <span style={{ color: 'white', fontWeight: 'bold', fontSize: '0.95rem', lineHeight: '1', display: 'block' }}>{currentUser.username}</span>
-                <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.8rem', lineHeight: '1', display: 'block' }}>{currentUser.email}</span>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', gap: '3px', paddingTop: '2px', paddingBottom: '2px', whiteSpace: 'nowrap' }}>
+                <span style={{ color: 'white', fontWeight: 'bold', fontSize: '0.95rem', lineHeight: '1', display: 'block' }}>Username: {currentUser.username}</span>
+                <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.8rem', lineHeight: '1', display: 'block' }}>Email: {currentUser.email}</span>
               </div>
             </div>
           </div>
