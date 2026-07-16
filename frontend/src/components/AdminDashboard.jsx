@@ -393,27 +393,63 @@ export default function AdminDashboard() {
   };
 
   const downloadCSV = () => {
-    const headers = ['Date', 'User', 'Action', 'Target/Project', 'Details'];
+    const headers = [
+      'Date', 
+      'Time',
+      'Admin Username', 
+      'Action', 
+      'Target Username',
+      'Target Email',
+      'Target Project Name',
+      'Target Project ID',
+      'Target Report ID',
+      'Full Details'
+    ];
+    
     const rows = activityLogs.map(log => {
-      let target = 'N/A';
+      let targetUsername = 'N/A';
+      let targetEmail = 'N/A';
+      let targetProjectName = 'N/A';
+      let targetProjectId = 'N/A';
+      let targetReportId = 'N/A';
       let details = log.details || '';
       
-      const projectMatch = details.match(/Project Name: (.+) \(ID: (.+)\)/);
-      if (projectMatch) {
-        target = projectMatch[1];
-      } else if (details.includes('Project ID:')) {
-        target = details.split('Project ID: ')[1];
-      } else if (details.includes('Report ID:')) {
-        target = details.split('Report ID: ')[1];
-      } else if (details.includes('Deleted user:')) {
-        target = details.split('Deleted user: ')[1];
+      const userMatch = details.match(/(?:Deleted user|Suspended user|Un-suspended user|Unbanned user): (.+?) \((.+?@.+?)\)/i) || details.match(/user: (.+?) \((.+?@.+?)\)/i);
+      if (userMatch) {
+        targetUsername = userMatch[1];
+        targetEmail = userMatch[2];
       }
       
+      const projectMatch = details.match(/Project Name: (.+?) \(ID: ([a-f0-9]{24})\)/);
+      if (projectMatch) {
+        targetProjectName = projectMatch[1];
+        targetProjectId = projectMatch[2];
+      } 
+      
+      if (details.includes('Project ID: ')) {
+        const idMatch = details.match(/Project ID: ([a-f0-9]{24})/);
+        if (idMatch) targetProjectId = idMatch[1];
+      }
+      
+      if (details.includes('Report ID: ')) {
+        const idMatch = details.match(/Report ID: ([a-f0-9]{24})/);
+        if (idMatch) targetReportId = idMatch[1];
+      }
+      
+      const dateObj = new Date(log.createdAt);
+      const datePart = dateObj.toLocaleDateString('en-US', { timeZone: 'Asia/Manila', year: 'numeric', month: 'short', day: '2-digit' });
+      const timePart = dateObj.toLocaleTimeString('en-US', { timeZone: 'Asia/Manila', hour: '2-digit', minute: '2-digit', hour12: true }) + ' (PHT)';
+      
       return [
-        formatPHTime(log.createdAt).replace(/,/g, ''),
-        log.username,
-        log.action,
-        `"${target.replace(/"/g, '""')}"`,
+        `"${datePart}"`,
+        `"${timePart}"`,
+        `"${log.username}"`,
+        `"${log.action}"`,
+        `"${targetUsername}"`,
+        `"${targetEmail}"`,
+        `"${targetProjectName}"`,
+        `"${targetProjectId}"`,
+        `"${targetReportId}"`,
         `"${details.replace(/"/g, '""')}"`
       ];
     });
